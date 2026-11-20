@@ -2,11 +2,27 @@
 import { SITE } from '../../core/config.js';
 ---
 <footer class="site-footer">
-  <p>Where artists play, and audiences discover.</p>
-  <a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer">Facebook ↗</a>
-  <small>© {new Date().getFullYear()} Artist Playground</small>
+  <div class="footer-main">
+    <a class="brand" href="/" aria-label="Artist Playground home"><span class="brand-mark">AP</span><span>ARTIST <strong>PLAYGROUND</strong></span></a>
+    <p>Where artists play, and audiences discover.</p>
+    <nav aria-label="Footer navigation">
+      <a href="/about/">About</a><a href="/educational-productions/">Educational Theater</a><a href="/productions/">Productions</a><a href="/workshops/">Workshops</a><a href="/events/">Events</a><a href="/gallery/">Gallery</a><a href="/contact/">Contact</a>
+    </nav>
+    <a class="social" href={SITE.social.facebook} target="_blank" rel="noopener noreferrer">Follow us on Facebook ↗</a>
+  </div>
+  <div class="footer-bottom"><small>© {new Date().getFullYear()} Artist Playground. All rights reserved.</small><small>Performance · Education · Creativity</small></div>
 </footer>
 <style>
-.site-footer { border-top:1px solid var(--ap-border); padding:2.5rem 5vw; display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between; color:var(--ap-muted); }
-.site-footer a { color:var(--ap-blue); }
+.site-footer { margin-top:3rem; border-top:1px solid var(--ap-border); padding:2.5rem 5vw 1.25rem; color:var(--ap-muted); }
+.footer-main { display:flex; flex-direction:column; gap:1.2rem; }
+.brand { display:inline-flex; align-items:center; gap:.65rem; color:var(--ap-yellow); font-weight:900; letter-spacing:.06em; text-decoration:none; }
+.brand strong { color:var(--ap-blue); }
+.brand-mark { display:grid; place-items:center; width:2rem; height:2rem; border:2px solid var(--ap-yellow); font-size:.75rem; }
+.footer-main p { margin:0; }
+nav { display:flex; flex-wrap:wrap; gap:1rem; }
+nav a { text-decoration:none; color:var(--ap-text); font-size:.85rem; }
+nav a:hover { color:var(--ap-yellow); }
+.social { color:var(--ap-blue); text-decoration:none; width:max-content; }
+.footer-bottom { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--ap-border); display:flex; justify-content:space-between; flex-wrap:wrap; gap:.75rem; font-size:.75rem; }
+@media(max-width:600px){ .footer-bottom { flex-direction:column; } }
 </style>
