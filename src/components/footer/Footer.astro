@@ -1,0 +1,12 @@
+---
+import { SITE } from '../../core/config.js';
+---
+<footer class="site-footer">
+  <p>Where artists play, and audiences discover.</p>
+  <a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer">Facebook ↗</a>
+  <small>© {new Date().getFullYear()} Artist Playground</small>
+</footer>
+<style>
+.site-footer { border-top:1px solid var(--ap-border); padding:2.5rem 5vw; display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between; color:var(--ap-muted); }
+.site-footer a { color:var(--ap-blue); }
+</style>
