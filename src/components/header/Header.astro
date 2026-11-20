@@ -1,19 +1,24 @@
 ---
 ---
 <header class="site-header">
-  <a class="brand" href="/" aria-label="Artist Playground home">ARTIST PLAYGROUND</a>
+  <a class="brand" href="/" aria-label="Artist Playground home">
+    <span class="brand-mark">AP</span>
+    <span class="brand-name">ARTIST <strong>PLAYGROUND</strong></span>
+  </a>
   <nav aria-label="Main navigation">
-    <a href="/productions/">Productions</a>
-    <a href="/workshops/">Workshops</a>
-    <a href="/events/">What's happening</a>
-    <a href="/about/">About</a>
-    <a href="/contact/">Contact</a>
+    <a href="/">Home</a><a href="/about/">About</a><a href="/educational-productions/">Educational</a><a href="/productions/">Theater</a><a href="/workshops/">Workshops</a><a href="/events/">Events</a><a href="/gallery/">Gallery</a><a href="/contact/" class="contact-link">Contact</a>
   </nav>
 </header>
 <style>
-.site-header { display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:1.25rem 5vw; border-bottom:1px solid var(--ap-border); }
-.brand { color:var(--ap-yellow); font-weight:900; letter-spacing:.08em; text-decoration:none; }
-nav { display:flex; flex-wrap:wrap; gap:1.25rem; }
-nav a { text-decoration:none; font-size:.9rem; }
-@media(max-width:700px) { .site-header { align-items:flex-start; flex-direction:column; } nav { gap:.8rem; } }
+.site-header { display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:1rem 5vw; border-bottom:1px solid var(--ap-border); background:var(--ap-black); }
+.brand { display:flex; align-items:center; gap:.75rem; color:var(--ap-yellow); text-decoration:none; flex-shrink:0; }
+.brand-mark { display:grid; place-items:center; width:2.4rem; height:2.4rem; border:2px solid var(--ap-yellow); font-weight:900; font-size:.85rem; }
+.brand-name { font-weight:900; letter-spacing:.07em; font-size:.95rem; }
+.brand-name strong { color:var(--ap-blue); }
+nav { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:.4rem; }
+nav a { text-decoration:none; font-size:.8rem; padding:.6rem .75rem; color:var(--ap-text); border:1px solid transparent; border-radius:.45rem; }
+nav a:hover, nav a:focus-visible { color:var(--ap-yellow); border-color:var(--ap-border); outline:none; }
+.contact-link { color:var(--ap-yellow); border-color:var(--ap-yellow); }
+@media(max-width:850px) { .site-header { align-items:flex-start; flex-direction:column; gap:1rem; } nav { justify-content:flex-start; } }
+@media(max-width:480px) { .site-header { padding:1rem 4vw; } nav { gap:.2rem; } nav a { padding:.5rem; font-size:.75rem; } }
 </style>
