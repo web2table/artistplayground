@@ -1,7 +1,78 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
 ---
-<BaseLayout title="About | Artist Playground">
-  <section class="page"><p class="eyebrow">ABOUT</p><h1>Artist Playground</h1><p>Where artists play, and audiences discover.</p><p>More about Artist Playground coming soon.</p></section>
+<BaseLayout title="About | Artist Playground" description="Learn about Artist Playground—educational theater, productions, workshops, and creative events.">
+  <section class="hero">
+    <p class="eyebrow">ABOUT ARTIST PLAYGROUND</p>
+    <h1>Where artists play,<br /><span>and audiences discover.</span></h1>
+    <p class="intro">Artist Playground brings performance, storytelling, and creative learning together through theater productions, educational plays, workshops, and events.</p>
+  </section>
+
+  <section class="section" aria-labelledby="what-we-do">
+    <div class="section-heading">
+      <p class="eyebrow">WHAT WE DO</p>
+      <h2 id="what-we-do">Stories come alive on stage.</h2>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <span class="number">01</span>
+        <h3>Educational Theater</h3>
+        <p>Stage adaptations of Filipino literary works designed to bring classroom stories and cultural works to life for student audiences.</p>
+      </article>
+      <article class="card">
+        <span class="number">02</span>
+        <h3>Theater Productions</h3>
+        <p>Original and curated theatrical productions that invite audiences to experience stories, characters, and ideas together.</p>
+      </article>
+      <article class="card">
+        <span class="number">03</span>
+        <h3>Workshops</h3>
+        <p>Creative learning opportunities and workshops that encourage participants to explore performance and artistic expression.</p>
+      </article>
+      <article class="card">
+        <span class="number">04</span>
+        <h3>Events</h3>
+        <p>Gatherings, announcements, and special activities connected to our creative work and community.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="statement">
+    <p class="eyebrow">OUR SPIRIT</p>
+    <h2>A playground for imagination.<br />A stage for stories.</h2>
+    <p>We believe stories can entertain, spark curiosity, and create meaningful moments. Artist Playground is a space for audiences and artists to meet through the shared experience of live performance and creative discovery.</p>
+  </section>
+
+  <section class="cta">
+    <h2>Let's make something memorable.</h2>
+    <p>For school performances, workshops, collaborations, or inquiries, get in touch with Artist Playground.</p>
+    <a href={`${base}contact/`} class="cta-link">Contact us <span aria-hidden="true">↗</span></a>
+  </section>
 </BaseLayout>
-<style>.page{padding:5rem 5vw;min-height:60vh}.eyebrow{color:var(--ap-blue);letter-spacing:.15em}h1{font-family:var(--ap-font-display);font-size:clamp(3rem,10vw,7rem);color:var(--ap-yellow)}</style>
+
+<style>
+.hero { padding:clamp(3.5rem,8vw,7rem) 5vw 4rem; background:linear-gradient(130deg,var(--ap-black),#151923); }
+.eyebrow { color:var(--ap-blue); letter-spacing:.16em; font-size:.78rem; font-weight:800; }
+h1 { font-family:var(--ap-font-display); font-size:clamp(2.7rem,8vw,6.5rem); line-height:1.02; color:var(--ap-yellow); margin:.8rem 0 1.5rem; }
+h1 span { color:var(--ap-text); }
+.intro { max-width:48rem; color:var(--ap-muted); font-size:clamp(1rem,2vw,1.25rem); line-height:1.7; }
+.section { padding:4.5rem 5vw; }
+.section-heading { margin-bottom:2rem; }
+.section-heading h2 { font-size:clamp(2rem,5vw,3.5rem); margin:.5rem 0 0; }
+.cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.card { border:1px solid var(--ap-border); border-radius:1rem; padding:1.5rem; background:#101319; }
+.number { color:var(--ap-blue); font-size:.8rem; font-weight:800; letter-spacing:.1em; }
+.card h3 { color:var(--ap-yellow); margin:.8rem 0; font-size:1.35rem; }
+.card p { color:var(--ap-muted); line-height:1.65; margin:0; }
+.statement { padding:4rem 5vw; background:var(--ap-blue); color:#080b10; }
+.statement .eyebrow { color:#10151e; }
+.statement h2 { font-family:var(--ap-font-display); font-size:clamp(2.3rem,6vw,5rem); line-height:1.05; margin:.75rem 0 1.25rem; }
+.statement p:last-child { max-width:48rem; line-height:1.7; }
+.cta { padding:4rem 5vw; }
+.cta h2 { font-size:clamp(2rem,5vw,3.5rem); color:var(--ap-yellow); margin:0 0 .8rem; }
+.cta p { color:var(--ap-muted); max-width:40rem; line-height:1.65; }
+.cta-link { display:inline-flex; gap:.6rem; align-items:center; margin-top:1rem; padding:.85rem 1.2rem; border:1px solid var(--ap-yellow); border-radius:.5rem; color:var(--ap-yellow); text-decoration:none; font-weight:800; }
+.cta-link:hover { background:var(--ap-yellow); color:var(--ap-black); }
+@media(max-width:640px) { .cards { grid-template-columns:1fr; } .hero { padding-top:3rem; } }
+</style>
