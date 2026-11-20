@@ -1,0 +1,19 @@
+---
+---
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Artist Playground home">ARTIST PLAYGROUND</a>
+  <nav aria-label="Main navigation">
+    <a href="/productions/">Productions</a>
+    <a href="/workshops/">Workshops</a>
+    <a href="/events/">What's happening</a>
+    <a href="/about/">About</a>
+    <a href="/contact/">Contact</a>
+  </nav>
+</header>
+<style>
+.site-header { display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:1.25rem 5vw; border-bottom:1px solid var(--ap-border); }
+.brand { color:var(--ap-yellow); font-weight:900; letter-spacing:.08em; text-decoration:none; }
+nav { display:flex; flex-wrap:wrap; gap:1.25rem; }
+nav a { text-decoration:none; font-size:.9rem; }
+@media(max-width:700px) { .site-header { align-items:flex-start; flex-direction:column; } nav { gap:.8rem; } }
+</style>
