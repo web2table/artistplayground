@@ -1,0 +1,12 @@
+ :root {
+  --ap-black: #000000;
+  --ap-yellow: #f5e900;
+  --ap-blue: #00a8d6;
+  --ap-white: #ffffff;
+  --ap-text: #f5f5f5;
+  --ap-muted: #b8b8b8;
+  --ap-surface: #111111;
+  --ap-border: #303030;
+  --ap-font-display: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  --ap-font-body: Arial, Helvetica, sans-serif;
+}
