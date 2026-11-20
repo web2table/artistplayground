@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL;
 ---
 <BaseLayout title="Educational Productions | Artist Playground">
-  <section class="page"><p class="eyebrow">FOR SCHOOLS</p><h1>Learning comes alive.</h1><p>Literature and stories brought to life through educational theater.</p><ul><li>Florante at Laura</li><li>Noli Me Tangere</li><li>El Filibusterismo</li><li>Ibong Adarna</li></ul><p>Contact Artist Playground for school performance inquiries.</p><a href="/contact/">INQUIRE ABOUT SCHOOL SHOWS ↗</a></section>
+  <section class="page"><p class="eyebrow">FOR SCHOOLS</p><h1>Learning comes alive.</h1><p>Literature and stories brought to life through educational theater.</p><ul><li>Florante at Laura</li><li>Noli Me Tangere</li><li>El Filibusterismo</li><li>Ibong Adarna</li></ul><p>Contact Artist Playground for school performance inquiries.</p><a href={`${base}contact/`}>INQUIRE ABOUT SCHOOL SHOWS ↗</a></section>
 </BaseLayout>
 <style>.page{padding:5rem 5vw;min-height:60vh}.eyebrow{color:var(--ap-blue);letter-spacing:.15em}h1{font-family:var(--ap-font-display);font-size:clamp(3rem,10vw,7rem);color:var(--ap-yellow)}a{color:var(--ap-blue)}</style>
