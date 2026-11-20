@@ -1,0 +1,12 @@
+@import './tokens.css';
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--ap-black);
+  color: var(--ap-text);
+  font-family: var(--ap-font-body);
+}
+a { color: inherit; }
+img { max-width: 100%; display: block; }
