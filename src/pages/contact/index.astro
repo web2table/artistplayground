@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SITE } from '../../core/config.js';
+---
+<BaseLayout title="Contact | Artist Playground">
+  <section class="page"><p class="eyebrow">GET IN TOUCH</p><h1>Let's make something happen.</h1><p>For school performances, theater shows, workshops, collaborations, and inquiries, connect with Artist Playground.</p><a href={SITE.social.facebook} target="_blank" rel="noopener noreferrer">Message Artist Playground on Facebook ↗</a></section>
+</BaseLayout>
+<style>.page{padding:5rem 5vw;min-height:60vh}.eyebrow{color:var(--ap-blue);letter-spacing:.15em}h1{font-family:var(--ap-font-display);font-size:clamp(2.5rem,8vw,6rem);color:var(--ap-yellow)}a{color:var(--ap-blue)}</style>
