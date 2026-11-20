@@ -7,6 +7,16 @@ body {
   background: var(--ap-black);
   color: var(--ap-text);
   font-family: var(--ap-font-body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+button, input, textarea, select { font: inherit; }
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--ap-font-display);
+  font-weight: 700;
+  letter-spacing: -0.04em;
 }
 a { color: inherit; }
 img { max-width: 100%; display: block; }
