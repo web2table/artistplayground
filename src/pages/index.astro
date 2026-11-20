@@ -1,24 +1,25 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Section from '../components/ui/Section.astro';
+const base = import.meta.env.BASE_URL;
 ---
 <BaseLayout title="Artist Playground" description="Where artists play, and audiences discover.">
   <section class="hero">
     <p class="eyebrow">PERFORMANCE · EDUCATION · CREATIVITY</p>
     <h1><span>WHERE ART</span><span class="yellow">GETS TO PLAY.</span></h1>
     <p class="tagline">Where artists play, and audiences discover.</p>
-    <a class="cta" href="#discover">EXPLORE THE PLAYGROUND ↗</a>
+    <a class="cta" href={`${base}about/`}>MEET ARTIST PLAYGROUND ↗</a>
   </section>
-  <Section eyebrow="Discover" title="A world of performance." >
-    <div id="discover" class="offerings">
-      <a class="offering yellow" href="/educational-productions/"><h3>Educational Theater</h3><p>Literature and learning brought to life on stage.</p></a>
-      <a class="offering blue" href="/productions/"><h3>Theater Productions</h3><p>Stories, performances, and experiences made for audiences.</p></a>
-      <a class="offering dark" href="/workshops/"><h3>Workshops</h3><p>Explore creativity, learn, and play.</p></a>
+  <Section eyebrow="Discover" title="A world of performance.">
+    <div class="offerings">
+      <a class="offering yellow" href={`${base}educational-productions/`}><h3>Educational Theater</h3><p>Literature and learning brought to life on stage.</p><span>Explore ↗</span></a>
+      <a class="offering blue" href={`${base}productions/`}><h3>Theater Productions</h3><p>Stories, performances, and experiences made for audiences.</p><span>Explore ↗</span></a>
+      <a class="offering dark" href={`${base}workshops/`}><h3>Workshops</h3><p>Explore creativity, learn, and play.</p><span>Explore ↗</span></a>
     </div>
   </Section>
   <Section eyebrow="Stay in the loop" title="See what's happening.">
     <p>Discover upcoming performances, workshops, and announcements from Artist Playground.</p>
-    <a class="cta" href="/events/">VIEW WHAT'S HAPPENING ↗</a>
+    <a class="cta" href={`${base}events/`}>VIEW WHAT'S HAPPENING ↗</a>
   </Section>
 </BaseLayout>
 <style>
@@ -30,9 +31,10 @@ h1 span { display:block; }
 .tagline { color:var(--ap-muted); font-size:1.1rem; }
 .cta { display:inline-block; margin-top:1.5rem; color:var(--ap-yellow); font-weight:bold; text-decoration:none; }
 .offerings { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
-.offering { min-height:250px; padding:2rem; text-decoration:none; border-radius:1rem; display:flex; flex-direction:column; justify-content:flex-end; }
+.offering { min-height:250px; padding:2rem; text-decoration:none; border-radius:1rem; display:flex; flex-direction:column; justify-content:flex-end; gap:.5rem; }
 .offering h3 { font-size:1.7rem; margin:0 0 .5rem; }
 .offering p { margin:0; }
+.offering span { font-weight:800; margin-top:.75rem; }
 .offering.yellow { background:var(--ap-yellow); color:#000; }
 .offering.blue { background:var(--ap-blue); color:#001319; }
 .offering.dark { background:#171717; border:1px solid #333; color:white; }
