@@ -1,0 +1,127 @@
+media:
+  input: public/media
+  output: /media
+
+content:
+  - name: productions
+    label: Productions
+    type: collection
+    path: src/content/productions
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    fields:
+      - name: title
+        label: Production title
+        type: string
+        required: true
+      - name: category
+        label: Category
+        type: select
+        options:
+          values:
+            - educational
+            - theater
+        required: true
+      - name: description
+        label: Description
+        type: text
+      - name: poster
+        label: Poster image
+        type: image
+      - name: status
+        label: Status
+        type: select
+        options:
+          values:
+            - upcoming
+            - now-showing
+            - past
+        default: upcoming
+      - name: featured
+        label: Featured
+        type: boolean
+        default: false
+      - name: startDate
+        label: Start date
+        type: date
+      - name: endDate
+        label: End date
+        type: date
+      - name: venue
+        label: Venue
+        type: string
+      - name: ticketUrl
+        label: Ticket link
+        type: string
+      - name: bookingUrl
+        label: Booking or inquiry link
+        type: string
+      - name: published
+        label: Published
+        type: boolean
+        default: false
+
+  - name: workshops
+    label: Workshops
+    type: collection
+    path: src/content/workshops
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    fields:
+      - name: title
+        label: Workshop title
+        type: string
+        required: true
+      - name: description
+        label: Description
+        type: text
+      - name: image
+        label: Workshop image
+        type: image
+      - name: facilitator
+        label: Facilitator
+        type: string
+      - name: audience
+        label: Intended audience
+        type: string
+      - name: schedule
+        label: Schedule
+        type: string
+      - name: venue
+        label: Venue
+        type: string
+      - name: registrationUrl
+        label: Registration link
+        type: string
+      - name: published
+        label: Published
+        type: boolean
+        default: false
+
+  - name: events
+    label: Events and announcements
+    type: collection
+    path: src/content/events
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    fields:
+      - name: title
+        label: Event or announcement
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+      - name: venue
+        label: Venue
+        type: string
+      - name: description
+        label: Description
+        type: text
+      - name: link
+        label: Link
+        type: string
+      - name: published
+        label: Published
+        type: boolean
+        default: false
