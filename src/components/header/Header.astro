@@ -5,18 +5,60 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
   <a class="brand" href={base} aria-label="Artist Playground home">
     <img class="brand-logo" src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" />
   </a>
-  <nav aria-label="Main navigation">
+  <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-navigation">
+    <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+    <span class="menu-label">Menu</span>
+  </button>
+  <nav id="main-navigation" aria-label="Main navigation">
     <a href={base}>Home</a><a href={`${base}about/`}>About</a><a href={`${base}educational-productions/`}>Educational</a><a href={`${base}productions/`}>Theater</a><a href={`${base}workshops/`}>Workshops</a><a href={`${base}events/`}>Events</a><a href={`${base}gallery/`}>Gallery</a><a href={`${base}contact/`} class="contact-link">Contact</a>
   </nav>
 </header>
+<script>
+  const header = document.querySelector('.site-header');
+  const toggle = header?.querySelector('.menu-toggle');
+  const nav = header?.querySelector('#main-navigation');
+  const closeMenu = () => {
+    toggle?.setAttribute('aria-expanded', 'false');
+    header?.classList.remove('menu-open');
+  };
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') !== 'true';
+    toggle.setAttribute('aria-expanded', String(open));
+    header?.classList.toggle('menu-open', open);
+  });
+  nav?.addEventListener('click', (event) => {
+    if (event.target instanceof HTMLAnchorElement) closeMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+  document.addEventListener('click', (event) => {
+    if (header && !header.contains(event.target)) closeMenu();
+  });
+</script>
 <style>
-.site-header { display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:1rem 5vw; border-bottom:1px solid var(--ap-border); background:var(--ap-black); }
+.site-header { display:flex; align-items:center; justify-content:space-between; gap:2rem; padding:1rem 5vw; border-bottom:1px solid var(--ap-border); background:var(--ap-black); position:relative; z-index:20; }
 .brand { display:flex; align-items:center; text-decoration:none; flex-shrink:0; }
 .brand-logo { width:auto; height:3.5rem; max-width:220px; object-fit:contain; }
 nav { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:.4rem; }
 nav a { text-decoration:none; font-size:.8rem; padding:.6rem .75rem; color:var(--ap-text); border:1px solid transparent; border-radius:.45rem; }
 nav a:hover, nav a:focus-visible { color:var(--ap-yellow); border-color:var(--ap-border); outline:none; }
 .contact-link { color:var(--ap-yellow); border-color:var(--ap-yellow); }
-@media(max-width:850px) { .site-header { align-items:flex-start; flex-direction:column; gap:1rem; } nav { justify-content:flex-start; } }
-@media(max-width:480px) { .site-header { padding:1rem 4vw; } .brand-logo { height:3rem; max-width:190px; } nav { gap:.2rem; } nav a { padding:.5rem; font-size:.75rem; } }
+.menu-toggle { display:none; align-items:center; justify-content:center; gap:.65rem; border:1px solid var(--ap-border); background:#111; color:var(--ap-text); padding:.65rem .8rem; border-radius:.5rem; cursor:pointer; }
+.menu-icon { display:flex; width:1.1rem; flex-direction:column; gap:4px; }
+.menu-icon span { display:block; width:100%; height:2px; background:currentColor; transition:transform .2s,opacity .2s; }
+.menu-label { font-size:.85rem; font-weight:700; }
+@media(max-width:850px) {
+  .site-header { flex-direction:row; align-items:center; gap:1rem; padding:1rem 5vw; }
+  .menu-toggle { display:flex; }
+  nav { display:none; position:absolute; left:0; right:0; top:100%; padding:1rem 5vw 1.25rem; background:var(--ap-black); border-bottom:1px solid var(--ap-border); flex-direction:column; align-items:stretch; gap:.3rem; box-shadow:0 16px 28px rgba(0,0,0,.35); }
+  .menu-open nav { display:flex; }
+  nav a { display:block; width:100%; padding:.8rem 1rem; font-size:.9rem; border-radius:.4rem; }
+  nav a:hover,nav a:focus-visible { background:#151515; }
+  .contact-link { border-color:transparent; }
+  .menu-open .menu-icon span:nth-child(1) { transform:translateY(6px) rotate(45deg); }
+  .menu-open .menu-icon span:nth-child(2) { opacity:0; }
+  .menu-open .menu-icon span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); }
+}
+@media(max-width:480px) { .site-header { padding:1rem 4vw; } .brand-logo { height:3rem; max-width:190px; } nav { padding-left:4vw; padding-right:4vw; } }
 </style>
