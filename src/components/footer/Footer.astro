@@ -1,28 +1,49 @@
 ---
 import { SITE } from '../../core/config.js';
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 ---
 <footer class="site-footer">
   <div class="footer-main">
-    <a class="brand" href={import.meta.env.BASE_URL} aria-label="Artist Playground home"><span class="brand-mark">AP</span><span>ARTIST <strong>PLAYGROUND</strong></span></a>
-    <p>Where artists play, and audiences discover.</p>
-    <nav aria-label="Footer navigation">
-      <a href={`${import.meta.env.BASE_URL}about/`}>About</a><a href={`${import.meta.env.BASE_URL}educational-productions/`}>Educational Theater</a><a href={`${import.meta.env.BASE_URL}productions/`}>Productions</a><a href={`${import.meta.env.BASE_URL}workshops/`}>Workshops</a><a href={`${import.meta.env.BASE_URL}events/`}>Events</a><a href={`${import.meta.env.BASE_URL}gallery/`}>Gallery</a><a href={`${import.meta.env.BASE_URL}contact/`}>Contact</a>
-    </nav>
-    <a class="social" href={SITE.social.facebook} target="_blank" rel="noopener noreferrer">Follow us on Facebook ↗</a>
+    <div class="brand-block">
+      <a class="brand" href={base} aria-label="Artist Playground home">
+        <img src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" />
+      </a>
+      <p>Where artists play, and audiences discover.</p>
+      <a class="social" href={SITE.social.facebook} target="_blank" rel="noopener noreferrer">Follow Artist Playground on Facebook ↗</a>
+    </div>
+    <div class="footer-links">
+      <p class="links-label">EXPLORE</p>
+      <nav aria-label="Footer navigation">
+        <a href={base}>Home</a>
+        <a href={`${base}about/`}>About</a>
+        <a href={`${base}educational-productions/`}>Educational Theater</a>
+        <a href={`${base}productions/`}>Theater Productions</a>
+        <a href={`${base}workshops/`}>Workshops</a>
+        <a href={`${base}events/`}>Events</a>
+        <a href={`${base}gallery/`}>Gallery</a>
+        <a href={`${base}contact/`}>Contact</a>
+      </nav>
+    </div>
   </div>
-  <div class="footer-bottom"><small>© {new Date().getFullYear()} Artist Playground. All rights reserved.</small><small>Performance · Education · Creativity</small></div>
+  <div class="footer-bottom">
+    <small>© {new Date().getFullYear()} Artist Playground. All rights reserved.</small>
+    <small>Performance · Education · Creativity</small>
+  </div>
 </footer>
 <style>
-.site-footer { margin-top:3rem; border-top:1px solid var(--ap-border); padding:2.5rem 5vw 1.25rem; color:var(--ap-muted); }
-.footer-main { display:flex; flex-direction:column; gap:1.2rem; }
-.brand { display:inline-flex; align-items:center; gap:.65rem; color:var(--ap-yellow); font-weight:900; letter-spacing:.06em; text-decoration:none; }
-.brand strong { color:var(--ap-blue); }
-.brand-mark { display:grid; place-items:center; width:2rem; height:2rem; border:2px solid var(--ap-yellow); font-size:.75rem; }
-.footer-main p { margin:0; }
-nav { display:flex; flex-wrap:wrap; gap:1rem; }
-nav a { text-decoration:none; color:var(--ap-text); font-size:.85rem; }
-nav a:hover { color:var(--ap-yellow); }
-.social { color:var(--ap-blue); text-decoration:none; width:max-content; }
-.footer-bottom { margin-top:2rem; padding-top:1rem; border-top:1px solid var(--ap-border); display:flex; justify-content:space-between; flex-wrap:wrap; gap:.75rem; font-size:.75rem; }
-@media(max-width:600px){ .footer-bottom { flex-direction:column; } }
+.site-footer { margin-top:clamp(3rem,7vw,6rem); border-top:1px solid var(--ap-border); padding:clamp(2rem,4vw,3.5rem) 5vw 1.25rem; color:var(--ap-muted); }
+.footer-main { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:clamp(2rem,5vw,5rem); align-items:start; }
+.brand-block { display:flex; flex-direction:column; align-items:flex-start; gap:1rem; }
+.brand { display:inline-flex; align-items:center; text-decoration:none; }
+.brand img { display:block; width:auto; height:3.25rem; max-width:200px; object-fit:contain; }
+.brand-block p { margin:0; color:var(--ap-muted); line-height:1.6; }
+.social { color:var(--ap-blue); text-decoration:none; font-weight:700; width:max-content; }
+.social:hover,.social:focus-visible { color:var(--ap-yellow); }
+.links-label { color:var(--ap-blue); font-size:.7rem; font-weight:800; letter-spacing:.16em; margin:0 0 1rem; }
+.footer-links nav { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.85rem 1.5rem; }
+.footer-links nav a { text-decoration:none; color:var(--ap-text); font-size:.85rem; width:max-content; max-width:100%; }
+.footer-links nav a:hover,.footer-links nav a:focus-visible { color:var(--ap-yellow); }
+.footer-bottom { margin-top:clamp(2rem,4vw,3.5rem); padding-top:1rem; border-top:1px solid var(--ap-border); display:flex; justify-content:space-between; flex-wrap:wrap; gap:.75rem; font-size:.75rem; }
+@media(max-width:700px){ .footer-main{grid-template-columns:1fr;gap:2.5rem} .footer-links nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem 1rem} .footer-bottom{flex-direction:column;align-items:flex-start} }
+@media(max-width:380px){ .footer-links nav{grid-template-columns:1fr} }
 </style>
