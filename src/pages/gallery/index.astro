@@ -1,12 +1,59 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Gallery | Artist Playground" description="Photos and moments from Artist Playground.">
-  <section class="page">
-    <p class="eyebrow">BEHIND THE CURTAIN</p>
-    <h1>Gallery</h1>
-    <p>Snapshots from our productions, workshops, events, and creative moments. Gallery highlights will be added here.</p>
-    <a href="https://www.facebook.com/artplayg" target="_blank" rel="noopener noreferrer">Explore more on Facebook ↗</a>
+<BaseLayout title="Gallery | Artist Playground" description="A glimpse into performances, workshops, rehearsals, and creative moments at Artist Playground.">
+  <section class="gallery-page">
+    <header class="intro">
+      <p class="eyebrow">BEHIND THE CURTAIN</p>
+      <h1>Every moment<br /><span>has a story.</span></h1>
+      <p class="lead">From the first rehearsal to the final bow, explore the people, passion, and creativity that make every Artist Playground experience special.</p>
+      <a class="social-link" href="https://www.facebook.com/artplayg" target="_blank" rel="noopener noreferrer">See our latest moments on Facebook ↗</a>
+    </header>
+
+    <div class="gallery-grid" aria-label="Gallery categories">
+      <article class="gallery-card featured">
+        <span class="number">01</span>
+        <div><p class="tag">ON STAGE</p><h2>Productions</h2><p>Stories brought to life under the lights.</p></div>
+      </article>
+      <article class="gallery-card">
+        <span class="number">02</span>
+        <div><p class="tag">IN THE MAKING</p><h2>Rehearsals</h2><p>Where ideas, movement, and characters take shape.</p></div>
+      </article>
+      <article class="gallery-card">
+        <span class="number">03</span>
+        <div><p class="tag">LEARNING & PLAY</p><h2>Workshops</h2><p>Creative discoveries and shared experiences.</p></div>
+      </article>
+      <article class="gallery-card">
+        <span class="number">04</span>
+        <div><p class="tag">THE PEOPLE</p><h2>Backstage</h2><p>Small moments and the team behind the magic.</p></div>
+      </article>
+    </div>
+
+    <section class="outro">
+      <p class="eyebrow">STAY IN THE LOOP</p>
+      <h2>More memories<br />are on the way.</h2>
+      <p>Follow our page for photo updates, announcements, and glimpses of what we're creating next.</p>
+      <a class="social-link" href="https://www.facebook.com/artplayg" target="_blank" rel="noopener noreferrer">Follow Artist Playground ↗</a>
+    </section>
   </section>
 </BaseLayout>
-<style>.page{padding:5rem 5vw;min-height:60vh}.eyebrow{color:var(--ap-blue);letter-spacing:.15em}h1{font-family:var(--ap-font-display);font-size:clamp(3rem,10vw,7rem);color:var(--ap-yellow)}a{color:var(--ap-blue)}</style>
+<style>
+.gallery-page{padding:clamp(3rem,7vw,6rem) 5vw;min-height:70vh}
+.intro{max-width:850px;margin:0 auto 4rem}
+.eyebrow,.tag{color:var(--ap-blue);letter-spacing:.16em;font-size:.75rem;font-weight:700}
+h1{font-family:var(--ap-font-display);font-size:clamp(3.2rem,10vw,7.5rem);line-height:.95;color:var(--ap-yellow);margin:1rem 0 1.5rem}
+h1 span{color:var(--ap-text,inherit);opacity:.82}
+.lead{font-size:clamp(1.05rem,2vw,1.35rem);line-height:1.7;max-width:680px}
+.social-link{display:inline-block;margin-top:1.2rem;color:var(--ap-blue);font-weight:700;text-decoration:none;border-bottom:1px solid currentColor;padding-bottom:.3rem}
+.gallery-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.gallery-card{min-height:260px;border:1px solid rgba(128,128,128,.25);border-radius:1.25rem;padding:clamp(1.5rem,4vw,2.5rem);display:flex;flex-direction:column;justify-content:space-between;background:rgba(128,128,128,.045);transition:background .2s ease}
+.gallery-card.featured{min-height:340px;grid-row:span 2;background:rgba(128,128,128,.07)}
+.number{font-size:.8rem;opacity:.55;letter-spacing:.12em}
+.gallery-card h2{font-family:var(--ap-font-display);font-size:clamp(1.8rem,4vw,3rem);margin:.4rem 0}
+.gallery-card p:not(.tag){opacity:.75;line-height:1.6;margin-bottom:0}
+.tag{margin:0}
+.outro{text-align:center;max-width:700px;margin:clamp(4rem,8vw,7rem) auto 1rem;padding-top:3rem;border-top:1px solid rgba(128,128,128,.25)}
+.outro h2{font-family:var(--ap-font-display);font-size:clamp(2.5rem,6vw,4.5rem);color:var(--ap-yellow);line-height:1;margin:1rem 0}
+.outro>p:not(.eyebrow){opacity:.75;line-height:1.7}
+@media(max-width:650px){.gallery-grid{grid-template-columns:1fr}.gallery-card.featured{grid-row:auto;min-height:260px}.gallery-card{min-height:220px}}
+</style>
