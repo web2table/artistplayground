@@ -10,4 +10,10 @@
   /* Web2Table typography */
   --ap-font-display: 'Manrope', sans-serif;
   --ap-font-body: 'Inter', sans-serif;
+  --ap-size-hero: clamp(2.5rem, 5vw, 4rem);
+  --ap-size-section: clamp(1.875rem, 3vw, 2.5rem);
+  --ap-size-card: 1.5rem;
+  --ap-size-body: 1rem;
+  --ap-size-support: .875rem;
+  --ap-size-eyebrow: .75rem;
 }
