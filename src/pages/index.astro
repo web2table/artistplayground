@@ -22,7 +22,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
   </Section>
 </BaseLayout>
 <style>
-.hero { min-height:48vh; padding:clamp(3rem,6vw,5rem) 5vw; display:flex; flex-direction:column; justify-content:center; }
+.hero { min-height:0; padding:clamp(2.5rem,4vw,3.5rem) 5vw; display:flex; flex-direction:column; justify-content:flex-start; }
 .eyebrow { color:var(--ap-blue); letter-spacing:.15em; font-size:var(--ap-size-eyebrow); }
 h1 { font-family:var(--ap-font-display); font-size:var(--ap-size-hero); line-height:.88; margin:1.5rem 0; }
 h1 span { display:block; }
@@ -39,5 +39,5 @@ h1 span { display:block; }
 .offering.yellow { background:var(--ap-yellow); color:#000; }
 .offering.blue { background:var(--ap-blue); color:#001319; }
 .offering.dark { background:#171717; border:1px solid #333; color:white; }
-@media(max-width:700px){ .hero { min-height:0; padding:4rem 5vw 3.5rem; justify-content:flex-start; } .hero h1 { margin:1rem 0; } .hero .tagline { margin-top:.5rem; } .hero .cta { margin-top:1.25rem; } .offerings { grid-template-columns:1fr; } .offering { min-height:180px; } }
+@media(max-width:700px){ .hero { min-height:0; padding:2.5rem 5vw 2rem; justify-content:flex-start; } .hero h1 { margin:1rem 0; } .hero .tagline { margin-top:.5rem; } .hero .cta { margin-top:1.25rem; } .offerings { grid-template-columns:1fr; } .offering { min-height:180px; } }
 </style>
