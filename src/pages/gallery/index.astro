@@ -17,11 +17,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <style>
 .gallery-page{padding:clamp(3rem,7vw,6rem) 5vw;min-height:70vh}
 .intro{width:100%;margin:0 0 4rem;text-align:left}
-.eyebrow{color:var(--ap-blue);letter-spacing:.16em;font-size:.75rem;font-weight:700}
-h1{font-family:var(--ap-font-display);font-size:clamp(3.2rem,10vw,7.5rem);line-height:.95;color:var(--ap-yellow);margin:1rem 0 1.5rem}
-.lead{font-size:clamp(1.05rem,2vw,1.35rem);line-height:1.7;max-width:680px}
+.eyebrow{color:var(--ap-blue);letter-spacing:.16em;font-size:var(--ap-size-eyebrow);font-weight:700}
+h1{font-family:var(--ap-font-display);font-size:var(--ap-size-hero);line-height:.95;color:var(--ap-yellow);margin:1rem 0 1.5rem}
+.lead{font-size:var(--ap-size-body);line-height:1.7;max-width:680px}
 .empty-state{margin-top:2rem;padding:clamp(1.5rem,4vw,3rem);border:1px dashed var(--ap-border);border-radius:1rem;text-align:center}
-.empty-state h3{font-family:var(--ap-font-display);font-size:1.5rem;margin:.8rem 0}
+.empty-state h3{font-family:var(--ap-font-display);font-size:var(--ap-size-card);margin:.8rem 0}
 .empty-state p{max-width:40rem;margin:0 auto;color:var(--ap-muted);line-height:1.65}
 @media(max-width:650px){.gallery-page{padding-inline:1.25rem}}
 </style>
