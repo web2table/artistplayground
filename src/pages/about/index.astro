@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-const base = import.meta.env.BASE_URL;
 ---
 <BaseLayout title="About | Artist Playground" description="Learn about Artist Playground and its educational theater, stage productions, and workshops.">
   <section class="hero">
@@ -72,7 +71,5 @@ h1 span { color:var(--ap-text); }
 .cta { padding:4rem 5vw; }
 .cta h2 { font-size:clamp(2rem,5vw,3.5rem); color:var(--ap-yellow); margin:0 0 .8rem; }
 .cta p { color:var(--ap-muted); max-width:40rem; line-height:1.65; }
-.cta-link { display:inline-flex; gap:.6rem; align-items:center; margin-top:1rem; padding:.85rem 1.2rem; border:1px solid var(--ap-yellow); border-radius:.5rem; color:var(--ap-yellow); text-decoration:none; font-weight:800; }
-.cta-link:hover { background:var(--ap-yellow); color:var(--ap-black); }
 @media(max-width:640px) { .cards { grid-template-columns:1fr; } .hero { padding-top:3rem; } }
 </style>
