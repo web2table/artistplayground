@@ -52,21 +52,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 <style>
 .hero { padding:clamp(3.5rem,8vw,7rem) 5vw 4rem; background:linear-gradient(130deg,var(--ap-black),#151923); }
-.eyebrow { color:var(--ap-blue); letter-spacing:.16em; font-size:.78rem; font-weight:800; }
-h1 { font-family:var(--ap-font-display); font-size:clamp(2.7rem,8vw,6.5rem); line-height:1.02; color:var(--ap-yellow); margin:.8rem 0 1.5rem; }
+.eyebrow { color:var(--ap-blue); letter-spacing:.16em; font-size:var(--ap-size-eyebrow); font-weight:800; }
+h1 { font-family:var(--ap-font-display); font-size:var(--ap-size-hero); line-height:1.02; color:var(--ap-yellow); margin:.8rem 0 1.5rem; }
 h1 span { color:var(--ap-text); }
-.intro { max-width:48rem; color:var(--ap-muted); font-size:clamp(1rem,2vw,1.25rem); line-height:1.7; }
+.intro { max-width:48rem; color:var(--ap-muted); font-size:var(--ap-size-body); line-height:1.7; }
 .section { padding:4.5rem 5vw; }
 .section-heading { margin-bottom:2rem; }
-.section-heading h2 { font-size:clamp(2rem,5vw,3.5rem); margin:.5rem 0 0; }
+.section-heading h2 { font-size:var(--ap-size-section); margin:.5rem 0 0; }
 .cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
 .card { border:1px solid var(--ap-border); border-radius:1rem; padding:1.5rem; background:#101319; }
 .number { color:var(--ap-blue); font-size:.8rem; font-weight:800; letter-spacing:.1em; }
-.card h3 { color:var(--ap-yellow); margin:.8rem 0; font-size:1.35rem; }
+.card h3 { color:var(--ap-yellow); margin:.8rem 0; font-size:var(--ap-size-card); }
 .card p { color:var(--ap-muted); line-height:1.65; margin:0; }
 .statement { padding:4rem 5vw; background:var(--ap-blue); color:#080b10; }
 .statement .eyebrow { color:#10151e; }
-.statement h2 { font-family:var(--ap-font-display); font-size:clamp(2.3rem,6vw,5rem); line-height:1.05; margin:.75rem 0 1.25rem; }
+.statement h2 { font-family:var(--ap-font-display); font-size:var(--ap-size-hero); line-height:1.05; margin:.75rem 0 1.25rem; }
 .statement p:last-child { max-width:48rem; line-height:1.7; }
 .cta { padding:4rem 5vw; }
 .cta h2 { font-size:clamp(2rem,5vw,3.5rem); color:var(--ap-yellow); margin:0 0 .8rem; }
