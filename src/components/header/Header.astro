@@ -1,5 +1,17 @@
 ---
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+const currentPath = Astro.url.pathname;
+const activeFor = (path) => currentPath === path || (path !== base && currentPath.startsWith(path));
+const links = [
+  { label: 'Home', href: base },
+  { label: 'About', href: `${base}about/` },
+  { label: 'Educational', href: `${base}educational-productions/` },
+  { label: 'Theater', href: `${base}productions/` },
+  { label: 'Workshops', href: `${base}workshops/` },
+  { label: 'Events', href: `${base}events/` },
+  { label: 'Gallery', href: `${base}gallery/` },
+  { label: 'Contact', href: `${base}contact/` },
+];
 ---
 <header class="site-header">
   <a class="brand" href={base} aria-label="Artist Playground home">
@@ -10,7 +22,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     <span class="menu-label">Menu</span>
   </button>
   <nav id="main-navigation" aria-label="Main navigation">
-    <a href={base}>Home</a><a href={`${base}about/`}>About</a><a href={`${base}educational-productions/`}>Educational</a><a href={`${base}productions/`}>Theater</a><a href={`${base}workshops/`}>Workshops</a><a href={`${base}events/`}>Events</a><a href={`${base}gallery/`}>Gallery</a><a href={`${base}contact/`} class="contact-link">Contact</a>
+    {links.map((link) => (
+      <a href={link.href} class:list={{ 'is-active': activeFor(link.href) }} aria-current={activeFor(link.href) ? 'page' : undefined}>{link.label}</a>
+    ))}
   </nav>
 </header>
 <script>
@@ -41,9 +55,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 .brand { display:flex; align-items:center; text-decoration:none; flex-shrink:0; }
 .brand-logo { width:auto; height:3.5rem; max-width:220px; object-fit:contain; }
 nav { display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:.4rem; }
-nav a { text-decoration:none; font-size:.8rem; padding:.6rem .75rem; color:var(--ap-text); border:1px solid transparent; border-radius:.45rem; }
+nav a { text-decoration:none; font-size:.8rem; padding:.6rem .75rem; color:var(--ap-text); border:1px solid transparent; border-radius:.45rem; transition:color .15s,background .15s,border-color .15s; }
 nav a:hover, nav a:focus-visible { color:var(--ap-yellow); border-color:var(--ap-border); outline:none; }
-.contact-link { color:var(--ap-yellow); border-color:var(--ap-yellow); }
+nav a.is-active { color:var(--ap-yellow); border-color:var(--ap-yellow); background:rgba(242,255,0,.06); }
 .menu-toggle { display:none; align-items:center; justify-content:center; gap:.65rem; border:1px solid var(--ap-border); background:#111; color:var(--ap-text); padding:.65rem .8rem; border-radius:.5rem; cursor:pointer; }
 .menu-icon { display:flex; width:1.1rem; flex-direction:column; gap:4px; }
 .menu-icon span { display:block; width:100%; height:2px; background:currentColor; transition:transform .2s,opacity .2s; }
@@ -55,7 +69,7 @@ nav a:hover, nav a:focus-visible { color:var(--ap-yellow); border-color:var(--ap
   .menu-open nav { display:flex; }
   nav a { display:block; width:100%; padding:.8rem 1rem; font-size:.9rem; border-radius:.4rem; }
   nav a:hover,nav a:focus-visible { background:#151515; }
-  .contact-link { border-color:transparent; }
+  nav a.is-active { background:rgba(242,255,0,.08); }
   .menu-open .menu-icon span:nth-child(1) { transform:translateY(6px) rotate(45deg); }
   .menu-open .menu-icon span:nth-child(2) { opacity:0; }
   .menu-open .menu-icon span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); }
