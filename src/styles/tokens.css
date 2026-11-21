@@ -16,4 +16,8 @@
   --ap-size-body: 1rem;
   --ap-size-support: .875rem;
   --ap-size-eyebrow: .75rem;
+  --ap-size-micro: .7rem;
+  --ap-size-nav: .8rem;
+  --ap-size-nav-mobile: .9rem;
+  --ap-size-menu: .85rem;
 }
