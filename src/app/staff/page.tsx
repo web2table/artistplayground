@@ -146,7 +146,7 @@ export default function StaffDashboardPage() {
 
 {activeTab === 'overview' &&         <section className="staff-welcome"><div><span className="welcome-label">ARTIST PLAYGROUND · OPERATIONS</span><h2>Everything you need for<br/>a smooth show day.</h2><p>Manage bookings, payments, admissions, and daily activity from one workspace.</p></div><div className="welcome-mark" aria-hidden="true">AP</div></section>}
 
-{activeTab === 'overview' &&         <section className="staff-section" id="sales"><div className="section-heading"><div><h2>Today at a glance</h2><p>Live operational figures will appear here as sales and ticketing workflows are connected.</p></div><span className="live-indicator">WORKSPACE</span></div>
+{activeTab === 'sales' &&         <section className="staff-section" id="sales"><div className="section-heading"><div><h2>Daily sales overview</h2><p>Live operational figures will appear here as sales and ticketing workflows are connected.</p></div><span className="live-indicator">WORKSPACE</span></div>
           <div className="staff-metrics">
             <article className="metric-card"><span>Today’s sales</span><strong>—</strong><small>Online + box office</small></article>
             <article className="metric-card"><span>Bookings</span><strong>—</strong><small>Confirmed today</small></article>
