@@ -113,7 +113,7 @@ export default function BookTicketsPage() {
           <button className="booking-back" type="button" onClick={() => setShowBookingForm(false)} aria-label="Back to shows" title="Back to shows">←</button>
           <form id="booking-details-form" onSubmit={startCheckout}>
           {performance && <div className="selected-show-summary">
-            <p className="eyebrow">YOU'RE BOOKING</p>
+            <p className="eyebrow">YOU&apos;RE BOOKING</p>
             <h2>{performance.production_title}</h2>
             <p>{dateTime(performance.starts_at)}</p>
             <p>{performance.venue_name}{performance.venue_address ? ' · ' + performance.venue_address : ''}</p>
