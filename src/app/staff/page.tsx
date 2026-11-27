@@ -200,9 +200,8 @@ export default function StaffDashboardPage() {
         try {
           const codes = await detector.detect(videoRef.current);
           if (codes.length && codes[0].rawValue) {
-            setScanCredential(codes[0].rawValue);
             stopQrCamera();
-            setCameraMessage('QR code captured. Press Validate ticket to check admission.');
+            void validateTicketValue(codes[0].rawValue);
             return;
           }
         } catch { /* Continue scanning the next camera frame. */ }
