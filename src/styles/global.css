@@ -26,3 +26,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 a { color: inherit; }
 img { max-width: 100%; display: block; }
+
+/* Reserve the header logo dimensions before client-side component styles hydrate. */
+.site-header .brand-logo {
+  display: block;
+  width: auto;
+  height: 3.5rem;
+  max-width: 220px;
+  object-fit: contain;
+}
+@media (max-width: 480px) {
+  .site-header .brand-logo {
+    height: 3rem;
+    max-width: 190px;
+  }
+}
