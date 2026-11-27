@@ -200,7 +200,7 @@ export default function StaffProductionsPage() {
   return (
     <div className="prod-workspace">
       <aside className="prod-sidebar">
-        <a className="prod-brand" href={appPath('/')}><span className="prod-mark">AP</span><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
+        <a className="prod-brand" href={appPath('/')}><img className="prod-mark" src={appPath('/ap.jpg')} alt="Artist Playground logo" /><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
         <div className="prod-nav-label">WORKSPACE</div>
         <a className="prod-nav" href={appPath('/staff/#overview')}>⌂　Overview</a>
         <div className="prod-nav-label">MANAGEMENT</div>
@@ -288,7 +288,7 @@ export default function StaffProductionsPage() {
         .prod-workspace{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr);background:#090a0c;color:#f4f5f7;font-family:Inter,Arial,sans-serif}
         .prod-sidebar{position:sticky;top:0;height:100vh;min-height:620px;background:#0e1013;border-right:1px solid #252a31;padding:1.35rem 1rem;display:flex;flex-direction:column}
         .prod-brand{display:flex;align-items:center;gap:.75rem;padding:.35rem .5rem 2.3rem;color:#f2f4f6;text-decoration:none;font-size:.68rem;font-weight:800;letter-spacing:.08em}.prod-brand small{display:block;color:#7f8995;font-size:.6rem;letter-spacing:.13em;margin-top:.35rem}
-        .prod-mark{display:grid;place-items:center;width:39px;height:39px;border:1px solid #00a8d6;border-radius:10px;color:#f5e900;font-size:.9rem}
+        .prod-mark{display:block;flex:0 0 39px;width:39px;height:39px;object-fit:contain;border:0;border-radius:0}
         .prod-nav-label{font-size:.62rem;letter-spacing:.16em;font-weight:800;color:#697380;padding:.75rem .7rem .45rem}
         .prod-nav{display:block;padding:.72rem .75rem;border-radius:7px;text-decoration:none;color:#aeb6c0;font-size:.8rem;margin:.08rem 0}.prod-nav:hover,.prod-nav.active{background:#19252c;color:#62d7f5}
         .prod-sidebar-bottom{margin-top:auto;border-top:1px solid #282d34;padding-top:1rem;color:#818b97;font-size:.7rem}.prod-sidebar-bottom button{display:block;width:100%;margin-top:.8rem;padding:.65rem;background:#171a1f;border:1px solid #353b44;border-radius:7px;color:#dce0e5;cursor:pointer}
