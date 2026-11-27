@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 export default function AdminDashboardPage() {
   const [staffName, setStaffName] = useState('');
@@ -15,13 +15,13 @@ export default function AdminDashboardPage() {
       try {
         const supabase = createSupabaseBrowserClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) { window.location.replace('/staff/login/'); return; }
+        if (!user) { window.location.replace(appPath('/staff/login/')); return; }
         const { data: profile, error } = await supabase
           .from('staff_profiles').select('display_name, role, active')
           .eq('user_id', user.id).maybeSingle();
         if (error || !profile?.active || profile.role !== 'system_admin') {
           await supabase.auth.signOut();
-          window.location.replace('/staff/login/?error=unauthorized');
+          window.location.replace(appPath('/staff/login/?error=unauthorized'));
           return;
         }
         if (active) setStaffName(profile.display_name || user.email || user.id);
@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
   async function signOut() {
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
-    window.location.replace('/staff/login/');
+    window.location.replace(appPath('/staff/login/'));
   }
 
   return (
