@@ -33,8 +33,19 @@ Deno.serve(async (req: Request) => {
     return json({ error: "An active staff account is required." }, 403);
   }
 
-  let body: { credential?: string; performance_id?: string; device_label?: string };
+  let body: { action?: string; credential?: string; performance_id?: string; device_label?: string };
   try { body = await req.json(); } catch { return json({ error: "Invalid request body." }, 400); }
+  if (body.action === "performances") {
+    const { data: performances, error: performanceError } = await db.from("performances")
+      .select("id, starts_at, venue_name, productions!inner(title, status)")
+      .eq("status", "scheduled")
+      .eq("productions.status", "published")
+      .order("starts_at", { ascending: true });
+    if (performanceError) return json({ error: "Unable to load performances." }, 500);
+    return json({ ok: true, performances: (performances ?? []).map((p: any) => ({
+      id: p.id, starts_at: p.starts_at, venue_name: p.venue_name, production_title: p.productions?.title ?? "Production"
+    })) });
+  }
   const credential = typeof body.credential === "string" ? body.credential.trim() : "";
   const performanceId = typeof body.performance_id === "string" ? body.performance_id : "";
   if (!credential || credential.length > 512) return json({ error: "Enter a ticket reference or scan its QR code." }, 400);
