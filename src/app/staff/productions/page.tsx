@@ -152,7 +152,7 @@ export default function StaffProductionsPage() {
     const overCapacity = editPerformances.find(perf => perf.ticket_categories.reduce((sum, cat) => sum + Number(cat.allocation || 0), 0) > Number(perf.capacity));
     if (overCapacity) {
       const allocated = overCapacity.ticket_categories.reduce((sum, cat) => sum + Number(cat.allocation || 0), 0);
-      setError(`Combined ticket allocations (${allocated}) exceed this performance's capacity (${overCapacity.capacity}). Reduce one or more category allocations before saving.`);
+      setError('');
       return;
     }
     setSaving(true); setError(''); setMessage('');
