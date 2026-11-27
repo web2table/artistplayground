@@ -61,7 +61,8 @@ Deno.serve(async (req: Request) => {
   }
   if (!role) return json({ error: "Choose a valid staff role." }, 400);
 
-  const appUrl = (Deno.env.get("APP_URL") ?? "http://localhost:3000").replace(/\\/$/, "");
+  const configuredAppUrl = Deno.env.get("APP_URL") ?? "http://localhost:3000";
+  const appUrl = configuredAppUrl.endsWith("/") ? configuredAppUrl.slice(0, -1) : configuredAppUrl;
   const { data: invited, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${appUrl}/auth/callback`,
     data: { display_name: displayName },
