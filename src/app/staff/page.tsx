@@ -399,7 +399,7 @@ export default function StaffDashboardPage() {
             {!scanPerformances.length && <p className="result-muted">No published scheduled performances are available for admission yet.</p>}
           </div>
         </section>}
-{activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Production &amp; performance reports</strong><p>Review ticket sales, revenue, payment status, and admissions by production or individual performance. Reporting tools will appear here as they are connected.</div></div></section>}
+{activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Production &amp; performance reports</strong><p>Review ticket sales, revenue, payment status, and admissions by production or individual performance. Reporting tools will appear here as they are connected.</p></div></div></section>}
 
         {activeTab === 'refunds' && <section className="staff-section" id="refunds">
           <div className="section-heading"><div><h2>Refund requests</h2><p>Refunds apply to the entire booking and payment only. Partial ticket refunds are not supported.</p></div><button type="button" className="outline-button" onClick={()=>void loadRefunds()} disabled={refundLoading}>{refundLoading?'Refreshing…':'Refresh'}</button></div>
