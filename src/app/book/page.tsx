@@ -112,23 +112,23 @@ export default function BookTicketsPage() {
         <div className="booking-form">
           <button className="booking-back" type="button" onClick={() => setShowBookingForm(false)} aria-label="Back to shows" title="Back to shows">←</button>
           <form id="booking-details-form" onSubmit={startCheckout}>
-          <div className="step"><span>01</span><div><h2>Choose a performance</h2><p>Select the show date you want to attend.</p></div></div>
-          <label htmlFor="performance">Performance</label>
-          <select id="performance" value={selectedPerformance} onChange={event => { const next = performances.find(item => item.id === event.target.value); setSelectedPerformance(event.target.value); setSelectedCategory(next?.categories?.[0]?.id || ''); setQuantity(1); }}>
-            {performances.map(item => <option value={item.id} key={item.id}>{item.production_title} · {dateTime(item.starts_at)}</option>)}
-          </select>
-          {performance && <div className="performance-info"><strong>{performance.production_title}</strong><span>{dateTime(performance.starts_at)}</span><span>{performance.venue_name}{performance.venue_address ? ' · ' + performance.venue_address : ''}</span>{performance.description && <p>{performance.description}</p>}</div>}
-          <div className="step"><span>02</span><div><h2>Select tickets</h2><p>Ticket availability updates as bookings are confirmed.</p></div></div>
+          {performance && <div className="selected-show-summary">
+            <p className="eyebrow">YOU'RE BOOKING</p>
+            <h2>{performance.production_title}</h2>
+            <p>{dateTime(performance.starts_at)}</p>
+            <p>{performance.venue_name}{performance.venue_address ? ' · ' + performance.venue_address : ''}</p>
+          </div>}
+          <div className="step"><span>01</span><div><h2>Select tickets</h2><p>Ticket availability updates as bookings are confirmed.</p></div></div>
           <label htmlFor="category">Ticket category</label>
           <select id="category" value={selectedCategory} onChange={event => { setSelectedCategory(event.target.value); setQuantity(1); }}>
             {categories.map(item => <option key={item.id} value={item.id} disabled={item.remaining < 1}>{item.name} · {money(item.price)} · {item.remaining} left</option>)}
           </select>
-          <div className="step"><span>03</span><div><h2>Purchaser details</h2><p>Your booking confirmation and all tickets will be sent to this email.</p></div></div>
+          <div className="step"><span>02</span><div><h2>Purchaser details</h2><p>Your booking confirmation and all tickets will be sent to this email.</p></div></div>
           <label htmlFor="purchaser">Full name</label>
           <input id="purchaser" autoComplete="name" value={purchaserName} onChange={event => setPurchaserName(event.target.value)} required minLength={2} />
           <label htmlFor="email">Email address</label>
           <input id="email" type="email" autoComplete="email" value={purchaserEmail} onChange={event => setPurchaserEmail(event.target.value)} required />
-          <div className="step"><span>04</span><div><h2>Attendee details</h2><p>Enter each ticket holder’s name and birthday.</p></div></div>
+          <div className="step"><span>03</span><div><h2>Attendee details</h2><p>Enter each ticket holder’s name and birthday.</p></div></div>
           {attendees.map((person, index) => <div className="attendee" key={index}>
             <div className="attendee-heading">
               <h3>Ticket {index + 1}</h3>
@@ -152,6 +152,10 @@ export default function BookTicketsPage() {
       </div>}
     </section>
     <style jsx>{`
+      .selected-show-summary{margin:0 0 1.35rem;padding:1rem 1.1rem;border:1px solid #30343a;border-left:3px solid #fff000;border-radius:8px;background:#151515}
+      .selected-show-summary .eyebrow{margin:0 0 .45rem}
+      .selected-show-summary h2{margin:0 0 .45rem;font-size:1.08rem}
+      .selected-show-summary p:not(.eyebrow){margin:.2rem 0;color:#b9c1cc;font-size:.8rem;line-height:1.45}
       .attendee-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem}
       .attendee-heading h3{margin:0}
       .attendee-heading .remove-ticket{margin:0;flex:0 0 auto}
