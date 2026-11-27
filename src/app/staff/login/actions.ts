@@ -22,10 +22,13 @@ export async function signInStaff(formData: FormData) {
     redirect('/staff/login?error=invalid');
   }
 
-  const { data: profiles, error: profileError } = await supabase.rpc('get_my_staff_profile');
-  const profile = profiles?.[0];
+  const { data: profile, error: profileError } = await supabase
+    .from('staff_profiles')
+    .select('role, active')
+    .eq('user_id', userId)
+    .maybeSingle();
 
-  if (profileError || !profile || profile.user_id !== userId || !profile.active ||
+  if (profileError || !profile || !profile.active ||
       !['staff', 'system_admin'].includes(profile.role)) {
     await supabase.auth.signOut();
     redirect('/staff/login?error=unauthorized');
