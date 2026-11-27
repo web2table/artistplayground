@@ -17,16 +17,17 @@ export default function AuthHashHandler() {
     if (!accessToken || !refreshToken) return;
 
     const supabase = createSupabaseBrowserClient();
-    void supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    }).then(({ error }) => {
+    void (async () => {
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
       if (error) {
         window.location.replace(appPath('/staff/login/?error=invalid'));
         return;
       }
       window.location.replace(appPath('/staff/set-password/'));
-    });
+    })();
   }, [pathname]);
 
   return null;
