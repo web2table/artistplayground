@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="brand-block">
           <Link className="brand" href="/" aria-label="Artist Playground home">
             <img src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" />
-          </a>
+          </Link>
           <p>A space for talent at every stage.</p>
         </div>
         <div className="follow-block">
