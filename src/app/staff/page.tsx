@@ -8,11 +8,12 @@ type BoxOfficePerformance = { id: string; starts_at: string; venue_name: string;
 type SaleAttendee = { full_name: string; birth_date: string };
 type ScanPerformance = { id: string; starts_at: string; venue_name: string; production_title: string };
 type ScanResult = { result: string; message: string; ticket_reference?: string; attendee_name?: string };
+type RefundRow = { id:string; booking_reference:string; purchaser_name:string; purchaser_email:string; booking_status:string; payment_method:string; provider:string; payment_status:string; currency:string; provider_reference:string|null; amount:number; status:string; reason:string; requested_at:string; reviewed_at:string|null; completed_at:string|null };
 type DeskPayment = { id:string; booking_reference:string; purchaser_name:string; purchaser_email:string; booking_status:string; method:string; status:string; provider:string; provider_reference:string|null; amount:number; currency:string; verified_at:string|null; failure_reason:string|null; created_at:string };
 type BookingLookup = {
   booking: { booking_reference: string; purchaser_name: string; purchaser_email: string; status: string; currency: string; subtotal: number; total_amount: number; created_at: string; confirmed_at: string | null };
   tickets: { ticket_reference: string; status: string; attendee_name: string; category: string; performance: { starts_at: string; venue_name: string; status: string } | null }[];
-  payments: { method: string; status: string; amount: number; currency: string; provider_reference: string | null; created_at: string }[];
+  payments: { id: string; method: string; status: string; amount: number; currency: string; provider_reference: string | null; created_at: string }[];
 };
 
 
@@ -20,6 +21,10 @@ type BookingLookup = {
 export default function StaffDashboardPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
   const [payments, setPayments] = useState<DeskPayment[]>([]);
+  const [refunds, setRefunds] = useState<RefundRow[]>([]);
+  const [refundLoading, setRefundLoading] = useState(false);
+  const [refundMessage, setRefundMessage] = useState('');
+  const [refundReason, setRefundReason] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentLoading, setPaymentLoading] = useState(false);
@@ -66,10 +71,7 @@ export default function StaffDashboardPage() {
           window.location.replace(appPath('/staff/login/?error=unauthorized'));
           return;
         }
-        if (active) {
-          setProfile(data as StaffProfile);
-          if (data.role === 'system_admin') window.location.replace(appPath('/admin/'));
-        }
+        if (active) setProfile(data as StaffProfile);
       } catch {
         if (active) setError('Unable to verify your staff session. Please sign in again.');
       } finally { if (active) setLoading(false); }
@@ -101,6 +103,26 @@ export default function StaffDashboardPage() {
     }
   }
 
+
+  async function loadRefunds() {
+    setRefundLoading(true); setRefundMessage('');
+    try { const supabase=createSupabaseBrowserClient(); const {data,error}=await supabase.functions.invoke('staff-refunds',{body:{action:'list'}}); if(error||!data?.ok) throw new Error(data?.error||error?.message||'Unable to load refunds.'); setRefunds(data.refunds as RefundRow[]); }
+    catch(err){setRefundMessage(err instanceof Error?err.message:'Unable to load refund requests.');} finally{setRefundLoading(false);}
+  }
+
+  async function submitRefundRequest(paymentId:string) {
+    if(!bookingResult) return;
+    setRefundLoading(true); setRefundMessage('');
+    try { const supabase=createSupabaseBrowserClient(); const {data,error}=await supabase.functions.invoke('staff-refunds',{body:{action:'request',booking_reference:bookingReference.trim().toUpperCase(),payment_id:paymentId,reason:refundReason}}); if(error||!data?.ok) throw new Error(data?.error||error?.message||'Unable to submit refund request.'); setRefundReason(''); setRefundMessage('Full-booking refund request submitted for System Admin review.'); await loadRefunds(); }
+    catch(err){setRefundMessage(err instanceof Error?err.message:'Unable to submit refund request.');} finally{setRefundLoading(false);}
+  }
+
+  async function reviewRefund(refundId:string,decision:'approved'|'rejected') {
+    setRefundLoading(true); setRefundMessage('');
+    try { const supabase=createSupabaseBrowserClient(); const {data,error}=await supabase.functions.invoke('staff-refunds',{body:{action:'review',refund_id:refundId,decision}}); if(error||!data?.ok) throw new Error(data?.error||error?.message||'Unable to review refund.'); setRefundMessage('Refund request '+decision+'.'); await loadRefunds(); }
+    catch(err){setRefundMessage(err instanceof Error?err.message:'Unable to review refund.');} finally{setRefundLoading(false);}
+  }
+
   async function loadPaymentDesk() {
     setPaymentLoading(true); setPaymentMessage('');
     try {
@@ -118,6 +140,7 @@ export default function StaffDashboardPage() {
 
   useEffect(() => {
     if (activeTab === 'payments' && profile) void loadPaymentDesk();
+    if (activeTab === 'refunds' && profile) void loadRefunds();
   }, [activeTab, profile, paymentStatus, paymentMethod]);
 
   useEffect(() => {
@@ -329,6 +352,24 @@ export default function StaffDashboardPage() {
           </div>
         </section>}
 {activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Operational reports</strong><p>Daily sales, payment reconciliation, and admission summaries will be available here.</p></div></div></section>}
+
+        {activeTab === 'refunds' && <section className="staff-section" id="refunds">
+          <div className="section-heading"><div><h2>Refund requests</h2><p>Refunds apply to the entire booking and payment only. Partial ticket refunds are not supported.</p></div><button type="button" className="outline-button" onClick={()=>void loadRefunds()} disabled={refundLoading}>{refundLoading?'Refreshing…':'Refresh'}</button></div>
+          {refundMessage && <p className="booking-message" role="status">{refundMessage}</p>}
+          {bookingResult && <div className="booking-lookup-panel refund-request-panel"><h3>Request a full-booking refund</h3><p className="result-muted">Booking {bookingResult.booking.booking_reference} · {bookingResult.booking.purchaser_name}</p>
+            {bookingResult.payments.filter(p=>p.status==='paid').map(p=><div className="refund-payment-option" key={p.id}><span>{p.method.toUpperCase()} · {p.currency} {Number(p.amount).toLocaleString('en-PH',{minimumFractionDigits:2})} · {p.status}</span><button type="button" className="outline-button" disabled={refundLoading||!refundReason.trim()} onClick={()=>void submitRefundRequest(p.id)}>Submit full refund request</button></div>)}
+            {!bookingResult.payments.some(p=>p.status==='paid') && <p className="result-muted">This booking has no verified paid transaction eligible for a refund request.</p>}
+            <label htmlFor="refund-reason">Reason for refund request</label><textarea id="refund-reason" value={refundReason} onChange={e=>setRefundReason(e.target.value)} placeholder="Explain why the full booking should be refunded" rows={3} maxLength={1000}/>
+            <p className="result-muted">Search a booking in the Bookings tab first. Only verified paid payments can be requested.</p>
+          </div>}
+          {refundLoading && !refunds.length ? <p className="result-muted">Loading refund requests…</p> : refunds.length ? <div className="payment-desk-list">{refunds.map(r=><article className="payment-desk-row" key={r.id}>
+            <div className="payment-desk-main"><div><strong>{r.booking_reference}</strong><span>{r.purchaser_name} · {r.purchaser_email}</span></div><strong>{r.currency} {Number(r.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>
+            <div className="payment-desk-meta"><span className="status-pill">{r.status.replaceAll('_',' ')}</span><span>{r.payment_method.toUpperCase()} · {r.provider}</span><span>Payment: {r.payment_status}</span><span>{new Date(r.requested_at).toLocaleString()}</span></div>
+            <p className="payment-ref">Reason: {r.reason}</p>
+            {profile?.role==='system_admin' && r.status==='requested' && <div className="scanner-camera-actions"><button type="button" className="outline-button" disabled={refundLoading} onClick={()=>void reviewRefund(r.id,'approved')}>Approve request</button><button type="button" className="outline-button" disabled={refundLoading} onClick={()=>void reviewRefund(r.id,'rejected')}>Reject request</button></div>}
+          </article>)}</div> : <p className="result-muted">No refund requests have been submitted.</p>}
+          <div className="workflow-note"><span>ⓘ</span><div><strong>Approval is not a completed refund</strong><p>Approval records the company decision only. PayMongo processing is not connected yet; cash must actually be returned before completion. Tickets remain valid until a verified refund completion is recorded.</p></div></div>
+        </section>}
         {activeTab === 'payments' && <section className="staff-section" id="payments">
           <div className="section-heading"><div><h2>Payment desk</h2><p>Review recorded cash and PayMongo transactions, their booking references, and verification status.</p></div><button type="button" className="outline-button" onClick={() => void loadPaymentDesk()} disabled={paymentLoading}>{paymentLoading ? 'Refreshing…' : 'Refresh'}</button></div>
           <div className="staff-metrics payment-metrics">
@@ -399,7 +440,7 @@ export default function StaffDashboardPage() {
         .workflow-note>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:8px;background:#172a32;color:#55cdec;font-size:1.1rem}
         .workflow-note strong{font-size:.8rem}.workflow-note p{color:#929ba6;font-size:.73rem;line-height:1.55;margin:.35rem 0 0}
         .staff-footer{border-top:1px solid #252a31;color:#66717e;font-size:.66rem;margin-top:2.5rem;padding:1.2rem 0}
-        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.payment-filters{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:1rem 0}.payment-filters label{font-size:.7rem;color:#aeb7c1}.payment-filters select{background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.6rem;color:#f4f5f7;font:inherit;font-size:.75rem}.payment-desk-list{display:grid;gap:.65rem;margin:1rem 0}.payment-desk-row{background:#111419;border:1px solid #282e36;border-radius:9px;padding:1rem}.payment-desk-main{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.payment-desk-main>div{display:grid;gap:.3rem}.payment-desk-main strong{font-size:.85rem}.payment-desk-main span,.payment-desk-meta,.payment-ref{font-size:.68rem;color:#aeb7c1}.payment-desk-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.7rem}.payment-ref{margin:.5rem 0 0}.payment-error{color:#f19aa4}.status-pill{padding:.2rem .5rem;border-radius:30px;background:#272e36;color:#d6dde5;text-transform:uppercase;font-size:.6rem}.status-paid{background:#123323;color:#8de0ad}.status-pending{background:#382d13;color:#f2d27b}.status-failed,.status-cancelled,.status-refunded{background:#30252a;color:#e4a5b1}.scanner-camera{display:grid;gap:.65rem;margin:.7rem 0}.scanner-camera video{display:block;width:100%;max-height:340px;object-fit:contain;background:#050607;border:1px solid #303740;border-radius:8px}.scanner-camera-actions{display:flex;gap:.6rem;flex-wrap:wrap}.outline-button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.6rem .85rem;cursor:pointer;font-size:.72rem}.scan-result{margin-top:1rem;padding:1rem;border:1px solid #39414b;background:#111820;border-radius:8px}.scan-result h3{font-size:1rem;margin:.45rem 0}.scan-result p{font-size:.75rem;color:#aab4be}.scan-accepted{border-color:#2d8052;background:#10251b}.scan-already_redeemed,.scan-cancelled,.scan-refunded,.scan-unpaid,.scan-wrong_performance{border-color:#805b2d;background:#251c10}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
+        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.refund-request-panel{margin:1rem 0}.refund-request-panel h3{font-size:.9rem;margin:0}.refund-request-panel label{display:block;color:#cbd1d9;font-size:.72rem;margin:.8rem 0 .35rem}.refund-request-panel textarea{width:100%;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem;color:#f4f5f7;font:inherit;font-size:.78rem;resize:vertical}.refund-payment-option{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:.75rem 0;border-top:1px solid #252b33;font-size:.72rem;color:#aeb7c1}.payment-filters{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:1rem 0}.payment-filters label{font-size:.7rem;color:#aeb7c1}.payment-filters select{background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.6rem;color:#f4f5f7;font:inherit;font-size:.75rem}.payment-desk-list{display:grid;gap:.65rem;margin:1rem 0}.payment-desk-row{background:#111419;border:1px solid #282e36;border-radius:9px;padding:1rem}.payment-desk-main{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.payment-desk-main>div{display:grid;gap:.3rem}.payment-desk-main strong{font-size:.85rem}.payment-desk-main span,.payment-desk-meta,.payment-ref{font-size:.68rem;color:#aeb7c1}.payment-desk-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.7rem}.payment-ref{margin:.5rem 0 0}.payment-error{color:#f19aa4}.status-pill{padding:.2rem .5rem;border-radius:30px;background:#272e36;color:#d6dde5;text-transform:uppercase;font-size:.6rem}.status-paid{background:#123323;color:#8de0ad}.status-pending{background:#382d13;color:#f2d27b}.status-failed,.status-cancelled,.status-refunded{background:#30252a;color:#e4a5b1}.scanner-camera{display:grid;gap:.65rem;margin:.7rem 0}.scanner-camera video{display:block;width:100%;max-height:340px;object-fit:contain;background:#050607;border:1px solid #303740;border-radius:8px}.scanner-camera-actions{display:flex;gap:.6rem;flex-wrap:wrap}.outline-button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.6rem .85rem;cursor:pointer;font-size:.72rem}.scan-result{margin-top:1rem;padding:1rem;border:1px solid #39414b;background:#111820;border-radius:8px}.scan-result h3{font-size:1rem;margin:.45rem 0}.scan-result p{font-size:.75rem;color:#aab4be}.scan-accepted{border-color:#2d8052;background:#10251b}.scan-already_redeemed,.scan-cancelled,.scan-refunded,.scan-unpaid,.scan-wrong_performance{border-color:#805b2d;background:#251c10}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
         .booking-search-form label{display:block;color:#cbd1d9;font-size:.72rem;margin-bottom:.5rem}
         .booking-search-row{display:flex;gap:.65rem;max-width:720px}
         .booking-search-row input{flex:1;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.8rem .9rem;color:#f4f5f7;font:inherit;font-size:.8rem}
