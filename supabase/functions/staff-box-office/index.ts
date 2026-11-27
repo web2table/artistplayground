@@ -26,7 +26,7 @@ const encryptQrToken = async (raw: string, encodedKey: string) => {
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
   const authorization = req.headers.get("Authorization") ?? "";
-  const token = authorization.replace(/^Bearer\\s+/i, "");
+  const token = authorization.replace(/^Bearer\s+/i, "");
   if (!token || token === authorization) return json({ error: "Unauthorized." }, 401);
   const url = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
@@ -62,11 +62,11 @@ Deno.serve(async (req: Request) => {
   const purchaserEmail = body.purchaser_email?.trim().toLowerCase() ?? "";
   const items = body.items ?? [];
   const idempotencyKey = body.idempotency_key ?? "";
-  if (!purchaserName || purchaserName.length > 120 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(purchaserEmail) || purchaserEmail.length > 254)
+  if (!purchaserName || purchaserName.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(purchaserEmail) || purchaserEmail.length > 254)
     return json({ error: "Enter a valid purchaser name and email address." }, 400);
   if (!items.length || items.length > 20 || !idempotencyKey || idempotencyKey.length < 12) return json({ error: "Sale details are incomplete." }, 400);
   const attendees = items.flatMap(item => item.attendees ?? []);
-  if (!attendees.length || attendees.length > 20 || attendees.some(a => !a.full_name?.trim() || a.full_name.length > 120 || !/^\\d{4}-\\d{2}-\\d{2}$/.test(a.birth_date)))
+  if (!attendees.length || attendees.length > 20 || attendees.some(a => !a.full_name?.trim() || a.full_name.length > 120 || !/^\d{4}-\d{2}-\d{2}$/.test(a.birth_date)))
     return json({ error: "Every attendee needs a full name and birth date. Maximum 20 tickets per sale." }, 400);
 
   const encryptionKey = Deno.env.get("TICKET_QR_ENCRYPTION_KEY");
