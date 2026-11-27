@@ -27,8 +27,6 @@ npm start
 
 The application requires a Node.js-capable hosting environment. GitHub Pages is not a supported host for the server-rendered application.
 
-## Migration notes
+## Design preservation
 
-The existing Astro implementation is retained temporarily as a visual and content reference while the Next.js pages are checked for parity. Do not remove the legacy source until the migrated pages have been verified.
-
-The public website's existing design is the source of truth. Changes to its visual design are out of scope for this migration.
+The original Artist Playground website design is the source of truth. Framework migration must preserve its visual design, content, navigation, and responsive behavior.
