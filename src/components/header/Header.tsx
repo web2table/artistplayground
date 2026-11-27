@@ -25,9 +25,8 @@ export default function Header() {
       <Link className="brand" href="/" aria-label="Artist Playground home">
         <img className="brand-logo" src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" width="220" height="56" style={{ display: "block", width: "auto", height: "3.5rem", maxWidth: "220px", objectFit: "contain" }} />
       </Link>
-      <button className="menu-toggle" type="button" aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}>
+      <button className={`menu-toggle${menuOpen ? " is-open" : ""}`} type="button" aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}>
         <span className="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
-        <span className="menu-label">Menu</span>
       </button>
       <nav id="main-navigation" aria-label="Main navigation">
         {links.map((link) => (
