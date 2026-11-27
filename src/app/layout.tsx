@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '../styles/global.css';
 import Header from '../components/header/Header';
 import Footer from '../components/footer/Footer';
+import AuthHashHandler from '../components/auth/AuthHashHandler';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body>
+        <AuthHashHandler />
         <Header />
         <main>{children}</main>
         <Footer />
