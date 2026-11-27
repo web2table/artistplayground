@@ -8,7 +8,7 @@ export default function Footer() {
       <div className="footer-main">
         <div className="brand-block">
           <Link className="brand" href="/" aria-label="Artist Playground home">
-            <img src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" />
+            <img src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" style={{ display: "block", width: "auto", height: "52px", maxWidth: "200px", objectFit: "contain" }} />
           </Link>
           <p>A space for talent at every stage.</p>
         </div>
