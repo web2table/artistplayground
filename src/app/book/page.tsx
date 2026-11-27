@@ -113,10 +113,12 @@ export default function BookTicketsPage() {
           <button className="booking-back" type="button" onClick={() => setShowBookingForm(false)} aria-label="Back to shows" title="Back to shows">←</button>
           <form id="booking-details-form" onSubmit={startCheckout}>
           {performance && <div className="selected-show-summary">
-            <p className="eyebrow">YOU&apos;RE BOOKING</p>
+            <div className="selected-show-topline"><span className="selected-show-mark">AP</span><span className="selected-show-label">YOUR SELECTED PERFORMANCE</span><span className="selected-show-live">LIVE SHOW</span></div>
             <h2>{performance.production_title}</h2>
-            <p>{dateTime(performance.starts_at)}</p>
-            <p>{performance.venue_name}{performance.venue_address ? ' · ' + performance.venue_address : ''}</p>
+            <div className="selected-show-details">
+              <div className="selected-show-detail"><span className="selected-show-icon" aria-hidden="true">◷</span><div><small>DATE &amp; TIME</small><p>{dateTime(performance.starts_at)}</p></div></div>
+              <div className="selected-show-detail"><span className="selected-show-icon" aria-hidden="true">⌖</span><div><small>VENUE</small><p>{performance.venue_name}{performance.venue_address ? ' · ' + performance.venue_address : ''}</p></div></div>
+            </div>
           </div>}
           <div className="step"><span>01</span><div><h2>Select tickets</h2><p>Ticket availability updates as bookings are confirmed.</p></div></div>
           <label htmlFor="category">Ticket category</label>
@@ -152,10 +154,19 @@ export default function BookTicketsPage() {
       </div>}
     </section>
     <style jsx>{`
-      .selected-show-summary{margin:0 0 1.35rem;padding:1rem 1.1rem;border:1px solid #30343a;border-left:3px solid #fff000;border-radius:8px;background:#151515}
-      .selected-show-summary .eyebrow{margin:0 0 .45rem}
-      .selected-show-summary h2{margin:0 0 .45rem;font-size:1.08rem}
-      .selected-show-summary p:not(.eyebrow){margin:.2rem 0;color:#b9c1cc;font-size:.8rem;line-height:1.45}
+      .selected-show-summary{position:relative;isolation:isolate;overflow:hidden;margin:0 0 1.5rem;padding:1.2rem 1.25rem 1.15rem;border:1px solid #343a42;border-left:3px solid #fff000;border-radius:12px;background:radial-gradient(ellipse at 100% 0%,rgba(0,188,232,.10),transparent 48%),linear-gradient(135deg,#191b1e 0%,#101214 72%);box-shadow:0 12px 30px rgba(0,0,0,.22)}
+      .selected-show-summary:after{content:"";position:absolute;z-index:-1;right:-35px;top:-55px;width:155px;height:155px;border:1px solid rgba(255,240,0,.12);border-radius:50%;box-shadow:0 0 0 18px rgba(255,240,0,.025),0 0 0 38px rgba(0,188,232,.025)}
+      .selected-show-topline{display:flex;align-items:center;gap:.65rem;margin-bottom:.9rem}
+      .selected-show-mark{display:grid;place-items:center;width:30px;height:30px;border:1px solid rgba(0,188,232,.5);border-radius:8px;color:#00c8f5;font-size:.65rem;font-weight:900;letter-spacing:-.04em}
+      .selected-show-label{color:#00c8f5;font-size:.65rem;font-weight:900;letter-spacing:.16em}
+      .selected-show-live{margin-left:auto;padding:.3rem .55rem;border:1px solid rgba(255,240,0,.25);border-radius:999px;background:rgba(255,240,0,.07);color:#fff080;font-size:.58rem;font-weight:800;letter-spacing:.1em;white-space:nowrap}
+      .selected-show-summary h2{position:relative;margin:0 0 1rem;color:#fff;font-size:clamp(1.15rem,2vw,1.4rem);font-weight:850;letter-spacing:-.035em;line-height:1.2}
+      .selected-show-details{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+      .selected-show-detail{display:flex;align-items:center;gap:.65rem;min-width:0;padding:.7rem .75rem;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(0,0,0,.2)}
+      .selected-show-icon{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:8px;background:rgba(0,188,232,.1);color:#00c8f5;font-size:1.1rem}
+      .selected-show-detail small{display:block;margin-bottom:.2rem;color:#8e9aa7;font-size:.57rem;font-weight:800;letter-spacing:.12em}
+      .selected-show-detail p{margin:0;color:#d8e0e8;font-size:.76rem;line-height:1.45;overflow-wrap:anywhere}
+      @media(max-width:600px){.selected-show-summary{padding:1rem}.selected-show-details{grid-template-columns:1fr}.selected-show-live{font-size:.53rem}.selected-show-label{font-size:.58rem}}
       .attendee-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem}
       .attendee-heading h3{margin:0}
       .attendee-heading .remove-ticket{margin:0;flex:0 0 auto}
