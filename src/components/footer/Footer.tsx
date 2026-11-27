@@ -1,11 +1,13 @@
 'use client';
 
+import Link from 'next/link';
+
 export default function Footer() {
   return (
     <footer className="site-footer">
       <div className="footer-main">
         <div className="brand-block">
-          <a className="brand" href="/" aria-label="Artist Playground home">
+          <Link className="brand" href="/" aria-label="Artist Playground home">
             <img src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" />
           </a>
           <p>A space for talent at every stage.</p>
