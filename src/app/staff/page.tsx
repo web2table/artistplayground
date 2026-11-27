@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 type StaffProfile = { display_name: string; role: 'staff' | 'system_admin'; active: boolean };
+type BoxOfficePerformance = { id: string; starts_at: string; venue_name: string; production_title: string; categories: { id: string; name: string; price: number; remaining: number }[] };
+type SaleAttendee = { full_name: string; birth_date: string };
 type BookingLookup = {
   booking: { booking_reference: string; purchaser_name: string; purchaser_email: string; status: string; currency: string; subtotal: number; total_amount: number; created_at: string; confirmed_at: string | null };
   tickets: { ticket_reference: string; status: string; attendee_name: string; category: string; performance: { starts_at: string; venue_name: string; status: string } | null }[];
@@ -20,6 +22,15 @@ export default function StaffDashboardPage() {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState('');
   const [bookingResult, setBookingResult] = useState<BookingLookup | null>(null);
+  const [performances, setPerformances] = useState<BoxOfficePerformance[]>([]);
+  const [selectedPerformance, setSelectedPerformance] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [purchaserName, setPurchaserName] = useState('');
+  const [purchaserEmail, setPurchaserEmail] = useState('');
+  const [saleAttendees, setSaleAttendees] = useState<SaleAttendee[]>([{ full_name: '', birth_date: '' }]);
+  const [saleLoading, setSaleLoading] = useState(false);
+  const [saleMessage, setSaleMessage] = useState('');
+  const [saleReceipt, setSaleReceipt] = useState<{ booking_reference: string; ticket_count: number; subtotal: number; tickets: { ticket_reference: string; attendee_name: string }[] } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -68,6 +79,35 @@ export default function StaffDashboardPage() {
     } finally {
       setBookingLoading(false);
     }
+  }
+
+  const currentPerformance = performances.find(p => p.id === selectedPerformance);
+  const currentCategory = currentPerformance?.categories.find(category => category.id === selectedCategory);
+  const saleTotal = (currentCategory?.price ?? 0) * saleAttendees.length;
+
+  async function submitCashSale(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaleLoading(true); setSaleMessage(''); setSaleReceipt(null);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('staff-box-office', {
+        body: {
+          action: 'create',
+          purchaser_name: purchaserName,
+          purchaser_email: purchaserEmail,
+          idempotency_key: crypto.randomUUID(),
+          items: [{ category_id: selectedCategory, attendees: saleAttendees }],
+        },
+      });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Cash sale failed.');
+      setSaleReceipt({ ...data.sale, tickets: data.tickets });
+      setSaleMessage('Cash sale recorded and tickets issued.');
+      setPurchaserName(''); setPurchaserEmail(''); setSaleAttendees([{ full_name: '', birth_date: '' }]);
+      const { data: refreshed } = await supabase.functions.invoke('staff-box-office', { body: { action: 'options' } });
+      if (refreshed?.ok) setPerformances(refreshed.performances as BoxOfficePerformance[]);
+    } catch (err) {
+      setSaleMessage(err instanceof Error ? err.message : 'Unable to record cash sale.');
+    } finally { setSaleLoading(false); }
   }
 
   async function signOut() {
@@ -129,7 +169,31 @@ export default function StaffDashboardPage() {
           </div>
         </section>
 
-        <section className="staff-section" id="payments"><div className="section-heading"><div><h2>Payment desk</h2><p>Cash confirmation and online payment verification will be handled in this workspace.</p></div></div><div className="workflow-note"><span>₱</span><div><strong>Payment operations</strong><p>Cash receipts will require staff confirmation. PayMongo payments will be confirmed by verified payment notifications—not by manually marking an online payment as paid.</p></div></div></section>
+        <section className="staff-section" id="box-office">
+          <div className="section-heading"><div><h2>Box office · Cash sale</h2><p>Record an in-person cash purchase and issue tickets against live inventory.</p></div></div>
+          <div className="booking-lookup-panel">
+            <form className="cash-sale-form" onSubmit={submitCashSale}>
+              <label htmlFor="sale-performance">Performance</label>
+              <select id="sale-performance" value={selectedPerformance} onChange={e => { setSelectedPerformance(e.target.value); setSelectedCategory(''); }} required>
+                <option value="">Choose a performance</option>
+                {performances.map(p => <option key={p.id} value={p.id}>{p.production_title} · {new Date(p.starts_at).toLocaleString()} · {p.venue_name}</option>)}
+              </select>
+              <label htmlFor="sale-category">Ticket category</label>
+              <select id="sale-category" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} required disabled={!currentPerformance}>
+                <option value="">Choose a ticket category</option>
+                {currentPerformance?.categories.map(category => <option key={category.id} value={category.id}>{category.name} · ₱{Number(category.price).toLocaleString('en-PH',{minimumFractionDigits:2})} · {category.remaining} remaining</option>)}
+              </select>
+              <div className="cash-sale-two-col"><div><label htmlFor="purchaser-name">Purchaser name</label><input id="purchaser-name" value={purchaserName} onChange={e => setPurchaserName(e.target.value)} maxLength={120} required /></div><div><label htmlFor="purchaser-email">Purchaser email</label><input id="purchaser-email" type="email" value={purchaserEmail} onChange={e => setPurchaserEmail(e.target.value)} maxLength={254} required /></div></div>
+              <div className="attendee-heading"><strong>Attendees</strong><button type="button" className="outline-button" disabled={saleAttendees.length>=20} onClick={() => setSaleAttendees(rows => [...rows,{full_name:'',birth_date:''}])}>＋ Add ticket</button></div>
+              {saleAttendees.map((attendee,index) => <div className="cash-sale-two-col attendee-row" key={index}><div><label htmlFor={`attendee-name-${index}`}>Attendee {index+1} full name</label><input id={`attendee-name-${index}`} value={attendee.full_name} maxLength={120} onChange={e => setSaleAttendees(rows => rows.map((row,i)=>i===index?{...row,full_name:e.target.value}:row))} required /></div><div><label htmlFor={`attendee-birth-${index}`}>Birthday</label><input id={`attendee-birth-${index}`} type="date" max={new Date().toISOString().slice(0,10)} value={attendee.birth_date} onChange={e => setSaleAttendees(rows => rows.map((row,i)=>i===index?{...row,birth_date:e.target.value}:row))} required /></div>{saleAttendees.length>1 && <button type="button" className="remove-attendee" onClick={() => setSaleAttendees(rows => rows.filter((_,i)=>i!==index))}>Remove</button>}</div>)}
+              <div className="cash-sale-total"><span>Cash sale total</span><strong>₱{saleTotal.toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>
+              <button className="primary-button" type="submit" disabled={saleLoading || !selectedCategory}>{saleLoading?'Recording cash sale…':'Confirm cash received & issue tickets'}</button>
+            </form>
+            {saleMessage && <p className="booking-message" role="status">{saleMessage}</p>}
+            {saleReceipt && <div className="sale-receipt"><div className="result-label">SALE CONFIRMED</div><h3>{saleReceipt.booking_reference}</h3><p>{saleReceipt.ticket_count} ticket(s) · ₱{Number(saleReceipt.subtotal).toLocaleString('en-PH',{minimumFractionDigits:2})}</p>{saleReceipt.tickets.map(ticket=><div className="payment-result" key={ticket.ticket_reference}><span>{ticket.attendee_name}</span><strong>{ticket.ticket_reference}</strong></div>)}</div>}
+            {!performances.length && <p className="result-muted">No published upcoming performances with available ticket inventory are open for box-office sales.</p>}
+          </div>
+        </section>
         <section className="staff-section" id="refunds"><div className="workflow-note"><span>↺</span><div><strong>Refund handling</strong><p>Staff will be able to review a booking and submit a refund request for approval. Approved refunds apply to the complete booking.</p></div></div></section>
         <section className="staff-section" id="scanner"><div className="workflow-note"><span>▦</span><div><strong>Admission and ticket validation</strong><p>The scanner will support QR codes and manual ticket references, with duplicate scans rejected by the backend.</p></div></div></section>
         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Operational reports</strong><p>Daily sales, payment reconciliation, and admission summaries will be available here.</p></div></div></section>
@@ -184,7 +248,7 @@ export default function StaffDashboardPage() {
         .workflow-note>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:8px;background:#172a32;color:#55cdec;font-size:1.1rem}
         .workflow-note strong{font-size:.8rem}.workflow-note p{color:#929ba6;font-size:.73rem;line-height:1.55;margin:.35rem 0 0}
         .staff-footer{border-top:1px solid #252a31;color:#66717e;font-size:.66rem;margin-top:2.5rem;padding:1.2rem 0}
-        .booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
+        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
         .booking-search-form label{display:block;color:#cbd1d9;font-size:.72rem;margin-bottom:.5rem}
         .booking-search-row{display:flex;gap:.65rem;max-width:720px}
         .booking-search-row input{flex:1;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.8rem .9rem;color:#f4f5f7;font:inherit;font-size:.8rem}
@@ -205,7 +269,7 @@ export default function StaffDashboardPage() {
         .staff-error{background:#2a1517;border:1px solid #713237;color:#ffc0c4;padding:.8rem;border-radius:8px;margin-bottom:1rem}
         .staff-loading{min-height:55vh;display:grid;place-items:center;background:#080808;color:#aaa}
         @media(max-width:1150px){.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:760px){.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:760px){.cash-sale-two-col{grid-template-columns:1fr}.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
       `}</style>
     </div>
   );
