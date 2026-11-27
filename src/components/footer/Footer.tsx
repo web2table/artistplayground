@@ -30,6 +30,7 @@ export default function Footer() {
       <div className="footer-bottom">
         <small>© {new Date().getFullYear()} Artist Playground. All rights reserved.</small>
         <small>Performance · Education · Creativity</small>
+        <Link className="staff-portal-link" href="/staff/login/">Staff Portal</Link>
       </div>
       
     </footer>
