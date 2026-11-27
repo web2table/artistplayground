@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
+import { appPath } from '@/lib/supabase/browser';
 
 export default function AuthHashHandler() {
   const pathname = usePathname();
@@ -24,10 +25,10 @@ export default function AuthHashHandler() {
       refresh_token: refreshToken,
     }).then(({ error }) => {
       if (error) {
-        window.location.replace('/staff/login?error=invalid');
+        window.location.replace(appPath('/staff/login/?error=invalid'));
         return;
       }
-      window.location.replace('/staff/set-password');
+      window.location.replace(appPath('/staff/set-password/'));
     });
   }, [pathname]);
 
