@@ -111,7 +111,7 @@ export default function BookTicketsPage() {
       </div> : <div className="booking-grid">
         <div className="booking-form">
           <button className="booking-back" type="button" onClick={() => setShowBookingForm(false)} aria-label="Back to shows" title="Back to shows">←</button>
-          <form onSubmit={startCheckout}>
+          <form id="booking-details-form" onSubmit={startCheckout}>
           <div className="step"><span>01</span><div><h2>Choose a performance</h2><p>Select the show date you want to attend.</p></div></div>
           <label htmlFor="performance">Performance</label>
           <select id="performance" value={selectedPerformance} onChange={event => { const next = performances.find(item => item.id === event.target.value); setSelectedPerformance(event.target.value); setSelectedCategory(next?.categories?.[0]?.id || ''); setQuantity(1); }}>
@@ -143,11 +143,9 @@ export default function BookTicketsPage() {
             <input id={'attendee-birthday-' + index} type="date" max={new Date().toISOString().slice(0, 10)} value={person.birth_date} onChange={event => setAttendees(current => current.map((item, i) => i === index ? { ...item, birth_date: event.target.value } : item))} required />
           </div>)}
           {message && <p className="message" role="alert">{message}</p>}
-          <button className="checkout" type="submit" disabled={!canSubmit || submitting}>{submitting ? 'Preparing secure checkout…' : 'Continue to payment · ' + money(subtotal)}</button>
-          <p className="fine-print">Your tickets are issued only after payment is verified. Payment method fees, if any, are shown by the payment provider before you confirm payment.</p>
           </form>
         </div>
-        <aside className="order-summary"><p className="eyebrow">YOUR ORDER</p><h2>Booking summary</h2><div className="summary-line"><span>Tickets</span><strong>{quantity}</strong></div><div className="summary-line"><span>Category</span><strong>{category?.name || '—'}</strong></div><div className="summary-line"><span>Price each</span><strong>{money(category?.price || 0)}</strong></div><div className="summary-total"><span>Ticket subtotal</span><strong>{money(subtotal)}</strong></div><p>Payment will only begin after you complete the booking details and choose Continue to Payment.</p></aside>
+        <aside className="order-summary"><p className="eyebrow">YOUR ORDER</p><h2>Booking summary</h2><div className="summary-line"><span>Tickets</span><strong>{quantity}</strong></div><div className="summary-line"><span>Category</span><strong>{category?.name || '—'}</strong></div><div className="summary-line"><span>Price each</span><strong>{money(category?.price || 0)}</strong></div><div className="summary-total"><span>Ticket subtotal</span><strong>{money(subtotal)}</strong></div><p>Review your order, then continue to secure payment.</p><button className="checkout" type="submit" form="booking-details-form" disabled={!canSubmit || submitting}>{submitting ? 'Preparing secure checkout…' : 'Continue to payment · ' + money(subtotal)}</button><p className="fine-print">Your tickets are issued only after payment is verified. Any payment method fees are shown by the payment provider before confirmation.</p></aside>
       </div>}
     </section>
     <style jsx>{`
