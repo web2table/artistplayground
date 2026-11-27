@@ -1,12 +1,10 @@
 'use client';
 
-import type { Metadata } from 'next';
 import ibongAdarnaPoster from '../../ibongadarna.jpg';
 import florantePoster from '../../floranteatlaura.jpg';
 import noliPoster from '../../noli.jpg';
 import elFiliPoster from '../../elfili.jpg';
 import juntoPoster from '../../juntoalpasig.jpg';
-export const metadata: Metadata = { title: 'Educational Productions | Artist Playground', description: 'Explore educational theater adaptations of Filipino literary works for school audiences.' };
 const works=[
 {number:'01',title:'Ibong Adarna',category:'Corrido · Filipino literature',description:'Follow Prince Juan and his brothers on their quest to capture the magical Adarna bird, through trials of courage, loyalty, betrayal, and forgiveness.',accent:'blue',poster:ibongAdarnaPoster},
 {number:'02',title:'Florante at Laura',category:'Awit · Filipino literature',description:'Set in the kingdom of Albania, the poem follows Florante amid betrayal and political turmoil, with themes of love, friendship, injustice, and patriotism.',accent:'gold',poster:florantePoster},
