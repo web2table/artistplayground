@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { appPath } from '@/lib/supabase/browser';
 
 export default function AuthCallbackPage() {
@@ -10,15 +10,7 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const completeInvitation = async () => {
       const url = new URL(window.location.href);
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-
-      if (!supabaseUrl || !publishableKey) {
-        setMessage('The authentication service is not configured. Please contact the administrator.');
-        return;
-      }
-
-      const supabase = createBrowserClient(supabaseUrl, publishableKey);
+      const supabase = createSupabaseBrowserClient();
       const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
       const accessToken = hash.get('access_token');
       const refreshToken = hash.get('refresh_token');
