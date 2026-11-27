@@ -31,23 +31,7 @@ export default function Footer() {
         <small>© {new Date().getFullYear()} Artist Playground. All rights reserved.</small>
         <small>Performance · Education · Creativity</small>
       </div>
-      <style jsx>{`
-        .site-footer{margin-top:clamp(2rem,4vw,4rem);border-top:1px solid var(--ap-border);padding:clamp(1.5rem,3vw,2.25rem) 5vw .75rem;color:var(--ap-muted)}
-        .footer-main{display:flex;justify-content:space-between;align-items:flex-start;gap:clamp(1.5rem,3vw,3rem)}
-        .brand-block{display:flex;flex-direction:column;align-items:flex-start;gap:.75rem}
-        .brand{display:inline-flex;align-items:center;text-decoration:none}
-        .brand img{display:block;width:auto;height:3.25rem;max-width:200px;object-fit:contain}
-        .brand-block p{margin:0;color:var(--ap-muted);line-height:1.6}
-        .follow-block{display:flex;flex-direction:column;align-items:flex-end;gap:.65rem}
-        .follow-label{margin:0;color:var(--ap-blue);font-size:var(--ap-size-micro);font-weight:800;letter-spacing:.16em}
-        .social-links{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center}
-        .social{display:inline-flex;align-items:center;justify-content:center;width:2.6rem;height:2.6rem;border-radius:.5rem;background:#161616;text-decoration:none;color:#fff}
-        .social svg{width:1.75rem;height:1.75rem;display:block;object-fit:contain}
-        .social svg.tiktok-mark{width:1.75rem;height:1.75rem}
-        .social:hover,.social:focus-visible{transform:translateY(-2px);outline:2px solid var(--ap-blue);outline-offset:3px}
-        .footer-bottom{margin-top:1.5rem;padding-top:.75rem;border-top:1px solid var(--ap-border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:var(--ap-size-support)}
-        @media(max-width:700px){.footer-main{flex-direction:column;gap:1.5rem}.follow-block{align-items:flex-start}.footer-bottom{flex-direction:column;align-items:flex-start}}
-      `}</style>
+      
     </footer>
   );
 }
