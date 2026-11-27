@@ -6,6 +6,7 @@ import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 type Category = { id: string; name: string; price: number; allocation: number; reserved_count: number; sold_count: number; active: boolean };
 type Performance = { id: string; starts_at: string; doors_open_at: string | null; venue_name: string; venue_address: string | null; capacity: number; status: string; ticket_categories: Category[] };
 type Production = { id: string; slug: string; title: string; description: string | null; status: string; created_at: string; performances: Performance[] };
+type EditablePerformance = Omit<Performance, 'capacity'> & { capacity: string };
 
 export default function StaffProductionsPage() {
   const [productions, setProductions] = useState<Production[]>([]);
@@ -15,7 +16,7 @@ export default function StaffProductionsPage() {
   const [editing, setEditing] = useState<Production | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editPerformances, setEditPerformances] = useState<Performance[]>([]);
+  const [editPerformances, setEditPerformances] = useState<EditablePerformance[]>([]);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
@@ -79,7 +80,7 @@ export default function StaffProductionsPage() {
     setEditing(show);
     setEditTitle(show.title);
     setEditDescription(show.description || '');
-    setEditPerformances(show.performances.map(perf => ({ ...perf, ticket_categories: perf.ticket_categories.map(cat => ({ ...cat })) })));
+    setEditPerformances(show.performances.map(perf => ({ ...perf, capacity: String(perf.capacity), ticket_categories: perf.ticket_categories.map(cat => ({ ...cat })) })));
     setError(''); setMessage('');
   }
 
@@ -166,7 +167,7 @@ export default function StaffProductionsPage() {
                 <div className="prod-field"><label>Doors open</label><input type="datetime-local" value={perf.doors_open_at ? new Date(perf.doors_open_at).toISOString().slice(0,16) : ''} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,doors_open_at:e.target.value?new Date(e.target.value).toISOString():null}:row))}/></div>
                 <div className="prod-field"><label>Venue</label><input value={perf.venue_name} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,venue_name:e.target.value}:row))} required/></div>
                 <div className="prod-field"><label>Venue address</label><input value={perf.venue_address || ''} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,venue_address:e.target.value}:row))}/></div>
-                <div className="prod-field"><label>Capacity</label><input type="number" min="1" value={perf.capacity} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,capacity:Number(e.target.value)}:row))} required/></div>
+                <div className="prod-field"><label>Capacity</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={perf.capacity} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,capacity:e.target.value.replace(/[^0-9]/g, '')}:row))} required aria-label="Performance capacity"/></div>
                 {perf.ticket_categories.map((cat,ci)=><div className="prod-edit-category" key={cat.id}>
                   <strong>Ticket category {ci+1}</strong>
                   <div className="prod-form">
