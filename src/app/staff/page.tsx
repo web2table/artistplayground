@@ -300,7 +300,9 @@ export default function StaffDashboardPage() {
 {activeTab === 'overview' && <section className="staff-section staff-overview" id="overview-dashboard">
           <div className="section-heading overview-heading"><div><h2>Operations overview</h2><p>A live snapshot of your productions, ticket sales, and upcoming performances.</p></div><button type="button" className="outline-button" onClick={()=>void loadOverview()} disabled={overviewLoading}>{overviewLoading?'Refreshing…':'↻ Refresh'}</button></div>
           {overviewError&&<div className="staff-error" role="alert">{overviewError}</div>}
-          {overviewLoading&&!overview?<div className="overview-loading">Loading your ticketing overview…</div>:overview&&<>
+          {overviewLoading && !overview ? (
+            <div className="overview-loading">Loading your ticketing overview…</div>
+          ) : overview ? (
             <div className="overview-metrics">
               <article className="overview-metric"><span>Published productions</span><strong>{overview.metrics.active_productions}</strong><small>Currently published shows</small></article>
               <article className="overview-metric"><span>Upcoming performances</span><strong>{overview.metrics.upcoming_performances}</strong><small>Scheduled future performances</small></article>
@@ -322,7 +324,8 @@ export default function StaffDashboardPage() {
               {overview.recent_bookings.length?<div className="overview-bookings">{overview.recent_bookings.map(b=><div className="overview-booking" key={b.booking_reference}><div><strong>{b.purchaser_name}</strong><span>{b.booking_reference} · {new Date(b.created_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</span></div><div className="overview-booking-right"><strong>{b.currency} {Number(b.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong><span className={'overview-status status-'+b.status}>{b.status.replaceAll('_',' ')}</span></div></div>)}</div>:<div className="overview-empty">No bookings have been recorded yet.</div>}
             </div>
             <p className="overview-updated">Last updated {new Date(overview.generated_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</p>
-          </>:null}
+          </>
+          ) : null}
         </section>}
 
 {activeTab === 'bookings' &&         <section className="staff-section" id="bookings">
