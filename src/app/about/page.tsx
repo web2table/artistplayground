@@ -1,7 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
-export const metadata: Metadata = { title: 'About | Artist Playground', description: 'Learn about Artist Playground and its educational theater, stage productions, and workshops.' };
 export default function AboutPage(){return <>
 <section className="hero"><p className="eyebrow">ABOUT ARTIST PLAYGROUND</p><h1>Performance, theater,<br/><span>and creative learning.</span></h1><p className="intro">Artist Playground is a theater and creative production group presenting educational performances, stage productions, and workshops. Its work includes adaptations of Filipino literature for student audiences and creative activities centered on performance and storytelling.</p></section>
 <section className="section"><div className="section-heading"><p className="eyebrow">WHAT WE DO</p><h2 id="what-we-do">Our work and programs.</h2></div><div className="cards">
