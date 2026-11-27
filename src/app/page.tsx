@@ -13,9 +13,9 @@ export default function HomePage() {
       <section className="section">
         <div className="section-heading"><p className="eyebrow">WHAT WE DO</p><h2>Our programs and productions.</h2></div>
         <div className="offerings">
-          <Link className="offering yellow" href="/educational-productions/"><h3>Educational Theater</h3><p>Stage adaptations of Filipino literary works, including Ibong Adarna, Florante at Laura, Noli Me Tangere, and El Filibusterismo.</p><span>Explore ↗</span></Link>
-          <Link className="offering blue" href="/productions/"><h3>Theater Productions</h3><p>Live stage productions developed and presented by Artist Playground. Explore our production page for details.</p><span>Explore ↗</span></Link>
-          <Link className="offering dark" href="/workshops/"><h3>Workshops</h3><p>Creative sessions focused on performance, stage skills, storytelling, character, and artistic exploration.</p><span>Explore ↗</span></Link>
+          <Link className="offering yellow" href="/educational-productions/" style={{ background: "var(--ap-yellow)", color: "#000", padding: "2rem", borderRadius: "1rem", textDecoration: "none", minHeight: "250px" }}><h3>Educational Theater</h3><p>Stage adaptations of Filipino literary works, including Ibong Adarna, Florante at Laura, Noli Me Tangere, and El Filibusterismo.</p><span>Explore ↗</span></Link>
+          <Link className="offering blue" href="/productions/" style={{ background: "var(--ap-blue)", color: "#001319", padding: "2rem", borderRadius: "1rem", textDecoration: "none", minHeight: "250px" }}><h3>Theater Productions</h3><p>Live stage productions developed and presented by Artist Playground. Explore our production page for details.</p><span>Explore ↗</span></Link>
+          <Link className="offering dark" href="/workshops/" style={{ background: "#171717", border: "1px solid #333", color: "#fff", padding: "2rem", borderRadius: "1rem", textDecoration: "none", minHeight: "250px" }}><h3>Workshops</h3><p>Creative sessions focused on performance, stage skills, storytelling, character, and artistic exploration.</p><span>Explore ↗</span></Link>
         </div>
       </section>
       <section className="section">
