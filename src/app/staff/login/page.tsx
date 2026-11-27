@@ -63,7 +63,7 @@ export default function StaffLoginPage() {
         <Link className="staff-auth-back" href="/">← Back to website</Link>
       </div>
       <style>{`
-        .staff-auth{min-height:65vh;display:grid;place-items:center;padding:3rem 1.25rem;background:#000;color:#fff}
+        .staff-auth{box-sizing:border-box;min-height:100vh;min-height:100svh;width:100%;display:grid;place-items:center;padding:2rem 1.25rem;background:#000;color:#fff}
         .staff-auth-panel{width:min(100%,28rem);padding:2rem;border:1px solid #333;border-radius:1rem;background:#101010}
         .staff-auth-eyebrow{color:#00a8d6;letter-spacing:.15em;font-size:.75rem;font-weight:800}
         .staff-auth-panel h1{margin:.6rem 0;font-family:Manrope,sans-serif;font-size:2rem}
