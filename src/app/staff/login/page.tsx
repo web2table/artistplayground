@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getCurrentStaff } from '@/lib/auth/staff';
 import { signInStaff } from './actions';
@@ -33,7 +34,7 @@ export default async function StaffLoginPage({ searchParams }: LoginPageProps) {
           <input id="password" name="password" type="password" autoComplete="current-password" required />
           <button type="submit">Sign in</button>
         </form>
-        <a className="staff-auth-back" href="/">← Back to website</a>
+        <Link className="staff-auth-back" href="/">← Back to website</Link>
       </div>
       <style>{`
         .staff-auth{min-height:65vh;display:grid;place-items:center;padding:3rem 1.25rem;background:#000;color:#fff}
