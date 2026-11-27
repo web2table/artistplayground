@@ -1,9 +1,17 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-const json=(body:Record<string,unknown>,status=200)=>new Response(JSON.stringify(body),{status,headers:{"Content-Type":"application/json"}});
+const corsHeaders={
+ "Access-Control-Allow-Origin":"*",
+ "Access-Control-Allow-Methods":"POST, OPTIONS",
+ "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type, x-supabase-api-version",
+ "Vary":"Origin"
+};
+const json=(body:Record<string,unknown>,status=200)=>new Response(JSON.stringify(body),{status,headers:{...corsHeaders,"Content-Type":"application/json"}});
+
 async function sha256(value:string):Promise<string>{const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");}
 function normalizeCredential(value:string){return /^[A-Za-z0-9-]{4,40}$/.test(value)?value.toUpperCase():null;}
 Deno.serve(async(req:Request)=>{
+ if(req.method==="OPTIONS")return new Response("ok",{status:200,headers:corsHeaders});
  if(req.method!=="POST")return json({error:"Method not allowed."},405);
  const authorization=req.headers.get("Authorization")??"";const token=authorization.replace(/^Bearer\s+/i,"");if(!token||token===authorization)return json({error:"Unauthorized."},401);
  const url=Deno.env.get("SUPABASE_URL"),anonKey=Deno.env.get("SUPABASE_ANON_KEY"),serviceKey=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");if(!url||!anonKey||!serviceKey)return json({error:"Server configuration is incomplete."},500);
