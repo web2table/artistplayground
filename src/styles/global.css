@@ -3,6 +3,10 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
   margin: 0;
   background: var(--ap-black);
   color: var(--ap-text);
@@ -12,6 +16,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
+main { flex: 1 0 auto; }
+footer { flex-shrink: 0; }
 button, input, textarea, select { font: inherit; }
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--ap-font-display);
