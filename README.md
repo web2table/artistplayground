@@ -1,25 +1,34 @@
 # Artist Playground
 
-Official website for Artist Playground.
+Artist Playground is being migrated to a unified Next.js application.
 
-## Architecture
-- Static-first website built with Astro
-- Modular components, pages, and content collections
-- Database-free content management via Git-backed CMS
-- Independent feature modules to simplify troubleshooting
+## Stack
 
-## Development
-Prerequisites: Node.js 20+
+- Next.js App Router
+- React
+- TypeScript
+- Supabase (dedicated Artist Playground project; integration to follow)
+
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Project principles
-- No database
-- Keep modules isolated
-- Reuse components
-- Separate content from presentation
-- Mobile-first
-- Avoid unrelated changes during fixes
+Open http://localhost:3000.
+
+## Production
+
+```bash
+npm run build
+npm start
+```
+
+The application requires a Node.js-capable hosting environment. GitHub Pages is not a supported host for the server-rendered application.
+
+## Migration notes
+
+The existing Astro implementation is retained temporarily as a visual and content reference while the Next.js pages are checked for parity. Do not remove the legacy source until the migrated pages have been verified.
+
+The public website's existing design is the source of truth. Changes to its visual design are out of scope for this migration.
