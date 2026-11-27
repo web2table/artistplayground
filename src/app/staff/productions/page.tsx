@@ -206,12 +206,11 @@ export default function StaffProductionsPage() {
         <div className="prod-nav-label">MANAGEMENT</div>
         <a className="prod-nav active" href={appPath('/staff/productions/')}>▣　Productions</a>
         <div className="prod-nav-label">OPERATIONS</div>
-        <a className="prod-nav" href={appPath('/staff/#sales')}>₱　Daily sales</a>
         <a className="prod-nav" href={appPath('/staff/#bookings')}>▤　Bookings</a>
-        <a className="prod-nav" href={appPath('/staff/#payments')}>▣　Payment desk</a>
         <a className="prod-nav" href={appPath('/staff/#refunds')}>↺　Refunds</a>
         <a className="prod-nav" href={appPath('/staff/#scanner')}>▦　Ticket scanner</a>
         <a className="prod-nav" href={appPath('/staff/#box-office')}>＋　Box office</a>
+        <a className="prod-nav" href={appPath('/staff/#reports')}>▥　Reports</a>
         <div className="prod-sidebar-bottom"><span>Staff Workspace</span><button type="button" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="prod-main">
