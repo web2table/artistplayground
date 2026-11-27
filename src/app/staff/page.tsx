@@ -10,6 +10,12 @@ type ScanPerformance = { id: string; starts_at: string; venue_name: string; prod
 type ScanResult = { result: string; message: string; ticket_reference?: string; attendee_name?: string };
 type RefundRow = { id:string; booking_reference:string; purchaser_name:string; purchaser_email:string; booking_status:string; payment_method:string; provider:string; payment_status:string; currency:string; provider_reference:string|null; amount:number; status:string; reason:string; requested_at:string; reviewed_at:string|null; completed_at:string|null };
 
+type OverviewData = {
+  generated_at:string;
+  metrics:{active_productions:number;upcoming_performances:number;tickets_issued:number;pending_bookings:number;paid_revenue:number};
+  upcoming:{id:string;title:string;starts_at:string;venue_name:string;capacity:number;sold:number;reserved:number;remaining:number;categories:{name:string;sold:number;reserved:number;allocation:number}[]}[];
+  recent_bookings:{booking_reference:string;purchaser_name:string;status:string;total_amount:number;currency:string;created_at:string}[];
+};
 type BookingLookup = {
   booking: { booking_reference: string; purchaser_name: string; purchaser_email: string; status: string; currency: string; subtotal: number; total_amount: number; created_at: string; confirmed_at: string | null };
   tickets: { ticket_reference: string; status: string; attendee_name: string; category: string; performance: { starts_at: string; venue_name: string; status: string } | null }[];
@@ -20,6 +26,9 @@ type BookingLookup = {
 
 export default function StaffDashboardPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
+  const [overview,setOverview]=useState<OverviewData|null>(null);
+  const [overviewLoading,setOverviewLoading]=useState(false);
+  const [overviewError,setOverviewError]=useState('');
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
   const [refundLoading, setRefundLoading] = useState(false);
   const [refundMessage, setRefundMessage] = useState('');
@@ -75,6 +84,19 @@ export default function StaffDashboardPage() {
     void load();
     return () => { active = false; };
   }, []);
+
+  async function loadOverview() {
+    setOverviewLoading(true); setOverviewError('');
+    try {
+      const supabase=createSupabaseBrowserClient();
+      const {data,error}=await supabase.functions.invoke('staff-overview',{body:{}});
+      if(error||!data?.ok) throw new Error(data?.error||error?.message||'Unable to load overview.');
+      setOverview(data as OverviewData);
+    } catch(err) { setOverviewError(err instanceof Error?err.message:'Unable to load overview.'); }
+    finally { setOverviewLoading(false); }
+  }
+
+  useEffect(()=>{if(activeTab==='overview'&&profile) void loadOverview();},[activeTab,profile]);
 
   async function searchBooking(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -275,7 +297,33 @@ export default function StaffDashboardPage() {
         <header className="staff-topbar"><div><p className="staff-eyebrow">STAFF WORKSPACE</p><h1>Good day{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.</h1><p className="staff-muted">Your operations desk for Artist Playground.</p></div><div className="staff-date">{today}</div></header>
         {error && <div className="staff-error" role="alert">{error}</div>}
 
-{activeTab === 'overview' &&         <section className="staff-welcome"><div><span className="welcome-label">ARTIST PLAYGROUND · OPERATIONS</span><h2>Everything you need for<br/>a smooth show day.</h2><p>Manage productions, bookings, payments, and admissions from one workspace.</p></div><div className="welcome-mark" aria-hidden="true">AP</div></section>}
+{activeTab === 'overview' && <section className="staff-section staff-overview" id="overview-dashboard">
+          <div className="section-heading overview-heading"><div><h2>Operations overview</h2><p>A live snapshot of your productions, ticket sales, and upcoming performances.</p></div><button type="button" className="outline-button" onClick={()=>void loadOverview()} disabled={overviewLoading}>{overviewLoading?'Refreshing…':'↻ Refresh'}</button></div>
+          {overviewError&&<div className="staff-error" role="alert">{overviewError}</div>}
+          {overviewLoading&&!overview?<div className="overview-loading">Loading your ticketing overview…</div>:overview&&<>
+            <div className="overview-metrics">
+              <article className="overview-metric"><span>Published productions</span><strong>{overview.metrics.active_productions}</strong><small>Currently published shows</small></article>
+              <article className="overview-metric"><span>Upcoming performances</span><strong>{overview.metrics.upcoming_performances}</strong><small>Scheduled future performances</small></article>
+              <article className="overview-metric"><span>Tickets issued</span><strong>{overview.metrics.tickets_issued.toLocaleString('en-PH')}</strong><small>Issued and valid admission tickets</small></article>
+              <article className="overview-metric"><span>Pending bookings</span><strong>{overview.metrics.pending_bookings}</strong><small>Awaiting payment confirmation</small></article>
+              <article className="overview-metric overview-revenue"><span>Paid revenue</span><strong>₱{overview.metrics.paid_revenue.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong><small>Payments with paid status</small></article>
+            </div>
+            <div className="overview-panel">
+              <div className="overview-panel-heading"><div><h3>Upcoming performances</h3><p>Ticket inventory by scheduled performance</p></div><a href="#box-office" onClick={()=>setActiveTab('box-office')}>Open box office →</a></div>
+              {overview.upcoming.length? <div className="overview-performance-list">{overview.upcoming.map(item=><article className="overview-performance" key={item.id}>
+                <div className="overview-performance-main"><div><strong>{item.title}</strong><span>{new Date(item.starts_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})} · {item.venue_name}</span></div><span className="overview-capacity">{item.sold+item.reserved} / {item.capacity} allocated</span></div>
+                <div className="overview-progress"><span style={{width:(item.capacity?Math.min(100,(item.sold+item.reserved)/item.capacity*100):0)+'%'}}/></div>
+                <div className="overview-performance-foot"><span>{item.sold} sold</span><span>{item.reserved} reserved</span><span>{item.remaining} remaining</span></div>
+                {item.categories.length>1&&<div className="overview-categories">{item.categories.map(cat=><span key={cat.name}>{cat.name}: {cat.sold} sold · {cat.reserved} reserved</span>)}</div>}
+              </article>)}</div>:<div className="overview-empty">No upcoming published performances. Add a performance in Productions to see it here.</div>}
+            </div>
+            <div className="overview-panel">
+              <div className="overview-panel-heading"><div><h3>Recent bookings</h3><p>Latest customer booking activity</p></div><a href="#bookings" onClick={()=>setActiveTab('bookings')}>Find a booking →</a></div>
+              {overview.recent_bookings.length?<div className="overview-bookings">{overview.recent_bookings.map(b=><div className="overview-booking" key={b.booking_reference}><div><strong>{b.purchaser_name}</strong><span>{b.booking_reference} · {new Date(b.created_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</span></div><div className="overview-booking-right"><strong>{b.currency} {Number(b.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong><span className={'overview-status status-'+b.status}>{b.status.replaceAll('_',' ')}</span></div></div>)}</div>:<div className="overview-empty">No bookings have been recorded yet.</div>}
+            </div>
+            <p className="overview-updated">Last updated {new Date(overview.generated_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</p>
+          </>:null}
+        </section>}
 
 {activeTab === 'bookings' &&         <section className="staff-section" id="bookings">
           <div className="section-heading"><div><h2>Booking lookup</h2><p>Search by the booking reference supplied by the customer.</p></div></div>
@@ -395,6 +443,7 @@ export default function StaffDashboardPage() {
         .staff-welcome h2{font-family:Manrope,Inter,sans-serif;font-size:clamp(1.5rem,3vw,2.2rem);line-height:1.15;letter-spacing:-.04em;margin:.7rem 0}
         .staff-welcome p{color:#aab4be;font-size:.8rem;max-width:520px;line-height:1.55;margin:0}
         .welcome-mark{font-size:8rem;font-weight:900;letter-spacing:-.15em;color:rgba(0,168,214,.10);padding-right:2rem}
+        .overview-heading{align-items:center}.overview-heading .outline-button{white-space:nowrap}.overview-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin:1rem 0}.overview-metric{min-width:0;padding:1rem;background:#111419;border:1px solid #282e36;border-radius:9px}.overview-metric span,.overview-metric small{display:block;color:#a0a9b4;font-size:.68rem}.overview-metric strong{display:block;color:#f4f5f7;font-size:1.65rem;letter-spacing:-.04em;margin:.55rem 0 .35rem;overflow-wrap:anywhere}.overview-metric small{font-size:.62rem;color:#737e8b;line-height:1.4}.overview-revenue{border-color:#3c3a20}.overview-revenue strong{color:#f5e900;font-size:1.35rem}.overview-panel{margin-top:1rem;padding:1.15rem;background:#101317;border:1px solid #282e36;border-radius:10px}.overview-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:.7rem}.overview-panel-heading h3{margin:0;font-size:.9rem}.overview-panel-heading p{margin:.3rem 0 0;color:#89939e;font-size:.68rem}.overview-panel-heading a{color:#5ed4f2;text-decoration:none;font-size:.68rem;white-space:nowrap}.overview-performance{padding:.9rem 0;border-top:1px solid #252b33}.overview-performance-main,.overview-booking{display:flex;align-items:center;justify-content:space-between;gap:1rem}.overview-performance-main>div,.overview-booking>div:first-child{display:grid;gap:.3rem;min-width:0}.overview-performance-main strong,.overview-booking strong{font-size:.75rem}.overview-performance-main span,.overview-booking span{color:#929ba6;font-size:.65rem}.overview-capacity{white-space:nowrap}.overview-progress{height:5px;margin:.7rem 0 .4rem;background:#292e35;border-radius:10px;overflow:hidden}.overview-progress span{display:block;height:100%;background:#00b8e6;border-radius:10px}.overview-performance-foot{display:flex;gap:1rem;flex-wrap:wrap}.overview-performance-foot span,.overview-categories span{color:#929ba6;font-size:.62rem}.overview-categories{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.55rem}.overview-categories span{padding:.25rem .45rem;background:#191e24;border-radius:4px}.overview-booking{padding:.75rem 0;border-top:1px solid #252b33}.overview-booking-right{display:flex;align-items:flex-end;flex-direction:column;gap:.3rem;white-space:nowrap}.overview-status{padding:.2rem .45rem;border-radius:20px;background:#272e36;text-transform:capitalize;font-size:.58rem!important}.overview-empty,.overview-loading{padding:1.3rem;color:#929ba6;font-size:.75rem;text-align:center}.overview-updated{color:#737e8b;font-size:.62rem;text-align:right;margin-top:.8rem}
         .staff-section{margin-top:2rem;scroll-margin-top:1rem}
         .section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:1rem}
         .section-heading h2{font-family:Manrope,Inter,sans-serif;font-size:1.12rem;margin:0}
@@ -437,8 +486,8 @@ export default function StaffDashboardPage() {
         .ticket-result strong,.ticket-result span,.ticket-result small{display:block}.ticket-result strong{font-size:.75rem}.ticket-result div>span,.ticket-result small,.result-muted{font-size:.68rem;color:#929ba6;margin-top:.25rem}.payment-result{font-size:.72rem;color:#aeb7c1}.payment-result strong{color:#f4f5f7}
         .staff-error{background:#2a1517;border:1px solid #713237;color:#ffc0c4;padding:.8rem;border-radius:8px;margin-bottom:1rem}
         .staff-loading{min-height:55vh;display:grid;place-items:center;background:#080808;color:#aaa}
-        @media(max-width:1150px){.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:760px){.cash-sale-two-col{grid-template-columns:1fr}.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:1150px){.overview-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:760px){.overview-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-panel-heading{align-items:flex-start}.overview-performance-main{align-items:flex-start;flex-direction:column;gap:.35rem}.overview-booking{align-items:flex-start}.overview-booking-right{align-items:flex-end}.cash-sale-two-col{grid-template-columns:1fr}.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
       `}</style>
     </div>
   );
