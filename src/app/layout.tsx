@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import '../styles/global.css';
-import Header from '../components/header/Header';
-import Footer from '../components/footer/Footer';
+import SiteChrome from '../components/layout/SiteChrome';
 import AuthHashHandler from '../components/auth/AuthHashHandler';
 
 export const metadata: Metadata = {
@@ -23,9 +22,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body>
         <AuthHashHandler />
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );
