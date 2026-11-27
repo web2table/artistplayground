@@ -1,24 +1,51 @@
+'use client';
+
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getCurrentStaff } from '@/lib/auth/staff';
-import { signInStaff } from './actions';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
-type LoginPageProps = {
-  searchParams: Promise<{ error?: string }>;
-};
+export default function StaffLoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [message, setMessage] = useState('');
+  const [busy, setBusy] = useState(false);
 
-export default async function StaffLoginPage({ searchParams }: LoginPageProps) {
-  const staff = await getCurrentStaff();
-  if (staff) redirect(staff.role === 'system_admin' ? '/admin' : '/staff');
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error === 'missing') setMessage('Enter your email and password.');
+    else if (error === 'unauthorized') setMessage('This account is not authorized for staff access. Contact your system administrator.');
+    else if (error === 'invalid') setMessage('Unable to sign in with those credentials.');
+  }, [searchParams]);
 
-  const params = await searchParams;
-  const message = params.error === 'missing'
-    ? 'Enter your email and password.'
-    : params.error === 'unauthorized'
-      ? 'This account is not authorized for staff access. Contact your system administrator.'
-      : params.error === 'invalid'
-        ? 'Unable to sign in with those credentials.'
-        : null;
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage('');
+    try {
+      const form = new FormData(event.currentTarget);
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: String(form.get('email') ?? '').trim().toLowerCase(),
+        password: String(form.get('password') ?? ''),
+      });
+      if (error || !data.user) throw new Error('invalid');
+
+      const { data: profile, error: profileError } = await supabase
+        .from('staff_profiles').select('role, active').eq('user_id', data.user.id).maybeSingle();
+
+      if (profileError || !profile?.active || !['staff', 'system_admin'].includes(profile.role)) {
+        await supabase.auth.signOut();
+        throw new Error('unauthorized');
+      }
+      router.replace(profile.role === 'system_admin' ? '/admin/' : '/staff/');
+    } catch (error) {
+      setMessage(error instanceof Error && error.message === 'unauthorized'
+        ? 'This account is not authorized for staff access. Contact your system administrator.'
+        : 'Unable to sign in with those credentials.');
+      setBusy(false);
+    }
+  }
 
   return (
     <section className="staff-auth">
@@ -27,12 +54,12 @@ export default async function StaffLoginPage({ searchParams }: LoginPageProps) {
         <h1>Staff sign in</h1>
         <p className="staff-auth-copy">Authorized personnel only.</p>
         {message && <p className="staff-auth-error" role="alert">{message}</p>}
-        <form action={signInStaff} className="staff-auth-form">
+        <form onSubmit={handleSubmit} className="staff-auth-form">
           <label htmlFor="email">Email address</label>
           <input id="email" name="email" type="email" autoComplete="username" required />
           <label htmlFor="password">Password</label>
           <input id="password" name="password" type="password" autoComplete="current-password" required />
-          <button type="submit">Sign in</button>
+          <button type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
         </form>
         <Link className="staff-auth-back" href="/">← Back to website</Link>
       </div>
