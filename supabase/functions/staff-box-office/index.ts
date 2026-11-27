@@ -12,6 +12,16 @@ const sha256 = async (value: string) => {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
 };
+const base64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
+const encryptQrToken = async (raw: string, encodedKey: string) => {
+  const binary = atob(encodedKey);
+  const keyBytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  if (keyBytes.length !== 32) throw new Error("TICKET_QR_ENCRYPTION_KEY must be a base64-encoded 32-byte key.");
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["encrypt"]);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, new TextEncoder().encode(raw));
+  return { qr_token_ciphertext: base64(new Uint8Array(ciphertext)), qr_token_iv: base64(iv) };
+};
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
@@ -59,13 +69,17 @@ Deno.serve(async (req: Request) => {
   if (!attendees.length || attendees.length > 20 || attendees.some(a => !a.full_name?.trim() || a.full_name.length > 120 || !/^\\d{4}-\\d{2}-\\d{2}$/.test(a.birth_date)))
     return json({ error: "Every attendee needs a full name and birth date. Maximum 20 tickets per sale." }, 400);
 
+  const encryptionKey = Deno.env.get("TICKET_QR_ENCRYPTION_KEY");
+  if (!encryptionKey) return json({ error: "Ticket QR encryption is not configured. Ask System Admin to finish email setup." }, 500);
   const ticketTokens = [];
   for (let i = 0; i < attendees.length; i++) {
     const raw = randomHex(32);
+    const encrypted = await encryptQrToken(raw, encryptionKey);
     ticketTokens.push({
       attendee_name: attendees[i].full_name.trim(),
       ticket_reference: `AP-${randomHex(6).toUpperCase()}`,
       qr_token_hash: await sha256(raw),
+      ...encrypted,
     });
   }
 
