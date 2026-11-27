@@ -20,6 +20,41 @@ main { flex: 1 0 auto; }
 footer { flex-shrink: 0; }
 button, input, textarea, select { font: inherit; }
 
+/* Consistent dark dropdown controls across booking, staff and admin screens. */
+select {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 44px;
+  padding: .75rem 2.7rem .75rem .9rem;
+  border: 1px solid #39434e;
+  border-radius: 8px;
+  background-color: #11161c;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2362d7f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .85rem center;
+  background-size: 16px;
+  color: #f2f6f8;
+  color-scheme: dark;
+  cursor: pointer;
+}
+select:focus {
+  outline: none;
+  border-color: #00c8f5;
+  box-shadow: 0 0 0 3px rgba(0,200,245,.14);
+}
+select:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+select option {
+  background: #11161c;
+  color: #f2f6f8;
+}
+select option:disabled {
+  color: #78838e;
+}
+
+
 /* Hide native number steppers consistently across every page and form. */
 input[type="number"] {
   appearance: textfield;
