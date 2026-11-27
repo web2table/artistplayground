@@ -6,7 +6,8 @@ import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 type Category = { id: string; name: string; price: number; allocation: number; reserved_count: number; sold_count: number; active: boolean };
 type Performance = { id: string; starts_at: string; doors_open_at: string | null; venue_name: string; venue_address: string | null; capacity: number; status: string; ticket_categories: Category[] };
 type Production = { id: string; slug: string; title: string; description: string | null; status: string; created_at: string; performances: Performance[] };
-type EditablePerformance = Omit<Performance, 'capacity'> & { capacity: string };
+type EditableCategory = Omit<Category, 'price' | 'allocation'> & { price: string; allocation: string };
+type EditablePerformance = Omit<Performance, 'capacity' | 'ticket_categories'> & { capacity: string; ticket_categories: EditableCategory[] };
 
 function TimePicker({ value, onChange, label }: { value: string; onChange: (value: string) => void; label: string }) {
   const [open, setOpen] = useState(false);
@@ -137,7 +138,7 @@ export default function StaffProductionsPage() {
     setEditing(show);
     setEditTitle(show.title);
     setEditDescription(show.description || '');
-    setEditPerformances(show.performances.map(perf => ({ ...perf, capacity: String(perf.capacity), ticket_categories: perf.ticket_categories.map(cat => ({ ...cat })) })));
+    setEditPerformances(show.performances.map(perf => ({ ...perf, capacity: String(perf.capacity), ticket_categories: perf.ticket_categories.map(cat => ({ ...cat, price: String(cat.price), allocation: String(cat.allocation) })) })));
     setError(''); setMessage('');
   }
 
@@ -216,10 +217,10 @@ export default function StaffProductionsPage() {
             <div className="prod-field"><label>Doors open (optional)</label><div className="prod-date-time"><label htmlFor="show-doors-date">Date<input id="show-doors-date" type="date" value={doorsAt.slice(0,10)} onChange={e=>setDoorsAt(e.target.value + (doorsAt.length >= 16 ? doorsAt.slice(10) : 'T' + (doorsAt.slice(11,16) || '18:30')))} /></label><label>Time<TimePicker label="Doors open time" value={doorsAt.slice(11,16)} onChange={v=>setDoorsAt((doorsAt.slice(0,10) || startsAt.slice(0,10)) + 'T' + v)}/></label></div></div>
             <div className="prod-field"><label htmlFor="show-venue">Venue name</label><input id="show-venue" value={venue} onChange={e=>setVenue(e.target.value)} placeholder="Artist Playground Test Venue" required/></div>
             <div className="prod-field"><label htmlFor="show-address">Venue address (optional)</label><input id="show-address" value={venueAddress} onChange={e=>setVenueAddress(e.target.value)} placeholder="Street, city"/></div>
-            <div className="prod-field"><label htmlFor="show-capacity">Performance capacity</label><input id="show-capacity" type="number" min="1" step="1" value={capacity} onChange={e=>setCapacity(e.target.value)} required/></div>
+            <div className="prod-field"><label htmlFor="show-capacity">Performance capacity</label><input id="show-capacity" type="text" inputMode="numeric" pattern="[0-9]*" value={capacity} onChange={e=>setCapacity(e.target.value.replace(/[^0-9]/g, ''))} required/></div>
             <div className="prod-field"><label htmlFor="show-category">Ticket category</label><input id="show-category" value={category} onChange={e=>setCategory(e.target.value)} required maxLength={80}/></div>
-            <div className="prod-field"><label htmlFor="show-price">Ticket price (PHP)</label><input id="show-price" type="number" min="0" step="0.01" value={price} onChange={e=>setPrice(e.target.value)} required/></div>
-            <div className="prod-field"><label htmlFor="show-allocation">Ticket allocation</label><input id="show-allocation" type="number" min="1" step="1" value={allocation} onChange={e=>setAllocation(e.target.value)} required/></div>
+            <div className="prod-field"><label htmlFor="show-price">Ticket price (PHP)</label><input id="show-price" type="text" inputMode="decimal" value={price} onChange={e=>setPrice(e.target.value.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1'))} required/></div>
+            <div className="prod-field"><label htmlFor="show-allocation">Ticket allocation</label><input id="show-allocation" type="text" inputMode="numeric" pattern="[0-9]*" value={allocation} onChange={e=>setAllocation(e.target.value.replace(/[^0-9]/g, ''))} required/></div>
             <div className="prod-form-note"><strong>Publishing safety</strong><span>New shows are saved as drafts. You can review the details before publishing them to the public ticket catalog.</span></div>
             <button className="prod-submit" type="submit" disabled={saving}>{saving ? 'Creating show…' : 'Create show'}</button>
           </form>
@@ -241,8 +242,8 @@ export default function StaffProductionsPage() {
                   <strong>Ticket category {ci+1}</strong>
                   <div className="prod-form">
                     <div className="prod-field"><label>Category name</label><input value={cat.name} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,name:e.target.value}:c)}:row))} required/></div>
-                    <div className="prod-field"><label>Price (PHP)</label><input type="number" min="0" step="0.01" value={cat.price} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,price:Number(e.target.value)}:c)}:row))} required/></div>
-                    <div className="prod-field"><label>Allocation</label><input type="number" min={cat.sold_count+cat.reserved_count} value={cat.allocation} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,allocation:Number(e.target.value)}:c)}:row))} required/></div>
+                    <div className="prod-field"><label>Price (PHP)</label><input type="text" inputMode="decimal" value={cat.price} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,price:e.target.value.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1')}:c)}:row))} required/></div>
+                    <div className="prod-field"><label>Allocation</label><input type="text" inputMode="numeric" pattern="[0-9]*" value={cat.allocation} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,allocation:e.target.value.replace(/[^0-9]/g, '')}:c)}:row))} required/></div>
                     <div className="prod-field"><label>Availability</label><select value={cat.active?'active':'inactive'} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,active:e.target.value==='active'}:c)}:row))}><option value="active">On sale</option><option value="inactive">Paused</option></select></div>
                   </div>
                 </div>)}
