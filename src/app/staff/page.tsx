@@ -278,7 +278,7 @@ export default function StaffDashboardPage() {
   return (
     <div className="staff-workspace">
       <aside className="staff-sidebar">
-        <a className="staff-brand" href={appPath('/')} aria-label="Artist Playground home"><img className="staff-brand-logo" src={appPath("/ap.jpg")} alt="Artist Playground logo" /><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
+        <a className="staff-brand" href="#overview" onClick={() => setActiveTab("overview")} aria-label="Staff workspace overview"><img className="staff-brand-logo" src={appPath("/ap.jpg")} alt="Artist Playground logo" /><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
         <div className="staff-nav-label">WORKSPACE</div>
         <a className={`staff-nav-item ${activeTab === 'overview' ? 'selected' : ''}`} href="#overview" onClick={() => setActiveTab('overview')}><span>⌂</span> Overview</a>
         <div className="staff-nav-label">MANAGEMENT</div>
