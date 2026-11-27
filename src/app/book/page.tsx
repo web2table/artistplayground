@@ -23,6 +23,11 @@ export default function BookTicketsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [paymentNotice, setPaymentNotice] = useState('');
+  useEffect(() => {
+    if (!paymentNotice) return;
+    const timeout = window.setTimeout(() => setPaymentNotice(''), 5000);
+    return () => window.clearTimeout(timeout);
+  }, [paymentNotice]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -96,7 +101,7 @@ export default function BookTicketsPage() {
 
   return <div className="ap-page ap-page-book">
     <section className="booking-wrap">
-      {paymentNotice && <p className="message" role="status">{paymentNotice}</p>}
+      {paymentNotice && <div className="payment-toast" role="status" aria-live="polite">{paymentNotice}</div>}
       {loading ? <div className="empty"><h2>Loading available performances…</h2><p>Checking current schedules and ticket availability.</p></div> : performances.length === 0 ? <div className="empty"><h2>Tickets are not on sale yet.</h2><p>There are no published performances with available ticket categories right now. Please check again soon or follow Artist Playground on social media for announcements.</p></div> : !showBookingForm ? <div className="booking-list">
         <div className="booking-show-grid">
           {performances.map(item => {
@@ -164,6 +169,9 @@ export default function BookTicketsPage() {
       </div>}
     </section>
     <style jsx>{`
+      .payment-toast{position:fixed;z-index:1000;top:1.25rem;left:50%;transform:translateX(-50%);width:min(calc(100% - 2rem),520px);padding:1rem 1.15rem;border:1px solid #3d4650;border-left:3px solid #00c8f5;border-radius:10px;background:rgba(12,15,19,.97);box-shadow:0 14px 38px rgba(0,0,0,.38);color:#f5e900;font-size:.82rem;line-height:1.5;animation:payment-toast-in .2s ease-out}
+      @keyframes payment-toast-in{from{opacity:0;translate:0 -8px}to{opacity:1;translate:0 0}}
+      @media(prefers-reduced-motion:reduce){.payment-toast{animation:none}}
       .selected-show-summary{margin:0 0 1.5rem;padding:1.2rem 1.25rem 1.1rem;border:1px solid #303030;border-left:3px solid #fff000;border-radius:10px;background:#080808;box-shadow:0 8px 24px rgba(0,0,0,.18)}
       .selected-show-topline{display:flex;align-items:center;gap:.65rem;margin-bottom:.85rem}
       .selected-show-mark{display:grid;place-items:center;width:30px;height:30px;border:1px solid #00bce8;border-radius:7px;color:#00c8f5;font-size:.65rem;font-weight:900;letter-spacing:-.04em}
