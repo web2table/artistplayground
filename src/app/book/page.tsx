@@ -88,7 +88,6 @@ export default function BookTicketsPage() {
   return <div className="ap-page ap-page-book">
     <section className="booking-wrap">
       {loading ? <div className="empty"><h2>Loading available performances…</h2><p>Checking current schedules and ticket availability.</p></div> : performances.length === 0 ? <div className="empty"><h2>Tickets are not on sale yet.</h2><p>There are no published performances with available ticket categories right now. Please check again soon or follow Artist Playground on social media for announcements.</p></div> : !showBookingForm ? <div className="booking-list">
-        <div className="booking-list-heading"><p className="eyebrow">ARTIST PLAYGROUND · LIVE PRODUCTIONS</p><h1>Book Tickets</h1><p>Choose a show and performance to view ticket options.</p></div>
         <div className="booking-show-grid">
           {performances.map(item => {
             const available = item.categories.filter(cat => cat.remaining > 0);
