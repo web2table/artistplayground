@@ -22,6 +22,15 @@ export default function BookTicketsPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [paymentNotice, setPaymentNotice] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if (payment === 'return') setPaymentNotice('Payment submitted. We are verifying it securely. Your tickets will be emailed after confirmation.');
+    if (payment === 'cancelled') setPaymentNotice('Checkout was cancelled. No tickets have been issued. You can try again whenever you are ready.');
+    if (payment) { params.delete('payment'); params.delete('reference'); const query = params.toString(); window.history.replaceState({}, '', window.location.pathname + (query ? '?' + query : '') + window.location.hash); }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -87,6 +96,7 @@ export default function BookTicketsPage() {
 
   return <div className="ap-page ap-page-book">
     <section className="booking-wrap">
+      {paymentNotice && <p className="message" role="status">{paymentNotice}</p>}
       {loading ? <div className="empty"><h2>Loading available performances…</h2><p>Checking current schedules and ticket availability.</p></div> : performances.length === 0 ? <div className="empty"><h2>Tickets are not on sale yet.</h2><p>There are no published performances with available ticket categories right now. Please check again soon or follow Artist Playground on social media for announcements.</p></div> : !showBookingForm ? <div className="booking-list">
         <div className="booking-show-grid">
           {performances.map(item => {
