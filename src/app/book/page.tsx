@@ -149,9 +149,6 @@ export default function BookTicketsPage() {
         <aside className="order-summary"><p className="eyebrow">YOUR ORDER</p><h2>Booking summary</h2><div className="summary-line"><span>Tickets</span><strong>{quantity}</strong></div><div className="summary-line"><span>Category</span><strong>{category?.name || '—'}</strong></div><div className="summary-line"><span>Price each</span><strong>{money(category?.price || 0)}</strong></div><div className="summary-total"><span>Ticket subtotal</span><strong>{money(subtotal)}</strong></div><p>Payment will only begin after you complete the booking details and choose Continue to Payment.</p></aside>
       </div>}
     </section>
-    
-  </div>;
-
     <style jsx>{`
       .booking-list{max-width:1120px;margin:0 auto;padding:2rem 1.25rem 4rem}
       .booking-list-heading{margin-bottom:1.5rem}.booking-list-heading h1{font-size:2rem;margin:.35rem 0}.booking-list-heading>p:last-child{color:#9aa4b2;font-size:.9rem}
@@ -167,5 +164,8 @@ export default function BookTicketsPage() {
       .booking-show-bottom button:disabled{opacity:.45;cursor:not-allowed}.booking-back{margin-bottom:1rem;background:transparent;color:#fff;border:1px solid #444}
       @media(max-width:600px){.booking-list{padding:1.2rem .9rem 3rem}.booking-show-poster{height:190px}}
     `}</style>
+  </div>;
+
+
 
 }
