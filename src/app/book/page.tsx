@@ -123,12 +123,6 @@ export default function BookTicketsPage() {
           <select id="category" value={selectedCategory} onChange={event => { setSelectedCategory(event.target.value); setQuantity(1); }}>
             {categories.map(item => <option key={item.id} value={item.id} disabled={item.remaining < 1}>{item.name} · {money(item.price)} · {item.remaining} left</option>)}
           </select>
-          <label>Number of tickets</label>
-          <div className="ticket-quantity" role="group" aria-label="Number of tickets">
-            <button type="button" className="quantity-button" aria-label="Decrease tickets" onClick={() => setQuantity(current => Math.max(1, current - 1))} disabled={quantity <= 1}>−</button>
-            <output className="quantity-value" aria-live="polite">{quantity} {quantity === 1 ? 'ticket' : 'tickets'}</output>
-            <button type="button" className="quantity-button" aria-label="Increase tickets" onClick={() => setQuantity(current => Math.min(maxQuantity, current + 1))} disabled={quantity >= maxQuantity}>＋</button>
-          </div>
           <div className="step"><span>03</span><div><h2>Purchaser details</h2><p>Your booking confirmation and all tickets will be sent to this email.</p></div></div>
           <label htmlFor="purchaser">Full name</label>
           <input id="purchaser" autoComplete="name" value={purchaserName} onChange={event => setPurchaserName(event.target.value)} required minLength={2} />
@@ -141,8 +135,17 @@ export default function BookTicketsPage() {
             <input id={'attendee-name-' + index} value={person.full_name} onChange={event => setAttendees(current => current.map((item, i) => i === index ? { ...item, full_name: event.target.value } : item))} required minLength={2} />
             <label htmlFor={'attendee-birthday-' + index}>Birthday</label>
             <input id={'attendee-birthday-' + index} type="date" max={new Date().toISOString().slice(0, 10)} value={person.birth_date} onChange={event => setAttendees(current => current.map((item, i) => i === index ? { ...item, birth_date: event.target.value } : item))} required />
+          </div>
+            {index === 0 && <>
+              <label>Number of tickets</label>
+              <div className="ticket-quantity" role="group" aria-label="Number of tickets">
+                <button type="button" className="quantity-button" aria-label="Decrease tickets" onClick={() => setQuantity(current => Math.max(1, current - 1))} disabled={quantity <= 1}>−</button>
+                <output className="quantity-value" aria-live="polite">{quantity} {quantity === 1 ? 'ticket' : 'tickets'}</output>
+                <button type="button" className="quantity-button" aria-label="Increase tickets" onClick={() => setQuantity(current => Math.min(maxQuantity, current + 1))} disabled={quantity >= maxQuantity}>＋</button>
+              </div>
+            </>}
           </div>)}
-          {message && <p className="message" role="alert">{message}</p>}
+          {message && <p className="message" role="alert">
           </form>
         </div>
         <aside className="order-summary"><p className="eyebrow">YOUR ORDER</p><h2>Booking summary</h2><div className="summary-line"><span>Tickets</span><strong>{quantity}</strong></div><div className="summary-line"><span>Category</span><strong>{category?.name || '—'}</strong></div><div className="summary-line"><span>Price each</span><strong>{money(category?.price || 0)}</strong></div><div className="summary-total"><span>Ticket subtotal</span><strong>{money(subtotal)}</strong></div><p>Review your order, then continue to secure payment.</p><button className="checkout" type="submit" form="booking-details-form" disabled={!canSubmit || submitting}>{submitting ? 'Preparing secure checkout…' : 'Continue to payment · ' + money(subtotal)}</button><p className="fine-print">Your tickets are issued only after payment is verified. Any payment method fees are shown by the payment provider before confirmation.</p></aside>
