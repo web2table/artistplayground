@@ -110,7 +110,7 @@ export default function BookTicketsPage() {
         </div>
       </div> : <div className="booking-grid">
         <div className="booking-form">
-          <button className="booking-back" type="button" onClick={() => setShowBookingForm(false)}>← Back to shows</button>
+          <button className="booking-back" type="button" onClick={() => setShowBookingForm(false)} aria-label="Back to shows" title="Back to shows">←</button>
           <form onSubmit={startCheckout}>
           <div className="step"><span>01</span><div><h2>Choose a performance</h2><p>Select the show date you want to attend.</p></div></div>
           <label htmlFor="performance">Performance</label>
