@@ -16,6 +16,13 @@ Deno.serve(async(req:Request)=>{
  const ticketQuery=db.from("tickets").select("id,ticket_reference,status,booking_id,attendee_id,performance_id,ticket_category_id");
  const {data:ticket,error:ticketError}=reference?await ticketQuery.eq("ticket_reference",reference).maybeSingle():await ticketQuery.eq("qr_token_hash",lookupCredential).maybeSingle();
  if(ticketError)return json({error:"Unable to look up this ticket."},500);if(!ticket)return json({ok:true,result:"not_found",message:"Ticket not found. Check the QR code or ticket reference."});
+ if(body.action==="deny_entry"){
+  const {error:scanError}=await db.from("ticket_scans").insert({ticket_id:ticket.id,scanned_by:authData.user.id,scan_result:"denied",device_label:typeof body.device_label==="string"?body.device_label.slice(0,100):"Staff scanner"});
+  if(scanError){console.error("Denied entry scan could not be recorded",scanError);return json({error:"Unable to record the denied entry. Please try again."},500);}
+  const {error:auditError}=await db.from("audit_logs").insert({actor_user_id:authData.user.id,action:"ticket_entry_denied",entity_type:"ticket",entity_id:ticket.id.toString(),details:{ticket_reference:ticket.ticket_reference,performance_id:ticket.performance_id,reason:"Denied by staff discretion"}});
+  if(auditError)console.error("Denied entry audit log failed",auditError);
+  return json({ok:true,result:"denied",message:"Entry denied by staff. The ticket remains valid for its assigned show.",ticket_reference:ticket.ticket_reference});
+ }
  if(body.action==="clock_in"){
   const {data,error}=await db.rpc("redeem_ticket_for_staff",{p_staff_user_id:authData.user.id,p_credential:reference??lookupCredential,p_performance_id:ticket.performance_id,p_device_label:typeof body.device_label==="string"?body.device_label.slice(0,100):"Staff scanner"});
   if(error){console.error("Ticket clock-in failed",error);return json({error:"Unable to record admission. Please try again."},500);}return json(data as Record<string,unknown>);
