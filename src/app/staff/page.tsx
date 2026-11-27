@@ -67,7 +67,11 @@ export default function StaffDashboardPage() {
     async function load() {
       try {
         const supabase = createSupabaseBrowserClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const authResult = await Promise.race([
+          supabase.auth.getUser(),
+          new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('Staff session check timed out. Please sign in again.')), 15000)),
+        ]);
+        const { data: { user } } = authResult;
         if (!user) { window.location.replace(appPath('/staff/login/')); return; }
         const { data, error: profileError } = await supabase.from('staff_profiles')
           .select('display_name, role, active').eq('user_id', user.id).maybeSingle();
@@ -273,7 +277,7 @@ export default function StaffDashboardPage() {
 
   const today = new Intl.DateTimeFormat('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
-  if (loading) return <main className="staff-loading">Loading staff workspace…</main>;
+  if (loading) return <main className="staff-loading" style={{ minHeight: '100vh', minHeight: '100svh', width: '100%', display: 'grid', placeItems: 'center', textAlign: 'center', padding: '2rem', boxSizing: 'border-box', background: '#080808', color: '#aaa', fontSize: '.9rem', letterSpacing: '.02em' }}>Loading staff workspace…</main>;
 
   return (
     <div className="staff-workspace">
