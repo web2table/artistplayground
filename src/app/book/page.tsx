@@ -84,7 +84,7 @@ export default function BookTicketsPage() {
     } finally { setSubmitting(false); }
   }
 
-  return <>
+  return <div className="ap-page ap-page-book">
     <section className="booking-wrap">
       {loading ? <div className="empty"><h2>Loading available performances…</h2><p>Checking current schedules and ticket availability.</p></div> : performances.length === 0 ? <div className="empty"><h2>Tickets are not on sale yet.</h2><p>There are no published performances with available ticket categories right now. Please check again soon or follow Artist Playground on social media for announcements.</p></div> : <div className="booking-grid">
         <form className="booking-form" onSubmit={startCheckout}>
@@ -123,13 +123,6 @@ export default function BookTicketsPage() {
         <aside className="order-summary"><p className="eyebrow">YOUR ORDER</p><h2>Booking summary</h2><div className="summary-line"><span>Tickets</span><strong>{quantity}</strong></div><div className="summary-line"><span>Category</span><strong>{category?.name || '—'}</strong></div><div className="summary-line"><span>Price each</span><strong>{money(category?.price || 0)}</strong></div><div className="summary-total"><span>Ticket subtotal</span><strong>{money(subtotal)}</strong></div><p>Online payment is completed through the secure payment checkout. Your booking is not confirmed until payment verification succeeds.</p></aside>
       </div>}
     </section>
-    <style jsx>{`
-      .eyebrow{color:var(--ap-blue);letter-spacing:.16em;font-size:var(--ap-size-eyebrow);font-weight:800}
-      .booking-wrap{padding:1.5rem 5vw 5rem}.booking-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.7fr);gap:1.2rem;align-items:start;max-width:1100px;margin:auto}
-      .booking-form,.order-summary{background:#101010;border:1px solid var(--ap-border);border-radius:1rem;padding:clamp(1.2rem,3vw,2rem)}
-      .step{display:flex;gap:1rem;align-items:flex-start;margin:1.2rem 0 1rem}.step>span{display:grid;place-items:center;flex:0 0 2.2rem;height:2.2rem;border:1px solid var(--ap-blue);border-radius:50%;color:var(--ap-blue);font-size:.75rem;font-weight:800}.step h2{font-size:var(--ap-size-card);margin:0}.step p{color:var(--ap-muted);font-size:.82rem;margin:.3rem 0 0}
-      .booking-form label{display:block;color:#d5d5d5;font-size:.8rem;margin:.85rem 0 .4rem}.booking-form input,.booking-form select{width:100%;padding:.85rem;background:#080808;border:1px solid #393939;border-radius:.5rem;color:white;font:inherit;font-size:.9rem}.performance-info{display:grid;gap:.35rem;padding:1rem;margin:1rem 0;background:#171717;border-left:3px solid var(--ap-yellow);font-size:.82rem}.performance-info span,.performance-info p{color:var(--ap-muted);margin:0;line-height:1.5}.attendee{padding:1rem;margin:1rem 0;border:1px solid #303030;border-radius:.7rem}.attendee h3{font-size:1rem;margin:0 0 .5rem}.checkout{width:100%;margin-top:1rem;padding:1rem;border:0;border-radius:.55rem;background:var(--ap-yellow);color:#080808;font-weight:800;cursor:pointer}.checkout:disabled{opacity:.45;cursor:not-allowed}.fine-print,.order-summary>p:last-child{font-size:.72rem;color:var(--ap-muted);line-height:1.6}.message{color:#ffd36a;font-size:.82rem}.order-summary{position:sticky;top:1rem}.order-summary h2{font-size:1.4rem;margin:.5rem 0 1.5rem}.summary-line,.summary-total{display:flex;justify-content:space-between;gap:1rem;padding:.8rem 0;border-bottom:1px solid #303030;font-size:.82rem}.summary-line span,.summary-total span{color:var(--ap-muted)}.summary-total{margin-top:.5rem;border:0;font-size:1rem}.summary-total strong{color:var(--ap-yellow);font-size:1.2rem}.empty{max-width:850px;margin:2rem auto;padding:3rem 1.5rem;border:1px dashed var(--ap-border);border-radius:1rem;text-align:center}.empty h2{font-size:1.4rem}.empty p{max-width:42rem;margin:auto;color:var(--ap-muted);line-height:1.7}
-      @media(max-width:800px){.booking-grid{grid-template-columns:1fr}.order-summary{position:static;grid-row:1}}
-    `}</style>
-  </>;
+    
+  </div>;
 }
