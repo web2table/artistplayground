@@ -7,7 +7,7 @@ type StaffProfile = { display_name: string; role: 'staff' | 'system_admin'; acti
 type BoxOfficePerformance = { id: string; starts_at: string; venue_name: string; production_title: string; categories: { id: string; name: string; price: number; remaining: number }[] };
 type SaleAttendee = { full_name: string; birth_date: string };
 type ScanPerformance = { id: string; starts_at: string; venue_name: string; production_title: string };
-type ScanResult = { result: string; message: string; ticket_reference?: string; attendee_name?: string };
+type ScanResult = { result: string; message: string; ticket_reference?: string; attendee_name?: string; birth_date?: string | null; ticket_category?: string; production_title?: string; starts_at?: string | null; venue_name?: string | null };
 type RefundRow = { id:string; booking_reference:string; purchaser_name:string; purchaser_email:string; booking_status:string; payment_method:string; provider:string; payment_status:string; currency:string; provider_reference:string|null; amount:number; status:string; reason:string; requested_at:string; reviewed_at:string|null; completed_at:string|null };
 
 type OverviewData = {
@@ -33,8 +33,6 @@ export default function StaffDashboardPage() {
   const [refundLoading, setRefundLoading] = useState(false);
   const [refundMessage, setRefundMessage] = useState('');
   const [refundReason, setRefundReason] = useState('');
-  const [scanPerformances, setScanPerformances] = useState<ScanPerformance[]>([]);
-  const [scanPerformance, setScanPerformance] = useState('');
   const [scanCredential, setScanCredential] = useState('');
   const [scanLoading, setScanLoading] = useState(false);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
@@ -169,35 +167,21 @@ export default function StaffDashboardPage() {
     if (activeTab === 'refunds' && profile) void loadRefunds();
   }, [activeTab, profile]);
 
-  useEffect(() => {
-    if (activeTab !== 'scanner' || !profile) return;
-    let cancelled = false;
-    (async () => {
-      const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.functions.invoke('staff-ticket-scan', { body: { action: 'performances' } });
-      if (!cancelled) {
-        if (error || !data?.ok) setCameraMessage(data?.error || error?.message || 'Unable to load performances.');
-        else setScanPerformances(data.performances as ScanPerformance[]);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [activeTab, profile]);
-
-  async function submitTicketScan(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!scanPerformance) return;
-    setScanLoading(true); setScanResult(null); setCameraMessage('');
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.functions.invoke('staff-ticket-scan', {
-        body: { credential: scanCredential.trim(), performance_id: scanPerformance, device_label: 'Staff workspace' },
-      });
-      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Ticket validation failed.');
-      setScanResult(data as ScanResult);
-      setScanCredential('');
-    } catch (err) {
-      setCameraMessage(err instanceof Error ? err.message : 'Unable to validate ticket.');
-    } finally { setScanLoading(false); }
+  async function validateTicketValue(value: string) {
+    const credential=value.trim(); if(!credential)return;
+    setScanLoading(true);setScanResult(null);setCameraMessage('');setScanCredential(credential);
+    try { const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'validate',credential,device_label:'Staff workspace'}});
+      if(error||!data?.ok)throw new Error(data?.error||error?.message||'Ticket validation failed.');setScanResult(data as ScanResult);
+    } catch(err){setCameraMessage(err instanceof Error?err.message:'Unable to validate ticket.');} finally{setScanLoading(false);}
+  }
+  async function submitTicketScan(event:React.FormEvent<HTMLFormElement>){event.preventDefault();await validateTicketValue(scanCredential);}
+  async function clockInTicket(){
+    if(!scanCredential.trim()||scanResult?.result!=='ready')return;setScanLoading(true);setCameraMessage('');
+    try{const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'clock_in',credential:scanCredential.trim(),device_label:'Staff workspace'}});
+      if(error||!data?.ok)throw new Error(data?.error||error?.message||'Unable to record admission.');
+      setScanResult(current=>current?{...current,result:data.result,message:data.message,attendee_name:data.attendee_name||current.attendee_name,ticket_reference:data.ticket_reference||current.ticket_reference}:data as ScanResult);
+      if(data.result==='accepted')setScanCredential('');
+    }catch(err){setCameraMessage(err instanceof Error?err.message:'Unable to record admission.');}finally{setScanLoading(false);}
   }
 
   async function startQrCamera() {
@@ -382,25 +366,30 @@ export default function StaffDashboardPage() {
           </div>
         </section>}
 {activeTab === 'scanner' && <section className="staff-section" id="scanner">
-          <div className="section-heading"><div><h2>Ticket scanner</h2><p>Scan a ticket QR code or enter its reference to validate admission.</p></div></div>
+          <div className="section-heading"><div><h2>Ticket scanner</h2><p>Scan the ticket. Its show and attendee details load automatically before admission is recorded.</p></div></div>
           <div className="booking-lookup-panel">
             <form className="cash-sale-form" onSubmit={submitTicketScan}>
-              <label htmlFor="scan-performance">Performance</label>
-              <select id="scan-performance" value={scanPerformance} onChange={e => { setScanPerformance(e.target.value); setScanResult(null); }} required>
-                <option value="">Choose the performance being admitted</option>
-                {scanPerformances.map(p => <option key={p.id} value={p.id}>{p.production_title} · {new Date(p.starts_at).toLocaleString()} · {p.venue_name}</option>)}
-              </select>
-              <div className="scanner-camera">
-                <video ref={videoRef} playsInline muted aria-label="Ticket QR camera preview" />
-                <div className="scanner-camera-actions"><button type="button" className="outline-button" onClick={startQrCamera}>Start camera QR scan</button><button type="button" className="outline-button" onClick={stopQrCamera}>Stop camera</button></div>
+              <div className="scanner-camera"><video ref={videoRef} playsInline muted aria-label="Ticket QR camera preview" />
+                <div className="scanner-camera-actions"><button type="button" className="primary-button" onClick={startQrCamera}>Open camera &amp; scan QR</button><button type="button" className="outline-button" onClick={stopQrCamera}>Stop camera</button></div>
               </div>
-              <label htmlFor="ticket-credential">Ticket reference or QR value</label>
-              <input id="ticket-credential" value={scanCredential} onChange={e => setScanCredential(e.target.value)} placeholder="Scan QR code or enter ticket reference" maxLength={512} required />
-              <button className="primary-button" type="submit" disabled={scanLoading || !scanPerformance || !scanCredential.trim()}>{scanLoading ? 'Validating ticket…' : 'Validate ticket & record admission'}</button>
+              <label htmlFor="ticket-credential">Or enter ticket reference / QR value</label>
+              <input id="ticket-credential" value={scanCredential} onChange={e=>{setScanCredential(e.target.value);setScanResult(null);}} placeholder="Scan QR code or enter ticket reference" maxLength={512} required />
+              <button className="outline-button" type="submit" disabled={scanLoading||!scanCredential.trim()}>{scanLoading?'Checking ticket…':'Look up ticket'}</button>
             </form>
-            {cameraMessage && <p className="booking-message" role="status">{cameraMessage}</p>}
-            {scanResult && <div className={`scan-result scan-${scanResult.result}`} role="status"><span className="result-label">SCAN RESULT · {scanResult.result.replaceAll('_',' ').toUpperCase()}</span><h3>{scanResult.message}</h3>{scanResult.attendee_name && <p>{scanResult.attendee_name} · {scanResult.ticket_reference}</p>}</div>}
-            {!scanPerformances.length && <p className="result-muted">No published scheduled performances are available for admission yet.</p>}
+            {cameraMessage&&<p className="booking-message" role="status">{cameraMessage}</p>}
+            {scanResult&&<div className={`scan-result scan-${scanResult.result}`} role="status">
+              <span className="result-label">TICKET · {scanResult.result.replaceAll('_',' ').toUpperCase()}</span><h3>{scanResult.production_title||'Ticket details unavailable'}</h3>
+              <div className="scan-ticket-facts">
+                <div><small>ATTENDEE</small><strong>{scanResult.attendee_name||'—'}</strong></div>
+                <div><small>BIRTHDATE</small><strong>{scanResult.birth_date?new Date(`${scanResult.birth_date}T00:00:00`).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'—'}</strong></div>
+                <div><small>TICKET CATEGORY</small><strong>{scanResult.ticket_category||'—'}</strong></div>
+                <div><small>PERFORMANCE</small><strong>{scanResult.starts_at?new Date(scanResult.starts_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'}):'—'}</strong></div>
+                <div><small>VENUE</small><strong>{scanResult.venue_name||'—'}</strong></div>
+                <div><small>TICKET REFERENCE</small><strong>{scanResult.ticket_reference||'—'}</strong></div>
+              </div>
+              {scanResult.result==='ready'&&<button type="button" className="primary-button scan-clock-in" onClick={clockInTicket} disabled={scanLoading}>{scanLoading?'Recording admission…':'Clock in attendee'}</button>}
+              {scanResult.result==='accepted'&&<p className="scan-clocked-in">✓ Attendee successfully clocked in.</p>}
+            </div>}
           </div>
         </section>}
 {activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Production &amp; performance reports</strong><p>Review ticket sales, revenue, payment status, and admissions by production or individual performance. Reporting tools will appear here as they are connected.</p></div></div></section>}
@@ -474,7 +463,7 @@ export default function StaffDashboardPage() {
         .workflow-note>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:8px;background:#172a32;color:#55cdec;font-size:1.1rem}
         .workflow-note strong{font-size:.8rem}.workflow-note p{color:#929ba6;font-size:.73rem;line-height:1.55;margin:.35rem 0 0}
         .staff-footer{border-top:1px solid #252a31;color:#66717e;font-size:.66rem;margin-top:2.5rem;padding:1.2rem 0}
-        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.refund-request-panel{margin:1rem 0}.refund-request-panel h3{font-size:.9rem;margin:0}.refund-request-panel label{display:block;color:#cbd1d9;font-size:.72rem;margin:.8rem 0 .35rem}.refund-request-panel textarea{width:100%;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem;color:#f4f5f7;font:inherit;font-size:.78rem;resize:vertical}.refund-payment-option{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:.75rem 0;border-top:1px solid #252b33;font-size:.72rem;color:#aeb7c1}.payment-filters{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:1rem 0}.payment-filters label{font-size:.7rem;color:#aeb7c1}.payment-filters select{background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.6rem;color:#f4f5f7;font:inherit;font-size:.75rem}.payment-desk-list{display:grid;gap:.65rem;margin:1rem 0}.payment-desk-row{background:#111419;border:1px solid #282e36;border-radius:9px;padding:1rem}.payment-desk-main{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.payment-desk-main>div{display:grid;gap:.3rem}.payment-desk-main strong{font-size:.85rem}.payment-desk-main span,.payment-desk-meta,.payment-ref{font-size:.68rem;color:#aeb7c1}.payment-desk-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.7rem}.payment-ref{margin:.5rem 0 0}.payment-error{color:#f19aa4}.status-pill{padding:.2rem .5rem;border-radius:30px;background:#272e36;color:#d6dde5;text-transform:uppercase;font-size:.6rem}.status-paid{background:#123323;color:#8de0ad}.status-pending{background:#382d13;color:#f2d27b}.status-failed,.status-cancelled,.status-refunded{background:#30252a;color:#e4a5b1}.scanner-camera{display:grid;gap:.65rem;margin:.7rem 0}.scanner-camera video{display:block;width:100%;max-height:340px;object-fit:contain;background:#050607;border:1px solid #303740;border-radius:8px}.scanner-camera-actions{display:flex;gap:.6rem;flex-wrap:wrap}.outline-button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.6rem .85rem;cursor:pointer;font-size:.72rem}.scan-result{margin-top:1rem;padding:1rem;border:1px solid #39414b;background:#111820;border-radius:8px}.scan-result h3{font-size:1rem;margin:.45rem 0}.scan-result p{font-size:.75rem;color:#aab4be}.scan-accepted{border-color:#2d8052;background:#10251b}.scan-already_redeemed,.scan-cancelled,.scan-refunded,.scan-unpaid,.scan-wrong_performance{border-color:#805b2d;background:#251c10}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
+        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.refund-request-panel{margin:1rem 0}.refund-request-panel h3{font-size:.9rem;margin:0}.refund-request-panel label{display:block;color:#cbd1d9;font-size:.72rem;margin:.8rem 0 .35rem}.refund-request-panel textarea{width:100%;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem;color:#f4f5f7;font:inherit;font-size:.78rem;resize:vertical}.refund-payment-option{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:.75rem 0;border-top:1px solid #252b33;font-size:.72rem;color:#aeb7c1}.payment-filters{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:1rem 0}.payment-filters label{font-size:.7rem;color:#aeb7c1}.payment-filters select{background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.6rem;color:#f4f5f7;font:inherit;font-size:.75rem}.payment-desk-list{display:grid;gap:.65rem;margin:1rem 0}.payment-desk-row{background:#111419;border:1px solid #282e36;border-radius:9px;padding:1rem}.payment-desk-main{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.payment-desk-main>div{display:grid;gap:.3rem}.payment-desk-main strong{font-size:.85rem}.payment-desk-main span,.payment-desk-meta,.payment-ref{font-size:.68rem;color:#aeb7c1}.payment-desk-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.7rem}.payment-ref{margin:.5rem 0 0}.payment-error{color:#f19aa4}.status-pill{padding:.2rem .5rem;border-radius:30px;background:#272e36;color:#d6dde5;text-transform:uppercase;font-size:.6rem}.status-paid{background:#123323;color:#8de0ad}.status-pending{background:#382d13;color:#f2d27b}.status-failed,.status-cancelled,.status-refunded{background:#30252a;color:#e4a5b1}.scanner-camera{display:grid;gap:.65rem;margin:.7rem 0}.scanner-camera video{display:block;width:100%;max-height:340px;object-fit:contain;background:#050607;border:1px solid #303740;border-radius:8px}.scanner-camera-actions{display:flex;gap:.6rem;flex-wrap:wrap}.outline-button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.6rem .85rem;cursor:pointer;font-size:.72rem}.scan-result{margin-top:1rem;padding:1rem;border:1px solid #39414b;background:#111820;border-radius:8px}.scan-ticket-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem;margin:1rem 0}.scan-ticket-facts>div{padding:.8rem;background:#0b0f14;border:1px solid #2b333d;border-radius:7px;min-width:0}.scan-ticket-facts small,.scan-ticket-facts strong{display:block}.scan-ticket-facts small{font-size:.58rem;letter-spacing:.1em;color:#8793a0;font-weight:800}.scan-ticket-facts strong{font-size:.82rem;margin-top:.35rem;overflow-wrap:anywhere}.scan-clock-in{width:100%;margin-top:.4rem}.scan-clocked-in{padding:.85rem;border-radius:7px;background:#10251b;color:#8de0ad;font-weight:800}.scan-result h3{font-size:1rem;margin:.45rem 0}.scan-result p{font-size:.75rem;color:#aab4be}.scan-accepted{border-color:#2d8052;background:#10251b}.scan-already_redeemed,.scan-cancelled,.scan-refunded,.scan-unpaid,.scan-wrong_performance{border-color:#805b2d;background:#251c10}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
         .booking-search-form label{display:block;color:#cbd1d9;font-size:.72rem;margin-bottom:.5rem}
         .booking-search-row{display:flex;gap:.65rem;max-width:720px}
         .booking-search-row input{flex:1;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.8rem .9rem;color:#f4f5f7;font:inherit;font-size:.8rem}
@@ -495,7 +484,7 @@ export default function StaffDashboardPage() {
         .staff-error{background:#2a1517;border:1px solid #713237;color:#ffc0c4;padding:.8rem;border-radius:8px;margin-bottom:1rem}
         .staff-loading{min-height:100vh;min-height:100svh;width:100%;display:grid;place-items:center;text-align:center;padding:2rem;background:#080808;color:#aaa;font-size:.9rem;letter-spacing:.02em}
         @media(max-width:1150px){.overview-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:760px){.overview-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-panel-heading{align-items:flex-start}.overview-performance-main{align-items:flex-start;flex-direction:column;gap:.35rem}.overview-booking{align-items:flex-start}.overview-booking-right{align-items:flex-end}.cash-sale-two-col{grid-template-columns:1fr}.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:760px){.scan-ticket-facts{grid-template-columns:1fr}.overview-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-panel-heading{align-items:flex-start}.overview-performance-main{align-items:flex-start;flex-direction:column;gap:.35rem}.overview-booking{align-items:flex-start}.overview-booking-right{align-items:flex-end}.cash-sale-two-col{grid-template-columns:1fr}.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
       `}</style>
     </div>
   );
