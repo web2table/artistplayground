@@ -38,7 +38,7 @@ export default function SetStaffPasswordPage() {
         window.location.replace(appPath('/staff/login/?error=unauthorized'));
         return;
       }
-      window.location.replace(profile.role === 'system_admin' ? '/admin/' : '/staff/');
+      window.location.replace(appPath(profile.role === 'system_admin' ? '/admin/' : '/staff/'));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'We could not update your password. Please try again.');
       setBusy(false);
