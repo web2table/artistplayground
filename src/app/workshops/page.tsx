@@ -1,7 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
-export const metadata: Metadata = { title: 'Workshops | Artist Playground', description: 'Workshop areas offered by Artist Playground, including performance, storytelling, character work, and creative theater activities.' };
 const workshopAreas=[{num:'01',title:'Performance & Stage',text:'Activities may include movement, voice, expression, stage presence, and exercises for working in front of an audience.',color:'yellow'},{num:'02',title:'Storytelling & Character',text:'Explore character motivations, storytelling, voice, and creative interpretation through guided activities and improvisation.',color:'blue'},{num:'03',title:'Creative Exploration',text:'Use theater games and creative exercises to experiment with ideas, collaborate, and express yourself through performance.',color:'yellow'}];
 export default function WorkshopsPage(){return <>
 <section className="hero"><p className="eyebrow">LEARN · EXPLORE · CREATE</p><h1>Creative theater<br/><span>workshops.</span></h1><p className="lead">Artist Playground workshops explore theater and creative expression through guided activities in performance, storytelling, character, movement, voice, and collaboration.</p></section>
