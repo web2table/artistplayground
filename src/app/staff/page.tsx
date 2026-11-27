@@ -277,7 +277,7 @@ export default function StaffDashboardPage() {
 
   const today = new Intl.DateTimeFormat('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
-  if (loading) return <main className="staff-loading" style={{ minHeight: '100vh', minHeight: '100svh', width: '100%', display: 'grid', placeItems: 'center', textAlign: 'center', padding: '2rem', boxSizing: 'border-box', background: '#080808', color: '#aaa', fontSize: '.9rem', letterSpacing: '.02em' }}>Loading staff workspace…</main>;
+  if (loading) return <main className="staff-loading" style={{ minHeight: '100svh', width: '100%', display: 'grid', placeItems: 'center', textAlign: 'center', padding: '2rem', boxSizing: 'border-box', background: '#080808', color: '#aaa', fontSize: '.9rem', letterSpacing: '.02em' }}>Loading staff workspace…</main>;
 
   return (
     <div className="staff-workspace">
