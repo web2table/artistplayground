@@ -12,6 +12,10 @@ export default function StaffProductionsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState('');
+  const [editing, setEditing] = useState<Production | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editPerformances, setEditPerformances] = useState<Performance[]>([]);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [title, setTitle] = useState('');
@@ -71,6 +75,34 @@ export default function StaffProductionsPage() {
     finally { setSaving(false); }
   }
 
+  function beginEdit(show: Production) {
+    setEditing(show);
+    setEditTitle(show.title);
+    setEditDescription(show.description || '');
+    setEditPerformances(show.performances.map(perf => ({ ...perf, ticket_categories: perf.ticket_categories.map(cat => ({ ...cat })) })));
+    setError(''); setMessage('');
+  }
+
+  async function saveEdit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editing) return;
+    setSaving(true); setError(''); setMessage('');
+    try {
+      const data = await invoke({
+        action: 'update', production_id: editing.id, title: editTitle, description: editDescription,
+        performances: editPerformances.map(perf => ({
+          id: perf.id, starts_at: perf.starts_at, doors_open_at: perf.doors_open_at,
+          venue_name: perf.venue_name, venue_address: perf.venue_address, capacity: Number(perf.capacity),
+          categories: perf.ticket_categories.map(cat => ({ id: cat.id, name: cat.name, price: Number(cat.price), allocation: Number(cat.allocation), active: cat.active }))
+        }))
+      });
+      setMessage(data.message || 'Show updated.');
+      setEditing(null);
+      await loadProductions();
+    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to update show.'); }
+    finally { setSaving(false); }
+  }
+
   async function publish(id: string) {
     setPublishing(id); setError(''); setMessage('');
     try { const data = await invoke({ action: 'publish', production_id: id }); setMessage(data.message || 'Show published.'); await loadProductions(); }
@@ -122,6 +154,34 @@ export default function StaffProductionsPage() {
             <button className="prod-submit" type="submit" disabled={saving}>{saving ? 'Creating show…' : 'Create show'}</button>
           </form>
         </section>
+        {editing && <section className="prod-panel prod-edit-panel">
+          <div className="prod-panel-heading"><div><h2>Edit show</h2><p>Changes apply to the existing public listing. Published status is preserved.</p></div><button type="button" className="prod-refresh" onClick={()=>setEditing(null)}>Cancel</button></div>
+          <form className="prod-form" onSubmit={saveEdit}>
+            <div className="prod-field full"><label>Show title</label><input value={editTitle} onChange={e=>setEditTitle(e.target.value)} required maxLength={160}/></div>
+            <div className="prod-field full"><label>Description</label><textarea rows={3} value={editDescription} onChange={e=>setEditDescription(e.target.value)}/></div>
+            {editPerformances.map((perf, pi)=><div className="prod-edit-performance" key={perf.id}>
+              <h3>Performance {pi+1}</h3>
+              <div className="prod-form">
+                <div className="prod-field"><label>Date and time</label><input type="datetime-local" value={new Date(perf.starts_at).toISOString().slice(0,16)} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,starts_at:new Date(e.target.value).toISOString()}:row))} required/></div>
+                <div className="prod-field"><label>Doors open</label><input type="datetime-local" value={perf.doors_open_at ? new Date(perf.doors_open_at).toISOString().slice(0,16) : ''} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,doors_open_at:e.target.value?new Date(e.target.value).toISOString():null}:row))}/></div>
+                <div className="prod-field"><label>Venue</label><input value={perf.venue_name} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,venue_name:e.target.value}:row))} required/></div>
+                <div className="prod-field"><label>Venue address</label><input value={perf.venue_address || ''} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,venue_address:e.target.value}:row))}/></div>
+                <div className="prod-field"><label>Capacity</label><input type="number" min="1" value={perf.capacity} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,capacity:Number(e.target.value)}:row))} required/></div>
+                {perf.ticket_categories.map((cat,ci)=><div className="prod-edit-category" key={cat.id}>
+                  <strong>Ticket category {ci+1}</strong>
+                  <div className="prod-form">
+                    <div className="prod-field"><label>Category name</label><input value={cat.name} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,name:e.target.value}:c)}:row))} required/></div>
+                    <div className="prod-field"><label>Price (PHP)</label><input type="number" min="0" step="0.01" value={cat.price} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,price:Number(e.target.value)}:c)}:row))} required/></div>
+                    <div className="prod-field"><label>Allocation</label><input type="number" min={cat.sold_count+cat.reserved_count} value={cat.allocation} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,allocation:Number(e.target.value)}:c)}:row))} required/></div>
+                    <div className="prod-field"><label>Availability</label><select value={cat.active?'active':'inactive'} onChange={e=>setEditPerformances(rows=>rows.map((row,i)=>i===pi?{...row,ticket_categories:row.ticket_categories.map((c,j)=>j===ci?{...c,active:e.target.value==='active'}:c)}:row))}><option value="active">On sale</option><option value="inactive">Paused</option></select></div>
+                  </div>
+                </div>)}
+              </div>
+            </div>)}
+            <div className="prod-form-note"><strong>Inventory protection</strong><span>Sold and reserved tickets cannot be reduced or deleted. Total category allocations cannot exceed performance capacity.</span></div>
+            <button className="prod-submit" type="submit" disabled={saving}>{saving?'Saving changes…':'Save changes'}</button>
+          </form>
+        </section>}
         <section className="prod-list-section">
           <div className="prod-list-heading"><div><h2>Existing shows</h2><p>Review show status, performance schedule, and ticket inventory.</p></div><span>{productions.length} total</span></div>
           {loading ? <div className="prod-empty">Loading productions…</div> : productions.length === 0 ? <div className="prod-empty">No shows have been created yet.</div> : <div className="prod-list">{productions.map(show=><article className="prod-card" key={show.id}>
@@ -129,7 +189,7 @@ export default function StaffProductionsPage() {
             {show.performances.map(perf=><div className="prod-performance" key={perf.id}><div><strong>{new Date(perf.starts_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</strong><span>{perf.venue_name}{perf.venue_address ? ' · '+perf.venue_address : ''}</span></div><span>Capacity: {perf.capacity}</span>
               {perf.ticket_categories.map(cat=><div className="prod-category" key={cat.id}><span>{cat.name}</span><span>₱{Number(cat.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</span><span>{cat.sold_count + cat.reserved_count}/{cat.allocation} allocated</span></div>)}
             </div>)}
-            <div className="prod-card-actions">{show.status === 'draft' ? <button type="button" onClick={()=>void publish(show.id)} disabled={publishing===show.id}>{publishing===show.id?'Publishing…':'Publish show'}</button> : <span className="prod-published-note">Listed in public ticket catalog</span>}</div>
+            <div className="prod-card-actions"><button type="button" className="prod-edit-button" onClick={()=>beginEdit(show)}>Edit show</button>{show.status === 'draft' ? <button type="button" onClick={()=>void publish(show.id)} disabled={publishing===show.id}>{publishing===show.id?'Publishing…':'Publish show'}</button> : <span className="prod-published-note">Listed in public ticket catalog</span>}</div>
           </article>)}</div>}
         </section>
         <footer className="prod-footer">Artist Playground · Internal staff workspace</footer>
@@ -147,6 +207,7 @@ export default function StaffProductionsPage() {
         .prod-refresh,.prod-panel button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.65rem .9rem;cursor:pointer;font-size:.74rem}.prod-panel{background:#111419;border:1px solid #282e36;border-radius:11px;padding:1.25rem}
         .prod-panel-heading,.prod-list-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.2rem}.prod-panel-heading h2,.prod-list-heading h2{font-size:1rem;margin:0}.prod-plus{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:#172a32;color:#55cdec;font-size:1.2rem}
         .prod-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem}.prod-field{display:grid;gap:.4rem;min-width:0}.prod-field.full{grid-column:1/-1}.prod-field label{font-size:.72rem;color:#cbd1d9}.prod-field input,.prod-field textarea{width:100%;box-sizing:border-box;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.prod-field textarea{resize:vertical}.prod-form-note{grid-column:1/-1;padding:.85rem 1rem;border:1px solid #33404a;border-radius:8px;background:#0c1116;display:grid;gap:.3rem}.prod-form-note strong{font-size:.72rem;color:#7bdcf5}.prod-form-note span{font-size:.7rem;color:#929ba6;line-height:1.5}.prod-submit{grid-column:1/-1;background:#f5e900!important;color:#090909!important;border:0!important;font-weight:800;padding:.85rem!important}.prod-submit:disabled{opacity:.6;cursor:wait}
+        .prod-edit-performance{grid-column:1/-1;border:1px solid #303944;border-radius:9px;padding:1rem;background:#0c0f13}.prod-edit-performance h3{font-size:.85rem;margin:0 0 .8rem}.prod-edit-category{grid-column:1/-1;border-top:1px solid #252b33;padding-top:.8rem;margin-top:.25rem}.prod-edit-category>strong{font-size:.72rem;color:#7bdcf5;display:block;margin-bottom:.7rem}.prod-edit-panel{margin-top:1.5rem}.prod-card-actions .prod-edit-button{background:#19252c;border:1px solid #3b5964;color:#73d9f3}.prod-field select{width:100%;box-sizing:border-box;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}
         .prod-alert{padding:.8rem 1rem;border-radius:8px;margin-bottom:1rem;font-size:.78rem}.prod-alert.error{background:#2a1517;border:1px solid #713237;color:#ffc0c4}.prod-alert.success{background:#10251b;border:1px solid #245a3c;color:#a8e8c2}
         .prod-list-section{margin-top:2rem}.prod-list-heading{align-items:flex-end}.prod-list-heading>span{color:#89939f;font-size:.68rem}.prod-list{display:grid;gap:.75rem}.prod-card{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.1rem}.prod-card-top{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.prod-slug{font-size:.6rem;color:#6e7b89;letter-spacing:.08em}.prod-card h3{font-size:.95rem;margin:.35rem 0}.prod-card p{font-size:.72rem;color:#929ba6;margin:.25rem 0;line-height:1.5}.prod-status{font-size:.62rem;text-transform:uppercase;letter-spacing:.08em;padding:.35rem .55rem;border-radius:99px;background:#302d1c;color:#f0d77b}.prod-status.published{background:#123323;color:#8de0ad}.prod-status.archived{background:#30252a;color:#e4a5b1}
         .prod-performance{margin-top:1rem;padding:.85rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px;display:grid;gap:.5rem}.prod-performance>div:first-child{display:grid;gap:.25rem}.prod-performance strong{font-size:.75rem}.prod-performance span{font-size:.68rem;color:#aeb7c1}.prod-category{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;border-top:1px solid #242a32;padding-top:.5rem}.prod-card-actions{display:flex;justify-content:flex-end;margin-top:.8rem}.prod-card-actions button{background:#f5e900;border:0;border-radius:7px;color:#090909;padding:.65rem .9rem;font-size:.72rem;font-weight:800;cursor:pointer}.prod-card-actions button:disabled{opacity:.6}.prod-published-note{font-size:.68rem;color:#8de0ad}.prod-empty{padding:1.5rem;text-align:center;color:#929ba6;background:#111419;border:1px solid #282e36;border-radius:9px;font-size:.78rem}.prod-footer{border-top:1px solid #252a31;color:#66717e;font-size:.66rem;margin-top:2.5rem;padding:1.2rem 0}
