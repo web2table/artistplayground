@@ -1,7 +1,5 @@
 'use client';
 
-import type { Metadata } from 'next';
-export const metadata: Metadata = { title: 'Contact | Artist Playground', description: 'Get in touch with Artist Playground about educational theater, productions, workshops, and creative collaborations.' };
 const inquiryTypes=[{number:'01',title:'Educational Productions',tag:'FOR SCHOOLS',text:'Bring literature and stories to life for students through educational theater.',link:'Ask about a school show'},{number:'02',title:'Theater Productions',tag:'ON STAGE',text:'Talk with us about performances, stage projects, venues, and production opportunities.',link:'Discuss a production'},{number:'03',title:'Workshops',tag:'LEARN · EXPLORE · CREATE',text:'Explore workshops for your school, group, event, or creative community.',link:'Plan a workshop'},{number:'04',title:'Collaborations',tag:'LET’S CREATE',text:'Have an idea or partnership in mind? Let’s see what we can bring to life together.',link:'Start a collaboration'}];
 const email='artistplayground2025.marketing@gmail.com';
 export default function ContactPage(){return <>
