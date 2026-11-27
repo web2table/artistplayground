@@ -1,61 +1,95 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
+type StaffRecord = {
+  user_id: string;
+  display_name: string;
+  email: string;
+  role: 'staff' | 'system_admin';
+  active: boolean;
+  email_confirmed: boolean;
+  invited_at: string | null;
+  last_sign_in_at: string | null;
+  created_at: string;
+};
+
 export default function AdminDashboardPage() {
+  const [staff, setStaff] = useState<StaffRecord[]>([]);
   const [staffName, setStaffName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState('');
+  const [inviteBusy, setInviteBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
-  const [busy, setBusy] = useState(false);
+
+  const notify = (message: string, type: 'success' | 'error' = 'success') => {
+    setNotice(message); setNoticeType(type);
+  };
+
+  const loadStaff = useCallback(async () => {
+    const supabase = createSupabaseBrowserClient();
+    const { data, error } = await supabase.functions.invoke('manage-staff', { body: { action: 'list' } });
+    if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load staff accounts.');
+    setStaff(data.staff as StaffRecord[]);
+  }, []);
 
   useEffect(() => {
     let active = true;
-    async function loadProfile() {
+    async function initialize() {
       try {
         const supabase = createSupabaseBrowserClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) { window.location.replace(appPath('/staff/login/')); return; }
-        const { data: profile, error } = await supabase
-          .from('staff_profiles').select('display_name, role, active')
-          .eq('user_id', user.id).maybeSingle();
+        const { data: profile, error } = await supabase.from('staff_profiles')
+          .select('display_name, role, active').eq('user_id', user.id).maybeSingle();
         if (error || !profile?.active || profile.role !== 'system_admin') {
           await supabase.auth.signOut();
           window.location.replace(appPath('/staff/login/?error=unauthorized'));
           return;
         }
-        if (active) setStaffName(profile.display_name || user.email || user.id);
-      } catch {
-        if (active) setNotice('The authentication service is not configured.');
-      }
+        if (active) {
+          setStaffName(profile.display_name || user.email || 'System Admin');
+          await loadStaff();
+        }
+      } catch (error) {
+        if (active) notify(error instanceof Error ? error.message : 'Unable to load the staff workspace.', 'error');
+      } finally { if (active) setLoading(false); }
     }
-    void loadProfile();
+    void initialize();
     return () => { active = false; };
-  }, []);
+  }, [loadStaff]);
 
   async function inviteStaff(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true); setNotice('');
+    event.preventDefault(); setInviteBusy(true); setNotice('');
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get('email') ?? '').trim().toLowerCase();
+    const display_name = String(form.get('display_name') ?? '').trim();
+    const role = String(form.get('role') ?? 'staff');
     try {
-      const form = new FormData(event.currentTarget);
-      const email = String(form.get('email') ?? '').trim().toLowerCase();
-      const display_name = String(form.get('display_name') ?? '').trim();
-      const role = String(form.get('role') ?? 'staff');
-      if (!email || !display_name || !['staff', 'system_admin'].includes(role)) {
-        throw new Error('Enter a valid email, full name, and role.');
-      }
       const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.functions.invoke('provision-staff', {
-        body: { email, display_name, role },
+      const { data, error } = await supabase.functions.invoke('provision-staff', { body: { email, display_name, role } });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Invitation failed.');
+      notify(`Invitation sent to ${email}.`);
+      (event.currentTarget as HTMLFormElement).reset();
+      await loadStaff();
+    } catch (error) { notify(error instanceof Error ? error.message : 'Invitation failed.', 'error'); }
+    finally { setInviteBusy(false); }
+  }
+
+  async function updateStaff(member: StaffRecord, changes: { role?: string; active?: boolean }) {
+    setBusyId(member.user_id); setNotice('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('manage-staff', {
+        body: { action: 'update', user_id: member.user_id, ...changes },
       });
-      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Invitation failed. Check the Edge Function logs.');
-      setNotice('Invitation sent. The staff member can use the email link to set up access.');
-      setNoticeType('success');
-      event.currentTarget.reset();
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'The invitation could not be completed.');
-      setNoticeType('error');
-    } finally { setBusy(false); }
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to update staff account.');
+      notify(`${member.display_name}'s account was updated.`);
+      await loadStaff();
+    } catch (error) { notify(error instanceof Error ? error.message : 'Unable to update staff account.', 'error'); }
+    finally { setBusyId(''); }
   }
 
   async function signOut() {
@@ -64,40 +98,96 @@ export default function AdminDashboardPage() {
     window.location.replace(appPath('/staff/login/'));
   }
 
+  const activeCount = staff.filter((member) => member.active).length;
+  const pendingCount = staff.filter((member) => member.active && !member.email_confirmed).length;
+
   return (
-    <section className="admin-page">
-      <header className="admin-heading">
-        <div><p className="admin-eyebrow">SYSTEM ADMINISTRATION</p><h1>System Admin</h1><p className="admin-copy">Signed in as {staffName || '…'}.</p></div>
-        <button className="admin-secondary" type="button" onClick={signOut}>Sign out</button>
-      </header>
-      <div className="admin-card">
-        <h2>Invite staff member</h2>
-        <p className="admin-copy">Create an account by sending an invitation. Public registration is not part of the staff workflow.</p>
-        {notice && <p className={noticeType === 'success' ? 'admin-notice' : 'admin-error'} role="status">{notice}</p>}
-        <form onSubmit={inviteStaff} className="admin-form">
-          <label htmlFor="display_name">Full name</label><input id="display_name" name="display_name" type="text" maxLength={120} required />
-          <label htmlFor="email">Email address</label><input id="email" name="email" type="email" maxLength={254} required />
-          <label htmlFor="role">Account role</label>
-          <select id="role" name="role" defaultValue="staff"><option value="staff">Staff</option><option value="system_admin">System Admin</option></select>
-          <button className="admin-primary" type="submit" disabled={busy}>{busy ? 'Sending…' : 'Send invitation'}</button>
-        </form>
-      </div>
+    <div className="staff-admin">
+      <aside className="admin-sidebar">
+        <div className="sidebar-brand"><span className="brand-mark">AP</span><span>ARTIST PLAYGROUND<small>TICKETING ADMIN</small></span></div>
+        <p className="sidebar-label">WORKSPACE</p>
+        <a className="sidebar-link active" href="#staff"><span>♙</span> Staff management</a>
+        <div className="sidebar-bottom">
+          <div className="signed-user"><span className="user-avatar">SA</span><span>{staffName || 'System Admin'}<small>System Admin</small></span></div>
+          <button type="button" className="signout" onClick={signOut}>Sign out</button>
+        </div>
+      </aside>
+
+      <main className="admin-main" id="staff">
+        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>Staff management</h1><p className="muted">Manage staff access and invitations for Artist Playground.</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
+
+        {notice && <div className={noticeType === 'success' ? 'notice success' : 'notice error'} role="status">{notice}</div>}
+
+        <section className="stats">
+          <article className="stat-card"><span>Total accounts</span><strong>{staff.length}</strong><small>Registered staff profiles</small></article>
+          <article className="stat-card"><span>Active accounts</span><strong>{activeCount}</strong><small>Can access staff tools</small></article>
+          <article className="stat-card"><span>Pending invitations</span><strong>{pendingCount}</strong><small>Awaiting first confirmation</small></article>
+        </section>
+
+        <section className="content-grid">
+          <div className="panel staff-panel">
+            <div className="panel-heading"><div><h2>Staff accounts</h2><p className="muted">Review account status and access roles.</p></div><button type="button" className="outline-button" onClick={() => { setLoading(true); void loadStaff().catch(e => notify(e.message, 'error')).finally(() => setLoading(false)); }}>Refresh</button></div>
+            {loading ? <div className="empty-state">Loading staff accounts…</div> : staff.length === 0 ? <div className="empty-state">No staff accounts found.</div> : (
+              <div className="table-wrap"><table><thead><tr><th>TEAM MEMBER</th><th>ROLE</th><th>STATUS</th><th>LAST SIGN IN</th><th>ACCESS</th></tr></thead><tbody>
+                {staff.map(member => <tr key={member.user_id}>
+                  <td><strong>{member.display_name}</strong><small>{member.email}</small></td>
+                  <td><select aria-label={`Role for ${member.display_name}`} value={member.role} disabled={busyId === member.user_id} onChange={e => void updateStaff(member, { role: e.target.value })}><option value="staff">Staff</option><option value="system_admin">System Admin</option></select></td>
+                  <td><span className={`status ${!member.active ? 'inactive' : member.email_confirmed ? 'active' : 'pending'}`}>{!member.active ? 'Inactive' : member.email_confirmed ? 'Active' : 'Invitation pending'}</span></td>
+                  <td>{member.last_sign_in_at ? new Date(member.last_sign_in_at).toLocaleDateString() : '—'}</td>
+                  <td><button type="button" className={member.active ? 'text-action danger' : 'text-action'} disabled={busyId === member.user_id} onClick={() => void updateStaff(member, { active: !member.active })}>{busyId === member.user_id ? 'Saving…' : member.active ? 'Deactivate' : 'Activate'}</button></td>
+                </tr>)}
+              </tbody></table></div>
+            )}
+            <p className="table-note">Deactivated accounts cannot access staff operations. At least one active System Admin must remain.</p>
+          </div>
+
+          <section className="panel invite-panel">
+            <div className="panel-heading"><div><h2>Invite a team member</h2><p className="muted">Send a secure account invitation.</p></div><span className="invite-icon">＋</span></div>
+            <form onSubmit={inviteStaff} className="invite-form">
+              <label htmlFor="display_name">Full name</label><input id="display_name" name="display_name" type="text" maxLength={120} placeholder="Enter full name" required />
+              <label htmlFor="email">Email address</label><input id="email" name="email" type="email" maxLength={254} placeholder="name@example.com" required />
+              <label htmlFor="role">Account role</label><select id="role" name="role" defaultValue="staff"><option value="staff">Staff</option><option value="system_admin">System Admin</option></select>
+              <button className="primary-button" type="submit" disabled={inviteBusy}>{inviteBusy ? 'Sending invitation…' : 'Send invitation'}</button>
+            </form>
+            <div className="invite-help"><strong>Invitation process</strong><p>The team member receives an email link to set their password. Accounts remain pending until the email invitation is accepted.</p></div>
+          </section>
+        </section>
+      </main>
+
       <style>{`
-        .admin-page{min-height:60vh;padding:2.5rem 5vw;background:#080808;color:#fff}
-        .admin-heading{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;margin-bottom:2rem}
-        .admin-eyebrow{color:#00a8d6;letter-spacing:.15em;font-size:.75rem;font-weight:800}
-        .admin-heading h1{font-family:Manrope,sans-serif;font-size:clamp(2rem,5vw,3rem);margin:.5rem 0}
-        .admin-copy{color:#aaa;line-height:1.6}
-        .admin-card{max-width:38rem;padding:1.5rem;border:1px solid #333;border-radius:.8rem;background:#101010}
-        .admin-card h2{font-family:Manrope,sans-serif;font-size:1.35rem;margin:0 0 .5rem}
-        .admin-form{display:grid;gap:.55rem;margin-top:1.25rem}
-        .admin-form label{margin-top:.5rem;font-size:.9rem}
-        .admin-form input,.admin-form select{width:100%;padding:.8rem;border:1px solid #444;border-radius:.45rem;background:#080808;color:#fff;font:inherit}
-        .admin-primary,.admin-secondary{padding:.75rem 1rem;border:0;border-radius:.45rem;font:inherit;font-weight:800;cursor:pointer}
-        .admin-primary{margin-top:.8rem;background:#f5e900;color:#000}.admin-secondary{background:#222;color:#fff;border:1px solid #444}
-        .admin-notice,.admin-error{padding:.8rem;border-radius:.45rem;font-size:.9rem}
-        .admin-notice{border:1px solid #276b48;color:#b9f5d0}.admin-error{border:1px solid #8b3333;color:#ffb5b5}
+        .staff-admin{min-height:100vh;background:#090a0c;color:#f5f6f8;display:grid;grid-template-columns:248px minmax(0,1fr);font-family:Inter,Arial,sans-serif}
+        .admin-sidebar{background:#0e1013;border-right:1px solid #25282e;padding:1.5rem 1rem;display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0;height:100vh}
+        .sidebar-brand{display:flex;align-items:center;gap:.75rem;padding:.4rem .5rem 2.2rem;font-size:.72rem;font-weight:800;letter-spacing:.08em}
+        .sidebar-brand small,.signed-user small{display:block;color:#818894;font-size:.65rem;letter-spacing:.12em;margin-top:.3rem}
+        .brand-mark{display:grid;place-items:center;width:38px;height:38px;border:1px solid #00a8d6;border-radius:10px;color:#f5e900;font-weight:900;font-size:.9rem}
+        .sidebar-label{padding:0 .65rem;color:#737b87;font-size:.65rem;letter-spacing:.16em;font-weight:800}
+        .sidebar-link{display:flex;align-items:center;gap:.7rem;padding:.8rem .75rem;border-radius:8px;text-decoration:none;color:#e5e7eb;font-size:.85rem}
+        .sidebar-link.active{background:#19242b;color:#55d5f5;border:1px solid #174052}
+        .sidebar-bottom{margin-top:auto;border-top:1px solid #25282e;padding-top:1rem}
+        .signed-user{display:flex;align-items:center;gap:.65rem;font-size:.8rem;font-weight:700;padding:.5rem}
+        .user-avatar{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#24313a;color:#7ee1ff;font-size:.7rem}
+        .signout{margin-top:.8rem;width:100%;padding:.65rem;border:1px solid #343942;border-radius:7px;background:#171a1f;color:#d8dce2;cursor:pointer}
+        .admin-main{padding:2.4rem clamp(1.25rem,3vw,3rem);min-width:0}
+        .page-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.8rem}
+        .eyebrow{color:#00b8e6;letter-spacing:.16em;font-size:.68rem;font-weight:800;margin:0 0 .6rem}
+        .page-top h1{font-size:clamp(1.8rem,3vw,2.4rem);margin:0;letter-spacing:-.04em}
+        .muted{color:#929aa6;font-size:.82rem;line-height:1.55;margin:.45rem 0 0}
+        .admin-chip{font-size:.65rem;letter-spacing:.12em;color:#f5e900;border:1px solid #514d17;padding:.5rem .7rem;border-radius:99px}
+        .notice{padding:.85rem 1rem;border-radius:8px;margin-bottom:1.2rem;font-size:.85rem}.notice.success{background:#10251b;border:1px solid #245a3c;color:#a8e8c2}.notice.error{background:#2a1517;border:1px solid #713237;color:#ffc0c4}
+        .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-bottom:1.2rem}
+        .stat-card,.panel{background:#111419;border:1px solid #282d35;border-radius:12px}
+        .stat-card{padding:1.1rem 1.2rem}.stat-card span,.stat-card small{display:block;color:#9ba3ae;font-size:.76rem}.stat-card strong{display:block;font-size:1.8rem;margin:.35rem 0}.stat-card small{font-size:.68rem;color:#727b87}
+        .content-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:1.2rem;align-items:start}
+        .panel{padding:1.2rem;min-width:0}.panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:1.2rem}.panel-heading h2{font-size:1rem;margin:0}.outline-button{background:transparent;border:1px solid #39414b;color:#e3e7ec;border-radius:7px;padding:.55rem .8rem;cursor:pointer;font-size:.75rem}
+        .table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:680px;text-align:left}th{color:#7f8996;font-size:.62rem;letter-spacing:.1em;font-weight:700;padding:.75rem .65rem;border-bottom:1px solid #2b3038}td{padding:.9rem .65rem;border-bottom:1px solid #242932;font-size:.76rem;color:#cbd1d9}td strong,td small{display:block}td strong{color:#f4f5f7;font-size:.78rem}td small{color:#828c99;margin-top:.3rem;font-size:.68rem}td select{background:#171b21;border:1px solid #343b45;color:#e8ebef;padding:.45rem;border-radius:6px;font-size:.72rem}
+        .status{display:inline-block;border-radius:99px;padding:.35rem .55rem;font-size:.65rem;white-space:nowrap}.status.active{background:#123323;color:#8de0ad}.status.pending{background:#382d13;color:#f2d27b}.status.inactive{background:#30252a;color:#e4a5b1}
+        .text-action{background:none;border:0;color:#69d3f2;font-size:.72rem;cursor:pointer}.text-action.danger{color:#f19aa4}.text-action:disabled{opacity:.5;cursor:wait}.table-note{color:#727c89;font-size:.68rem;line-height:1.5;margin:1rem 0 0}
+        .invite-icon{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:#18313a;color:#68d7f5;font-size:1.3rem}
+        .invite-form{display:grid;gap:.55rem}.invite-form label{font-size:.72rem;color:#cbd1d9;margin-top:.45rem}.invite-form input,.invite-form select{width:100%;padding:.75rem .8rem;background:#0b0e12;border:1px solid #343b45;border-radius:7px;color:#f4f6f8;font:inherit;font-size:.78rem}.invite-form input::placeholder{color:#66707d}.primary-button{margin-top:.7rem;padding:.8rem;border:0;border-radius:7px;background:#f5e900;color:#080808;font-weight:800;cursor:pointer}.primary-button:disabled{opacity:.65;cursor:wait}
+        .invite-help{border-top:1px solid #2b3038;margin-top:1.3rem;padding-top:1rem}.invite-help strong{font-size:.75rem}.invite-help p{color:#858e9b;font-size:.7rem;line-height:1.55;margin:.45rem 0 0}.empty-state{padding:2rem 1rem;text-align:center;color:#929aa6;font-size:.8rem}
+        @media(max-width:1150px){.content-grid{grid-template-columns:1fr}.invite-panel{max-width:none}}
+        @media(max-width:760px){.staff-admin{grid-template-columns:1fr}.admin-sidebar{position:static;height:auto;min-height:0;padding:1rem}.sidebar-brand{padding-bottom:1rem}.sidebar-label,.sidebar-bottom{display:none}.stats{grid-template-columns:1fr}.admin-main{padding:1.5rem 1rem}.page-top{align-items:flex-start}}
       `}</style>
-    </section>
+    </div>
   );
 }
