@@ -1,3 +1,5 @@
+'use client';
+
 import type { Metadata } from 'next';
 import ibongAdarnaPoster from '../../ibongadarna.jpg';
 import florantePoster from '../../floranteatlaura.jpg';
