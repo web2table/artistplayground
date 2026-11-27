@@ -13,7 +13,7 @@ async function sha256(value: string): Promise<string> {
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed." }, 405);
   const authorization = req.headers.get("Authorization") ?? "";
-  const token = authorization.replace(/^Bearer\\s+/i, "");
+  const token = authorization.replace(/^Bearer\s+/i, "");
   if (!token || token === authorization) return json({ error: "Unauthorized." }, 401);
 
   const url = Deno.env.get("SUPABASE_URL");
