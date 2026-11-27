@@ -1781,7 +1781,7 @@ QtDPzPNaHFXBQMFAwUDBwFnGwP8PAAD///9lW4YAAAAGSURBVAMA8FIJp8ZM
 ChUAAAAASUVORK5CYII=
 "),attachments:any[]=[],rows:string[]=[];
 for(const t of tickets as any[]){
-const k=await crypto.subtle.importKey("raw",un64(qrKey),{name:"AES-GCM"},false,["decrypt"]),plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:un64(t.qr_token_iv)},k,un64(t.qr_token_ciphertext)),qr=new TextDecoder().decode(plain),qrPng=await QRCode.toBuffer(qr,{errorCorrectionLevel:"M",margin:2,width:520,type:"png"}),pdf=await PDFDocument.create(),page=pdf.addPage([420,700]),font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold),black=rgb(0.08,0.08,0.08),gray=rgb(0.35,0.35,0.35),yellow=rgb(1,0.82,0),cyan=rgb(0,0.68,0.84),logo=await pdf.embedJpg(logoBytes),logoDims=logo.scaleToFit(190,78);
+const k=await crypto.subtle.importKey("raw",un64(qrKey),{name:"AES-GCM"},false,["decrypt"]),plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:un64(t.qr_token_iv)},k,un64(t.qr_token_ciphertext)),qr=new TextDecoder().decode(plain),qrPng=await QRCode.toBuffer(qr,{errorCorrectionLevel:"M",margin:2,width:520,type:"png"}),pdf=await PDFDocument.create(),page=pdf.addPage([420,700]),font=await pdf.embedFont(StandardFonts.Helvetica),bold=await pdf.embedFont(StandardFonts.HelveticaBold),black=rgb(0.08,0.08,0.08),gray=rgb(0.35,0.35,0.35),yellow=rgb(1,0.82,0),cyan=rgb(0,0.68,0.84),logo=await pdf.embedPng(logoBytes),logoDims=logo.scaleToFit(190,78);
 page.drawRectangle({x:0,y:0,width:420,height:700,color:rgb(1,1,1)});
 page.drawImage(logo,{x:(420-logoDims.width)/2,y:615+(78-logoDims.height)/2,width:logoDims.width,height:logoDims.height});
 page.drawText("ARTIST PLAYGROUND",{x:30,y:596,size:9,font:bold,color:black});
