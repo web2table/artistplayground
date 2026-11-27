@@ -7,23 +7,20 @@ export type StaffRole = 'staff' | 'system_admin';
 
 export async function getCurrentStaff() {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
 
-  const userId = data?.claims?.sub;
-  if (error || typeof userId !== 'string') return null;
+  if (claimsError || typeof userId !== 'string') return null;
 
-  const { data: profile, error: profileError } = await supabase
-    .from('staff_profiles')
-    .select('id, display_name, role, is_active')
-    .eq('id', userId)
-    .eq('is_active', true)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc('get_my_staff_profile');
+  if (error || !data?.length) return null;
 
-  if (profileError || !profile) return null;
+  const profile = data[0];
+  if (profile.user_id !== userId || !profile.active) return null;
   if (profile.role !== 'staff' && profile.role !== 'system_admin') return null;
 
   return {
-    id: profile.id as string,
+    id: profile.user_id as string,
     displayName: profile.display_name as string | null,
     role: profile.role as StaffRole,
   };
