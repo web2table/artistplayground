@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 export default function SetStaffPasswordPage() {
   const [message, setMessage] = useState('');
@@ -12,7 +12,7 @@ export default function SetStaffPasswordPage() {
       try {
         const supabase = createSupabaseBrowserClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) window.location.replace('/staff/login/');
+        if (!user) window.location.replace(appPath('/staff/login/'));
       } catch { setMessage('The authentication service is not configured.'); }
     }
     void checkSession();
@@ -28,14 +28,14 @@ export default function SetStaffPasswordPage() {
     try {
       const supabase = createSupabaseBrowserClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { window.location.replace('/staff/login/'); return; }
+      if (!user) { window.location.replace(appPath('/staff/login/')); return; }
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       const { data: profile, error: profileError } = await supabase.from('staff_profiles')
         .select('role, active').eq('user_id', user.id).maybeSingle();
       if (profileError || !profile?.active || !['staff', 'system_admin'].includes(profile.role)) {
         await supabase.auth.signOut();
-        window.location.replace('/staff/login/?error=unauthorized');
+        window.location.replace(appPath('/staff/login/?error=unauthorized'));
         return;
       }
       window.location.replace(profile.role === 'system_admin' ? '/admin/' : '/staff/');
