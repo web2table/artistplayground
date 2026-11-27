@@ -262,9 +262,7 @@ export default function StaffDashboardPage() {
         <div className="staff-nav-label">MANAGEMENT</div>
         <a className="staff-nav-item" href={appPath('/staff/productions/')}><span>▣</span> Productions</a>
         <div className="staff-nav-label">OPERATIONS</div>
-        <a className={`staff-nav-item ${activeTab === 'sales' ? 'selected' : ''}`} href="#sales" onClick={() => setActiveTab('sales')}><span>₱</span> Daily sales</a>
         <a className={`staff-nav-item ${activeTab === 'bookings' ? 'selected' : ''}`} href="#bookings" onClick={() => setActiveTab('bookings')}><span>▤</span> Bookings</a>
-        <a className={`staff-nav-item ${activeTab === 'payments' ? 'selected' : ''}`} href="#payments" onClick={() => setActiveTab('payments')}><span>▣</span> Payment desk</a>
         <a className={`staff-nav-item ${activeTab === 'refunds' ? 'selected' : ''}`} href="#refunds" onClick={() => setActiveTab('refunds')}><span>↺</span> Refunds</a>
         <a className={`staff-nav-item ${activeTab === 'scanner' ? 'selected' : ''}`} href="#scanner" onClick={() => setActiveTab('scanner')}><span>▦</span> Ticket scanner</a>
         <a className={`staff-nav-item ${activeTab === 'box-office' ? 'selected' : ''}`} href="#box-office" onClick={() => setActiveTab('box-office')}><span>＋</span> Box office</a>
