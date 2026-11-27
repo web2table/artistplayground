@@ -45,6 +45,8 @@ export default function StaffDashboardPage() {
   const [error, setError] = useState('');
   const [bookingReference, setBookingReference] = useState('');
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [ticketEmailLoading, setTicketEmailLoading] = useState(false);
+  const [ticketEmailMessage, setTicketEmailMessage] = useState('');
   const [bookingMessage, setBookingMessage] = useState('');
   const [bookingResult, setBookingResult] = useState<BookingLookup | null>(null);
   const [performances, setPerformances] = useState<BoxOfficePerformance[]>([]);
@@ -103,6 +105,26 @@ export default function StaffDashboardPage() {
     }
   }
 
+
+  async function sendTicketEmail() {
+    if (!bookingResult) return;
+    setTicketEmailLoading(true);
+    setTicketEmailMessage('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('staff-ticket-email', {
+        body: { booking_reference: bookingResult.booking.booking_reference, request_key: crypto.randomUUID() },
+      });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Ticket email could not be sent.');
+      setTicketEmailMessage(data.already_sent
+        ? 'This send request was already completed; no duplicate email was sent.'
+        : `Ticket email accepted by Resend for ${data.recipient}. ${data.ticket_count} ticket(s) included.`);
+    } catch (err) {
+      setTicketEmailMessage(err instanceof Error ? err.message : 'Unable to send ticket email.');
+    } finally {
+      setTicketEmailLoading(false);
+    }
+  }
 
   async function loadRefunds() {
     setRefundLoading(true); setRefundMessage('');
@@ -299,6 +321,12 @@ export default function StaffDashboardPage() {
               <div className="booking-facts"><div><small>PURCHASER</small><strong>{bookingResult.booking.purchaser_name}</strong><span>{bookingResult.booking.purchaser_email}</span></div><div><small>BOOKED ON</small><strong>{new Date(bookingResult.booking.created_at).toLocaleString()}</strong></div><div><small>BOOKING TOTAL</small><strong>{bookingResult.booking.currency} {Number(bookingResult.booking.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div></div>
               <div className="result-subsection"><h4>Tickets ({bookingResult.tickets.length})</h4>{bookingResult.tickets.length ? <div className="ticket-result-list">{bookingResult.tickets.map(ticket => <article className="ticket-result" key={ticket.ticket_reference}><div><strong>{ticket.attendee_name}</strong><span>{ticket.category} · {ticket.ticket_reference}</span>{ticket.performance && <small>{new Date(ticket.performance.starts_at).toLocaleString()} · {ticket.performance.venue_name}</small>}</div><span className={`ticket-status ticket-${ticket.status}`}>{ticket.status}</span></article>)}</div> : <p className="result-muted">No tickets have been issued for this booking yet.</p>}</div>
               <div className="result-subsection"><h4>Payments ({bookingResult.payments.length})</h4>{bookingResult.payments.length ? <div className="payment-result-list">{bookingResult.payments.map((payment,i) => <div className="payment-result" key={payment.provider_reference || i}><span>{payment.method.toUpperCase()} · {payment.status.replaceAll('_',' ')}</span><strong>{payment.currency} {Number(payment.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>)}</div> : <p className="result-muted">No payment records found.</p>}</div>
+              <div className="result-subsection">
+                <h4>Ticket email delivery</h4>
+                <p className="result-muted">Send all tickets and their QR images in one email. During development, delivery goes only to the verified Resend test recipient.</p>
+                <button type="button" className="outline-button" onClick={() => void sendTicketEmail()} disabled={ticketEmailLoading || bookingResult.booking.status !== 'confirmed' || !bookingResult.tickets.length}>{ticketEmailLoading ? 'Sending ticket email…' : 'Send / resend ticket email'}</button>
+                {ticketEmailMessage && <p className="booking-message" role="status">{ticketEmailMessage}</p>}
+              </div>
             </div>}
           </div>
         </section>}
