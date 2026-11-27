@@ -4,8 +4,6 @@ import Header from '../components/header/Header';
 import Footer from '../components/footer/Footer';
 import AuthHashHandler from '../components/auth/AuthHashHandler';
 
-export const dynamic = 'force-dynamic';
-
 export const metadata: Metadata = {
   title: 'Artist Playground',
   description: 'A space for talent at every stage.',
