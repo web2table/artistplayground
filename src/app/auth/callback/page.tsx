@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
+import { appPath } from '@/lib/supabase/browser';
 
 export default function AuthCallbackPage() {
   const [message, setMessage] = useState('Verifying your invitation…');
@@ -43,7 +44,7 @@ export default function AuthCallbackPage() {
         return;
       }
 
-      window.location.replace('/staff/set-password');
+      window.location.replace(appPath('/staff/set-password/'));
     };
 
     void completeInvitation();
