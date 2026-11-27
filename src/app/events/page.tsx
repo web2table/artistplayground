@@ -1,7 +1,7 @@
 'use client';
 
-export default function EventsPage(){return <>
+export default function EventsPage(){return <div className="ap-page ap-page-events">
 <section className="hero"><p className="eyebrow">ARTIST PLAYGROUND · EVENTS</p><h1>Upcoming<br/><span>events.</span></h1><p className="lead">Confirmed performances, workshops, and public events will be listed here with their dates and details.</p></section>
 <section className="updates"><div className="empty-state"><h3>No upcoming events announced.</h3><p>There are currently no upcoming events to share. This page will be updated when event details are confirmed.</p></div></section>
-<style jsx>{`.hero{padding:clamp(4rem,9vw,8rem) 5vw 3rem;background:radial-gradient(ellipse at 80% 20%,#22202c 0%,var(--ap-black) 58%)}.eyebrow{color:var(--ap-blue);letter-spacing:.16em;font-size:var(--ap-size-eyebrow);font-weight:800}h1{font-family:var(--ap-font-display);font-size:var(--ap-size-hero);line-height:.95;letter-spacing:-.045em;color:var(--ap-yellow);margin:1.2rem 0}h1 span{color:var(--ap-text)}.lead{max-width:44rem;color:var(--ap-muted);font-size:var(--ap-size-body);line-height:1.7}.updates{padding:clamp(3rem,6vw,5rem) 5vw}.empty-state{margin-top:2rem;padding:clamp(1.5rem,4vw,3rem);border:1px dashed var(--ap-border);border-radius:1rem;text-align:center}.empty-state h3{font-family:var(--ap-font-display);font-size:var(--ap-size-card);margin:.8rem 0}.empty-state p{max-width:40rem;margin:0 auto;color:var(--ap-muted);line-height:1.65}`}</style>
-</>}
+
+</div>}
