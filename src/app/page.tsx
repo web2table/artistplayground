@@ -30,8 +30,8 @@ export default function HomePage() {
         h1 span{display:block}.yellow{color:var(--ap-yellow)}
         .tagline{color:var(--ap-muted);font-size:var(--ap-size-body);margin-top:1.25rem;display:flex;flex-direction:column;align-items:flex-start;gap:.35rem}
         .tagline-secondary{color:var(--ap-muted);font-size:var(--ap-size-body)}
-        .section{padding:clamp(2rem,4vw,3rem) 5vw}
-        .section-heading h2,h2{font-family:var(--ap-font-display);font-size:var(--ap-size-section);line-height:1.05;letter-spacing:-.035em}
+        .section{padding:clamp(3rem,8vw,7rem) 5vw}
+        .section-heading h2,h2{font-family:var(--ap-font-display);font-size:clamp(2rem,6vw,4.5rem);margin:.4rem 0 1.5rem}
         .offerings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
         .offering{min-height:250px;padding:2rem;text-decoration:none;border-radius:1rem;display:flex;flex-direction:column;justify-content:flex-end;gap:.5rem}
         .offering h3{font-size:var(--ap-size-card);margin:0 0 .5rem}.offering p{margin:0}.offering span{font-weight:800;margin-top:.75rem}
