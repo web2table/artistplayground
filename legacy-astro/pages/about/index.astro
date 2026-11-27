@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="About | Artist Playground" description="Learn about Artist Playground and its educational theater, stage productions, and workshops.">
+  <section class="hero">
+    <p class="eyebrow">ABOUT ARTIST PLAYGROUND</p>
+    <h1>Performance, theater,<br /><span>and creative learning.</span></h1>
+    <p class="intro">Artist Playground is a theater and creative production group presenting educational performances, stage productions, and workshops. Its work includes adaptations of Filipino literature for student audiences and creative activities centered on performance and storytelling.</p>
+  </section>
+
+  <section class="section" aria-labelledby="what-we-do">
+    <div class="section-heading">
+      <p class="eyebrow">WHAT WE DO</p>
+      <h2 id="what-we-do">Our work and programs.</h2>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <span class="number">01</span>
+        <h3>Educational Theater</h3>
+        <p>Theater adaptations of Filipino literary works for school and student audiences. Featured titles include Ibong Adarna, Florante at Laura, Noli Me Tangere, and El Filibusterismo.</p>
+      </article>
+      <article class="card">
+        <span class="number">02</span>
+        <h3>Theater Productions</h3>
+        <p>Live theater productions presented by Artist Playground. Production titles, schedules, and details are shared when available.</p>
+      </article>
+      <article class="card">
+        <span class="number">03</span>
+        <h3>Workshops</h3>
+        <p>Workshops exploring performance, stage skills, storytelling, character, and creative expression. Session details may be shaped around the participating group.</p>
+      </article>
+      <article class="card">
+        <span class="number">04</span>
+        <h3>Events</h3>
+        <p>Updates about performances, workshops, and activities are published when details are confirmed.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="statement">
+    <p class="eyebrow">OUR SPIRIT</p>
+    <h2>Live performance and<br />creative participation.</h2>
+    <p>Artist Playground works across theater and creative learning. Educational performances present literary works through live acting, while productions and workshops offer opportunities for audiences and participants to engage with performance in different ways.</p>
+  </section>
+
+  <section class="cta">
+    <h2>Working with Artist Playground.</h2>
+    <p>Schools and organizers can inquire about educational productions. Groups and partners can also reach out about theater productions, workshops, and creative collaborations.</p>
+    
+  </section>
+</BaseLayout>
+
+<style>
+.hero { padding:clamp(3.5rem,8vw,7rem) 5vw 4rem; background:linear-gradient(130deg,var(--ap-black),#151923); }
+.eyebrow { color:var(--ap-blue); letter-spacing:.16em; font-size:var(--ap-size-eyebrow); font-weight:800; }
+h1 { font-family:var(--ap-font-display); font-size:var(--ap-size-hero); line-height:1.02; color:var(--ap-yellow); margin:.8rem 0 1.5rem; }
+h1 span { color:var(--ap-text); }
+.intro { max-width:48rem; color:var(--ap-muted); font-size:var(--ap-size-body); line-height:1.7; }
+.section { padding:4.5rem 5vw; }
+.section-heading { margin-bottom:2rem; }
+.section-heading h2 { font-size:var(--ap-size-section); margin:.5rem 0 0; }
+.cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+.card { border:1px solid var(--ap-border); border-radius:1rem; padding:1.5rem; background:#101319; }
+.number { color:var(--ap-blue); font-size:var(--ap-size-support); font-weight:800; letter-spacing:.1em; }
+.card h3 { color:var(--ap-yellow); margin:.8rem 0; font-size:var(--ap-size-card); }
+.card p { color:var(--ap-muted); line-height:1.65; margin:0; }
+.statement { padding:4rem 5vw; background:var(--ap-blue); color:#080b10; }
+.statement .eyebrow { color:#10151e; }
+.statement h2 { font-family:var(--ap-font-display); font-size:var(--ap-size-hero); line-height:1.05; margin:.75rem 0 1.25rem; }
+.statement p:last-child { max-width:48rem; line-height:1.7; }
+.cta { padding:4rem 5vw; }
+.cta h2 { font-size:var(--ap-size-section); color:var(--ap-yellow); margin:0 0 .8rem; }
+.cta p { color:var(--ap-muted); max-width:40rem; line-height:1.65; }
+@media(max-width:640px) { .cards { grid-template-columns:1fr; } .hero { padding-top:3rem; } }
+</style>
