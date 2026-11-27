@@ -1,3 +1,5 @@
+'use client';
+
 import type { Metadata } from 'next';
 export const metadata: Metadata = { title: 'Theater Productions | Artist Playground', description: 'Information about Artist Playground theater productions, educational stage works, and collaborations.' };
 const formats=[{number:'01',title:'Productions',tag:'LIVE THEATER',text:'Artist Playground develops and presents theater productions. Individual show titles, descriptions, photos, and performance schedules will be listed here when details are available.',accent:'yellow'},{number:'02',title:'Educational Stage Works',tag:'SCHOOLS & STUDENTS',text:'Our educational theater work adapts Filipino literary works for student audiences. Visit Educational Productions for details about Ibong Adarna, Florante at Laura, Noli Me Tangere, and El Filibusterismo.',accent:'blue'},{number:'03',title:'Collaborations',tag:'PROJECT INQUIRIES',text:'We welcome inquiries from schools, organizations, venues, and creatives interested in working together on theater projects. Share your idea and relevant details through our Contact page.',accent:'yellow'}];
