@@ -48,6 +48,12 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (valu
   </div>;
 }
 
+function decimalInput(value: string) {
+  const cleaned = value.replace(/[^0-9.]/g, '');
+  const [whole, ...fraction] = cleaned.split('.');
+  return fraction.length ? whole + '.' + fraction.join('').slice(0, 2) : whole;
+}
+
 function localDatePart(value: string | null) {
   if (!value) return '';
   const date = new Date(value);
@@ -219,7 +225,7 @@ export default function StaffProductionsPage() {
             <div className="prod-field"><label htmlFor="show-address">Venue address (optional)</label><input id="show-address" value={venueAddress} onChange={e=>setVenueAddress(e.target.value)} placeholder="Street, city"/></div>
             <div className="prod-field"><label htmlFor="show-capacity">Performance capacity</label><input id="show-capacity" type="text" inputMode="numeric" pattern="[0-9]*" value={capacity} onChange={e=>setCapacity(e.target.value.replace(/[^0-9]/g, ''))} required/></div>
             <div className="prod-field"><label htmlFor="show-category">Ticket category</label><input id="show-category" value={category} onChange={e=>setCategory(e.target.value)} required maxLength={80}/></div>
-            <div className="prod-field"><label htmlFor="show-price">Ticket price (PHP)</label><input id="show-price" type="text" inputMode="decimal" value={price} onChange={e=>setPrice(e.target.value.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1'))} required/></div>
+            <div className="prod-field"><label htmlFor="show-price">Ticket price (PHP)</label><input id="show-price" type="text" inputMode="decimal" value={price} onChange={e=>setPrice(decimalInput(e.target.value))} required/></div>
             <div className="prod-field"><label htmlFor="show-allocation">Ticket allocation</label><input id="show-allocation" type="text" inputMode="numeric" pattern="[0-9]*" value={allocation} onChange={e=>setAllocation(e.target.value.replace(/[^0-9]/g, ''))} required/></div>
             <div className="prod-form-note"><strong>Publishing safety</strong><span>New shows are saved as drafts. You can review the details before publishing them to the public ticket catalog.</span></div>
             <button className="prod-submit" type="submit" disabled={saving}>{saving ? 'Creating show…' : 'Create show'}</button>
