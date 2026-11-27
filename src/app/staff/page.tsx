@@ -278,7 +278,7 @@ export default function StaffDashboardPage() {
   return (
     <div className="staff-workspace">
       <aside className="staff-sidebar">
-        <a className="staff-brand" href={appPath('/')} aria-label="Artist Playground home"><span className="brand-symbol">AP</span><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
+        <a className="staff-brand" href={appPath('/')} aria-label="Artist Playground home"><img className="staff-brand-logo" src={appPath("/ap.jpg")} alt="Artist Playground logo" /><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
         <div className="staff-nav-label">WORKSPACE</div>
         <a className={`staff-nav-item ${activeTab === 'overview' ? 'selected' : ''}`} href="#overview" onClick={() => setActiveTab('overview')}><span>⌂</span> Overview</a>
         <div className="staff-nav-label">MANAGEMENT</div>
@@ -426,7 +426,7 @@ export default function StaffDashboardPage() {
         .staff-sidebar{position:sticky;top:0;height:100vh;min-height:620px;background:#0e1013;border-right:1px solid #252a31;padding:1.35rem 1rem;display:flex;flex-direction:column}
         .staff-brand{display:flex;align-items:center;gap:.75rem;padding:.35rem .5rem 2.3rem;color:#f2f4f6;text-decoration:none;font-size:.68rem;font-weight:800;letter-spacing:.08em}
         .staff-brand small{display:block;color:#7f8995;font-size:.6rem;letter-spacing:.13em;margin-top:.35rem}
-        .brand-symbol{display:grid;place-items:center;width:39px;height:39px;border:1px solid #00a8d6;border-radius:10px;color:#f5e900;font-size:.9rem}
+        .staff-brand-logo{display:block;flex:0 0 39px;width:39px;height:39px;object-fit:contain;border-radius:6px}
         .staff-nav-label{font-size:.62rem;letter-spacing:.16em;font-weight:800;color:#697380;padding:.75rem .7rem .45rem}
         .staff-nav-item{display:flex;align-items:center;gap:.75rem;padding:.72rem .75rem;border-radius:7px;text-decoration:none;color:#aeb6c0;font-size:.8rem;margin:.08rem 0}
         .staff-nav-item span{width:18px;text-align:center;color:#7b8996;font-size:1rem}
