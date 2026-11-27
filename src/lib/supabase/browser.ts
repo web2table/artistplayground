@@ -9,3 +9,8 @@ export function createSupabaseBrowserClient() {
   browserClient ??= createBrowserClient(url, key);
   return browserClient;
 }
+
+export function appPath(path: string) {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+  return `${basePath}${path.startsWith('/') ? path : `/${path}`}`;
+}
