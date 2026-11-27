@@ -156,3 +156,21 @@ img { max-width: 100%; display: block; }
   .site-header { padding: 1rem 4vw; }
   .site-header nav { padding-left: 4vw; padding-right: 4vw; }
 }
+
+/* Home page styles — extracted for first-paint rendering */
+
+        .ap-page-home .hero{min-height:0;padding:clamp(2.5rem,4vw,3.5rem) 5vw;display:flex;flex-direction:column;justify-content:flex-start}
+        .ap-page-home .eyebrow{color:var(--ap-blue);letter-spacing:.15em;font-size:var(--ap-size-eyebrow)}
+        .ap-page-home h1{font-family:var(--ap-font-display);font-size:var(--ap-size-hero);line-height:.88;margin:1.5rem 0}
+        .ap-page-home h1 span{display:block}.ap-page-home .yellow{color:var(--ap-yellow)}
+        .ap-page-home .tagline{color:var(--ap-muted);font-size:var(--ap-size-body);margin-top:1.25rem;display:flex;flex-direction:column;align-items:flex-start;gap:.35rem}
+        .ap-page-home .tagline-secondary{color:var(--ap-muted);font-size:var(--ap-size-body)}
+        .ap-page-home .section{padding:clamp(3rem,8vw,7rem) 5vw}
+        .ap-page-home .section-heading h2, .ap-page-home h2{font-family:var(--ap-font-display);font-size:clamp(2rem,6vw,4.5rem);margin:.4rem 0 1.5rem}
+        .ap-page-home .offerings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+        .ap-page-home .offering{min-height:250px;padding:2rem;text-decoration:none;border-radius:1rem;display:flex;flex-direction:column;justify-content:flex-end;gap:.5rem}
+        .ap-page-home .offering h3{font-size:var(--ap-size-card);margin:0 0 .5rem}.ap-page-home .offering p{margin:0}.ap-page-home .offering span{font-weight:800;margin-top:.75rem}
+        .ap-page-home .offering.yellow{background:var(--ap-yellow);color:#000}.ap-page-home .offering.blue{background:var(--ap-blue);color:#001319}.ap-page-home .offering.dark{background:#171717;border:1px solid #333;color:white}
+        .ap-page-home .cta{display:inline-block;margin-top:1.5rem;color:var(--ap-yellow);font-weight:bold;text-decoration:none}
+        @media(max-width:700px){.ap-page-home .hero{min-height:0;padding:2.5rem 5vw 2rem;justify-content:flex-start}.ap-page-home .hero h1{margin:1rem 0}.ap-page-home .hero .tagline{margin-top:.5rem}.ap-page-home .offerings{grid-template-columns:1fr}.ap-page-home .offering{min-height:180px}}
+      
