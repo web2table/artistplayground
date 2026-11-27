@@ -16,6 +16,8 @@ type BookingLookup = {
 
 export default function StaffDashboardPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
+  const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : (window.location.hash.slice(1) || 'overview'));
+  useEffect(() => { const sync = () => setActiveTab(window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bookingReference, setBookingReference] = useState('');
@@ -125,15 +127,16 @@ export default function StaffDashboardPage() {
       <aside className="staff-sidebar">
         <a className="staff-brand" href={appPath('/')} aria-label="Artist Playground home"><span className="brand-symbol">AP</span><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
         <div className="staff-nav-label">WORKSPACE</div>
-        <a className="staff-nav-item selected" href="#overview"><span>⌂</span> Overview</a>
+        <a className={`staff-nav-item ${activeTab === 'overview' ? 'selected' : ''}`} href="#overview" onClick={() => setActiveTab('overview')}><span>⌂</span> Overview</a>
         <div className="staff-nav-label">OPERATIONS</div>
-        <a className="staff-nav-item" href="#sales"><span>₱</span> Daily sales</a>
-        <a className="staff-nav-item" href="#bookings"><span>▤</span> Bookings</a>
-        <a className="staff-nav-item" href="#payments"><span>▣</span> Payment desk</a>
-        <a className="staff-nav-item" href="#refunds"><span>↺</span> Refunds</a>
-        <a className="staff-nav-item" href="#scanner"><span>▦</span> Ticket scanner</a>
+        <a className={`staff-nav-item ${activeTab === 'sales' ? 'selected' : ''}`} href="#sales" onClick={() => setActiveTab('sales')}><span>₱</span> Daily sales</a>
+        <a className={`staff-nav-item ${activeTab === 'bookings' ? 'selected' : ''}`} href="#bookings" onClick={() => setActiveTab('bookings')}><span>▤</span> Bookings</a>
+        <a className={`staff-nav-item ${activeTab === 'payments' ? 'selected' : ''}`} href="#payments" onClick={() => setActiveTab('payments')}><span>▣</span> Payment desk</a>
+        <a className={`staff-nav-item ${activeTab === 'refunds' ? 'selected' : ''}`} href="#refunds" onClick={() => setActiveTab('refunds')}><span>↺</span> Refunds</a>
+        <a className={`staff-nav-item ${activeTab === 'scanner' ? 'selected' : ''}`} href="#scanner" onClick={() => setActiveTab('scanner')}><span>▦</span> Ticket scanner</a>
+        <a className={`staff-nav-item ${activeTab === 'box-office' ? 'selected' : ''}`} href="#box-office" onClick={() => setActiveTab('box-office')}><span>＋</span> Box office</a>
         <div className="staff-nav-label">INSIGHTS</div>
-        <a className="staff-nav-item" href="#reports"><span>▥</span> Reports</a>
+        <a className={`staff-nav-item ${activeTab === 'reports' ? 'selected' : ''}`} href="#reports" onClick={() => setActiveTab('reports')}><span>▥</span> Reports</a>
         <div className="staff-sidebar-bottom"><div className="staff-user"><span className="staff-avatar">{(profile?.display_name || 'S').slice(0,1).toUpperCase()}</span><span>{profile?.display_name || 'Staff member'}<small>Staff account</small></span></div><button type="button" onClick={signOut}>Sign out</button></div>
       </aside>
 
@@ -141,18 +144,18 @@ export default function StaffDashboardPage() {
         <header className="staff-topbar"><div><p className="staff-eyebrow">STAFF WORKSPACE</p><h1>Good day{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.</h1><p className="staff-muted">Your operations desk for Artist Playground.</p></div><div className="staff-date">{today}</div></header>
         {error && <div className="staff-error" role="alert">{error}</div>}
 
-        <section className="staff-welcome"><div><span className="welcome-label">ARTIST PLAYGROUND · OPERATIONS</span><h2>Everything you need for<br/>a smooth show day.</h2><p>Manage bookings, payments, admissions, and daily activity from one workspace.</p></div><div className="welcome-mark" aria-hidden="true">AP</div></section>
+{activeTab === 'overview' &&         <section className="staff-welcome"><div><span className="welcome-label">ARTIST PLAYGROUND · OPERATIONS</span><h2>Everything you need for<br/>a smooth show day.</h2><p>Manage bookings, payments, admissions, and daily activity from one workspace.</p></div><div className="welcome-mark" aria-hidden="true">AP</div></section>}
 
-        <section className="staff-section" id="sales"><div className="section-heading"><div><h2>Today at a glance</h2><p>Live operational figures will appear here as sales and ticketing workflows are connected.</p></div><span className="live-indicator">WORKSPACE</span></div>
+{activeTab === 'overview' &&         <section className="staff-section" id="sales"><div className="section-heading"><div><h2>Today at a glance</h2><p>Live operational figures will appear here as sales and ticketing workflows are connected.</p></div><span className="live-indicator">WORKSPACE</span></div>
           <div className="staff-metrics">
             <article className="metric-card"><span>Today’s sales</span><strong>—</strong><small>Online + box office</small></article>
             <article className="metric-card"><span>Bookings</span><strong>—</strong><small>Confirmed today</small></article>
             <article className="metric-card"><span>Tickets admitted</span><strong>—</strong><small>Scanned today</small></article>
             <article className="metric-card"><span>Pending cash</span><strong>—</strong><small>Awaiting confirmation</small></article>
           </div>
-        </section>
+        </section>}
 
-        <section className="staff-section" id="bookings">
+{activeTab === 'bookings' &&         <section className="staff-section" id="bookings">
           <div className="section-heading"><div><h2>Booking lookup</h2><p>Search by the booking reference supplied by the customer.</p></div></div>
           <div className="booking-lookup-panel">
             <form className="booking-search-form" onSubmit={searchBooking}>
@@ -167,9 +170,9 @@ export default function StaffDashboardPage() {
               <div className="result-subsection"><h4>Payments ({bookingResult.payments.length})</h4>{bookingResult.payments.length ? <div className="payment-result-list">{bookingResult.payments.map((payment,i) => <div className="payment-result" key={payment.provider_reference || i}><span>{payment.method.toUpperCase()} · {payment.status.replaceAll('_',' ')}</span><strong>{payment.currency} {Number(payment.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>)}</div> : <p className="result-muted">No payment records found.</p>}</div>
             </div>}
           </div>
-        </section>
+        </section>}
 
-        <section className="staff-section" id="box-office">
+{activeTab === 'box-office' &&         <section className="staff-section" id="box-office">
           <div className="section-heading"><div><h2>Box office · Cash sale</h2><p>Record an in-person cash purchase and issue tickets against live inventory.</p></div></div>
           <div className="booking-lookup-panel">
             <form className="cash-sale-form" onSubmit={submitCashSale}>
@@ -193,10 +196,11 @@ export default function StaffDashboardPage() {
             {saleReceipt && <div className="sale-receipt"><div className="result-label">SALE CONFIRMED</div><h3>{saleReceipt.booking_reference}</h3><p>{saleReceipt.ticket_count} ticket(s) · ₱{Number(saleReceipt.subtotal).toLocaleString('en-PH',{minimumFractionDigits:2})}</p>{saleReceipt.tickets.map(ticket=><div className="payment-result" key={ticket.ticket_reference}><span>{ticket.attendee_name}</span><strong>{ticket.ticket_reference}</strong></div>)}</div>}
             {!performances.length && <p className="result-muted">No published upcoming performances with available ticket inventory are open for box-office sales.</p>}
           </div>
-        </section>
-        <section className="staff-section" id="refunds"><div className="workflow-note"><span>↺</span><div><strong>Refund handling</strong><p>Staff will be able to review a booking and submit a refund request for approval. Approved refunds apply to the complete booking.</p></div></div></section>
-        <section className="staff-section" id="scanner"><div className="workflow-note"><span>▦</span><div><strong>Admission and ticket validation</strong><p>The scanner will support QR codes and manual ticket references, with duplicate scans rejected by the backend.</p></div></div></section>
-        <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Operational reports</strong><p>Daily sales, payment reconciliation, and admission summaries will be available here.</p></div></div></section>
+        </section>}
+{activeTab === 'refunds' &&         <section className="staff-section" id="refunds"><div className="workflow-note"><span>↺</span><div><strong>Refund handling</strong><p>Staff will be able to review a booking and submit a refund request for approval. Approved refunds apply to the complete booking.</p></div></div></section>}
+{activeTab === 'scanner' &&         <section className="staff-section" id="scanner"><div className="workflow-note"><span>▦</span><div><strong>Admission and ticket validation</strong><p>The scanner will support QR codes and manual ticket references, with duplicate scans rejected by the backend.</p></div></div></section>}
+{activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Operational reports</strong><p>Daily sales, payment reconciliation, and admission summaries will be available here.</p></div></div></section>}
+        {activeTab === 'payments' && <section className="staff-section" id="payments"><div className="section-heading"><div><h2>Payment desk</h2><p>Review payment status and reconcile confirmed transactions.</p></div></div><div className="workflow-note"><span>▣</span><div><strong>Payment reconciliation</strong><p>Payment records and verification controls will appear here as the payment workflow is connected.</p></div></div></section>}
         <footer className="staff-footer">Artist Playground · Internal staff workspace</footer>
       </main>
 
