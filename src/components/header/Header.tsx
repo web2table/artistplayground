@@ -11,7 +11,7 @@ const links = [
   { label: 'Theater', href: '/productions/' },
   { label: 'Workshops', href: '/workshops/' },
   { label: 'Events', href: '/events/' },
-  { label: 'Gallery', href: '/gallery/' },
+  { label: 'Book Tickets', href: '/book/' },
   { label: 'Contact', href: '/contact/' },
 ];
 
