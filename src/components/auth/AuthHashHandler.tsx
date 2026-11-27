@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
+import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 import { appPath } from '@/lib/supabase/browser';
 
 export default function AuthHashHandler() {
@@ -16,11 +16,7 @@ export default function AuthHashHandler() {
 
     if (!accessToken || !refreshToken) return;
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-    if (!url || !key) return;
-
-    const supabase = createBrowserClient(url, key);
+    const supabase = createSupabaseBrowserClient();
     void supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken,
