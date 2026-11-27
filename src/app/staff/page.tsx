@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 type StaffProfile = { display_name: string; role: 'staff' | 'system_admin'; active: boolean };
 type BoxOfficePerformance = { id: string; starts_at: string; venue_name: string; production_title: string; categories: { id: string; name: string; price: number; remaining: number }[] };
 type SaleAttendee = { full_name: string; birth_date: string };
+type ScanPerformance = { id: string; starts_at: string; venue_name: string; production_title: string };
+type ScanResult = { result: string; message: string; ticket_reference?: string; attendee_name?: string };
 type BookingLookup = {
   booking: { booking_reference: string; purchaser_name: string; purchaser_email: string; status: string; currency: string; subtotal: number; total_amount: number; created_at: string; confirmed_at: string | null };
   tickets: { ticket_reference: string; status: string; attendee_name: string; category: string; performance: { starts_at: string; venue_name: string; status: string } | null }[];
@@ -16,6 +18,15 @@ type BookingLookup = {
 
 export default function StaffDashboardPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
+  const [scanPerformances, setScanPerformances] = useState<ScanPerformance[]>([]);
+  const [scanPerformance, setScanPerformance] = useState('');
+  const [scanCredential, setScanCredential] = useState('');
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
+  const [cameraMessage, setCameraMessage] = useState('');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const frameRef = useRef<number | null>(null);
   const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : (window.location.hash.slice(1) || 'overview'));
   useEffect(() => { const sync = () => setActiveTab(window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
   const [loading, setLoading] = useState(true);
@@ -82,6 +93,77 @@ export default function StaffDashboardPage() {
       setBookingLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (activeTab !== 'scanner' || !profile) return;
+    let cancelled = false;
+    (async () => {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('staff-ticket-scan', { body: { action: 'performances' } });
+      if (!cancelled) {
+        if (error || !data?.ok) setCameraMessage(data?.error || error?.message || 'Unable to load performances.');
+        else setScanPerformances(data.performances as ScanPerformance[]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeTab, profile]);
+
+  async function submitTicketScan(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!scanPerformance) return;
+    setScanLoading(true); setScanResult(null); setCameraMessage('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('staff-ticket-scan', {
+        body: { credential: scanCredential.trim(), performance_id: scanPerformance, device_label: 'Staff workspace' },
+      });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Ticket validation failed.');
+      setScanResult(data as ScanResult);
+      setScanCredential('');
+    } catch (err) {
+      setCameraMessage(err instanceof Error ? err.message : 'Unable to validate ticket.');
+    } finally { setScanLoading(false); }
+  }
+
+  async function startQrCamera() {
+    setCameraMessage('');
+    const Detector = (window as unknown as { BarcodeDetector?: new (options: { formats: string[] }) => { detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]> } }).BarcodeDetector;
+    if (!Detector) { setCameraMessage('Camera QR scanning is not supported by this browser. Use a QR scanner connected as a keyboard, or enter the ticket reference.'); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      streamRef.current = stream;
+      if (!videoRef.current) return;
+      videoRef.current.srcObject = stream;
+      await videoRef.current.play();
+      const detector = new Detector({ formats: ['qr_code'] });
+      const detectFrame = async () => {
+        if (!videoRef.current || !streamRef.current) return;
+        try {
+          const codes = await detector.detect(videoRef.current);
+          if (codes.length && codes[0].rawValue) {
+            setScanCredential(codes[0].rawValue);
+            stopQrCamera();
+            setCameraMessage('QR code captured. Press Validate ticket to check admission.');
+            return;
+          }
+        } catch { /* Continue scanning the next camera frame. */ }
+        frameRef.current = window.requestAnimationFrame(() => { void detectFrame(); });
+      };
+      frameRef.current = window.requestAnimationFrame(() => { void detectFrame(); });
+    } catch {
+      setCameraMessage('Unable to access the camera. Check browser camera permissions or enter the ticket reference manually.');
+    }
+  }
+
+  function stopQrCamera() {
+    if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+    frameRef.current = null;
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+  }
+
+  useEffect(() => () => stopQrCamera(), []);
 
   const currentPerformance = performances.find(p => p.id === selectedPerformance);
   const currentCategory = currentPerformance?.categories.find(category => category.id === selectedCategory);
@@ -198,7 +280,28 @@ export default function StaffDashboardPage() {
           </div>
         </section>}
 {activeTab === 'refunds' &&         <section className="staff-section" id="refunds"><div className="workflow-note"><span>↺</span><div><strong>Refund handling</strong><p>Staff will be able to review a booking and submit a refund request for approval. Approved refunds apply to the complete booking.</p></div></div></section>}
-{activeTab === 'scanner' &&         <section className="staff-section" id="scanner"><div className="workflow-note"><span>▦</span><div><strong>Admission and ticket validation</strong><p>The scanner will support QR codes and manual ticket references, with duplicate scans rejected by the backend.</p></div></div></section>}
+{activeTab === 'scanner' && <section className="staff-section" id="scanner">
+          <div className="section-heading"><div><h2>Ticket scanner</h2><p>Scan a ticket QR code or enter its reference to validate admission.</p></div></div>
+          <div className="booking-lookup-panel">
+            <form className="cash-sale-form" onSubmit={submitTicketScan}>
+              <label htmlFor="scan-performance">Performance</label>
+              <select id="scan-performance" value={scanPerformance} onChange={e => { setScanPerformance(e.target.value); setScanResult(null); }} required>
+                <option value="">Choose the performance being admitted</option>
+                {scanPerformances.map(p => <option key={p.id} value={p.id}>{p.production_title} · {new Date(p.starts_at).toLocaleString()} · {p.venue_name}</option>)}
+              </select>
+              <div className="scanner-camera">
+                <video ref={videoRef} playsInline muted aria-label="Ticket QR camera preview" />
+                <div className="scanner-camera-actions"><button type="button" className="outline-button" onClick={startQrCamera}>Start camera QR scan</button><button type="button" className="outline-button" onClick={stopQrCamera}>Stop camera</button></div>
+              </div>
+              <label htmlFor="ticket-credential">Ticket reference or QR value</label>
+              <input id="ticket-credential" value={scanCredential} onChange={e => setScanCredential(e.target.value)} placeholder="Scan QR code or enter ticket reference" maxLength={512} required />
+              <button className="primary-button" type="submit" disabled={scanLoading || !scanPerformance || !scanCredential.trim()}>{scanLoading ? 'Validating ticket…' : 'Validate ticket & record admission'}</button>
+            </form>
+            {cameraMessage && <p className="booking-message" role="status">{cameraMessage}</p>}
+            {scanResult && <div className={`scan-result scan-${scanResult.result}`} role="status"><span className="result-label">SCAN RESULT · {scanResult.result.replaceAll('_',' ').toUpperCase()}</span><h3>{scanResult.message}</h3>{scanResult.attendee_name && <p>{scanResult.attendee_name} · {scanResult.ticket_reference}</p>}</div>}
+            {!scanPerformances.length && <p className="result-muted">No published scheduled performances are available for admission yet.</p>}
+          </div>
+        </section>}
 {activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Operational reports</strong><p>Daily sales, payment reconciliation, and admission summaries will be available here.</p></div></div></section>}
         {activeTab === 'payments' && <section className="staff-section" id="payments"><div className="section-heading"><div><h2>Payment desk</h2><p>Review payment status and reconcile confirmed transactions.</p></div></div><div className="workflow-note"><span>▣</span><div><strong>Payment reconciliation</strong><p>Payment records and verification controls will appear here as the payment workflow is connected.</p></div></div></section>}
         <footer className="staff-footer">Artist Playground · Internal staff workspace</footer>
@@ -252,7 +355,7 @@ export default function StaffDashboardPage() {
         .workflow-note>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:8px;background:#172a32;color:#55cdec;font-size:1.1rem}
         .workflow-note strong{font-size:.8rem}.workflow-note p{color:#929ba6;font-size:.73rem;line-height:1.55;margin:.35rem 0 0}
         .staff-footer{border-top:1px solid #252a31;color:#66717e;font-size:.66rem;margin-top:2.5rem;padding:1.2rem 0}
-        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
+        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.scanner-camera{display:grid;gap:.65rem;margin:.7rem 0}.scanner-camera video{display:block;width:100%;max-height:340px;object-fit:contain;background:#050607;border:1px solid #303740;border-radius:8px}.scanner-camera-actions{display:flex;gap:.6rem;flex-wrap:wrap}.outline-button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.6rem .85rem;cursor:pointer;font-size:.72rem}.scan-result{margin-top:1rem;padding:1rem;border:1px solid #39414b;background:#111820;border-radius:8px}.scan-result h3{font-size:1rem;margin:.45rem 0}.scan-result p{font-size:.75rem;color:#aab4be}.scan-accepted{border-color:#2d8052;background:#10251b}.scan-already_redeemed,.scan-cancelled,.scan-refunded,.scan-unpaid,.scan-wrong_performance{border-color:#805b2d;background:#251c10}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
         .booking-search-form label{display:block;color:#cbd1d9;font-size:.72rem;margin-bottom:.5rem}
         .booking-search-row{display:flex;gap:.65rem;max-width:720px}
         .booking-search-row input{flex:1;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.8rem .9rem;color:#f4f5f7;font:inherit;font-size:.8rem}
