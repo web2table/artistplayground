@@ -12,11 +12,13 @@ export async function getCurrentStaff() {
 
   if (claimsError || typeof userId !== 'string') return null;
 
-  const { data, error } = await supabase.rpc('get_my_staff_profile');
-  if (error || !data?.length) return null;
+  const { data: profile, error } = await supabase
+    .from('staff_profiles')
+    .select('user_id, display_name, role, active')
+    .eq('user_id', userId)
+    .maybeSingle();
 
-  const profile = data[0];
-  if (profile.user_id !== userId || !profile.active) return null;
+  if (error || !profile || !profile.active) return null;
   if (profile.role !== 'staff' && profile.role !== 'system_admin') return null;
 
   return {
