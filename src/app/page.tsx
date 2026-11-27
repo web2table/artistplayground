@@ -19,7 +19,7 @@ export default function HomePage() {
         </div>
       </section>
       <section className="section">
-        <p className="eyebrow">Stay in the loop</p><h2>See what's happening.</h2>
+        <p className="eyebrow">Stay in the loop</p><h2>See what&apos;s happening.</h2>
         <p>Discover upcoming performances, workshops, and announcements from Artist Playground.</p>
         <Link className="cta" href="/events/">View Events ↗</Link>
       </section>
