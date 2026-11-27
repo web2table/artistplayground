@@ -130,12 +130,14 @@ export default function BookTicketsPage() {
           <input id="email" type="email" autoComplete="email" value={purchaserEmail} onChange={event => setPurchaserEmail(event.target.value)} required />
           <div className="step"><span>04</span><div><h2>Attendee details</h2><p>Enter each ticket holder’s name and birthday.</p></div></div>
           {attendees.map((person, index) => <div className="attendee" key={index}>
-            <h3>Ticket {index + 1}</h3>
+            <div className="attendee-heading">
+              <h3>Ticket {index + 1}</h3>
+              {index > 0 && <button type="button" className="remove-ticket" aria-label={'Remove ticket ' + (index + 1)} onClick={() => { setAttendees(current => current.filter((_, i) => i !== index)); setQuantity(current => Math.max(1, current - 1)); }}>Remove</button>}
+            </div>
             <label htmlFor={'attendee-name-' + index}>Attendee full name</label>
             <input id={'attendee-name-' + index} value={person.full_name} onChange={event => setAttendees(current => current.map((item, i) => i === index ? { ...item, full_name: event.target.value } : item))} required minLength={2} />
             <label htmlFor={'attendee-birthday-' + index}>Birthday</label>
             <input id={'attendee-birthday-' + index} type="date" max={new Date().toISOString().slice(0, 10)} value={person.birth_date} onChange={event => setAttendees(current => current.map((item, i) => i === index ? { ...item, birth_date: event.target.value } : item))} required />
-            {index > 0 && <button type="button" className="remove-ticket" onClick={() => { setAttendees(current => current.filter((_, i) => i !== index)); setQuantity(current => Math.max(1, current - 1)); }}>Remove ticket</button>}
           </div>)}
           <div className="add-ticket-row">
             <button type="button" className="add-ticket" onClick={() => setQuantity(current => Math.min(maxQuantity, current + 1))} disabled={quantity >= maxQuantity}>
@@ -150,6 +152,9 @@ export default function BookTicketsPage() {
       </div>}
     </section>
     <style jsx>{`
+      .attendee-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem}
+      .attendee-heading h3{margin:0}
+      .attendee-heading .remove-ticket{margin:0;flex:0 0 auto}
       .add-ticket-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;margin:1rem 0 1.25rem}
       .add-ticket,.remove-ticket{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;border:1px solid #3b4650;border-radius:8px;background:#141a20;color:#eaf8fc;padding:.7rem .95rem;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
       .add-ticket{border-color:#087b99;color:#68dafa}
