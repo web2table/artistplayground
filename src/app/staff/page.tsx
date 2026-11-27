@@ -8,6 +8,7 @@ type BoxOfficePerformance = { id: string; starts_at: string; venue_name: string;
 type SaleAttendee = { full_name: string; birth_date: string };
 type ScanPerformance = { id: string; starts_at: string; venue_name: string; production_title: string };
 type ScanResult = { result: string; message: string; ticket_reference?: string; attendee_name?: string };
+type DeskPayment = { id:string; booking_reference:string; purchaser_name:string; purchaser_email:string; booking_status:string; method:string; status:string; provider:string; provider_reference:string|null; amount:number; currency:string; verified_at:string|null; failure_reason:string|null; created_at:string };
 type BookingLookup = {
   booking: { booking_reference: string; purchaser_name: string; purchaser_email: string; status: string; currency: string; subtotal: number; total_amount: number; created_at: string; confirmed_at: string | null };
   tickets: { ticket_reference: string; status: string; attendee_name: string; category: string; performance: { starts_at: string; venue_name: string; status: string } | null }[];
@@ -18,6 +19,12 @@ type BookingLookup = {
 
 export default function StaffDashboardPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
+  const [payments, setPayments] = useState<DeskPayment[]>([]);
+  const [paymentStatus, setPaymentStatus] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState('');
+  const [paymentTotals, setPaymentTotals] = useState<{count:number;pending:number;paid:number;failed:number;cancelled:number;refunded:number;paid_amount:number}|null>(null);
   const [scanPerformances, setScanPerformances] = useState<ScanPerformance[]>([]);
   const [scanPerformance, setScanPerformance] = useState('');
   const [scanCredential, setScanCredential] = useState('');
@@ -93,6 +100,25 @@ export default function StaffDashboardPage() {
       setBookingLoading(false);
     }
   }
+
+  async function loadPaymentDesk() {
+    setPaymentLoading(true); setPaymentMessage('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('staff-payment-desk', {
+        body: { action: 'list', status: paymentStatus || undefined, method: paymentMethod || undefined, limit: 200 },
+      });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load payment records.');
+      setPayments(data.payments as DeskPayment[]);
+      setPaymentTotals(data.totals);
+    } catch (err) {
+      setPaymentMessage(err instanceof Error ? err.message : 'Unable to load payment records.');
+    } finally { setPaymentLoading(false); }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'payments' && profile) void loadPaymentDesk();
+  }, [activeTab, profile, paymentStatus, paymentMethod]);
 
   useEffect(() => {
     if (activeTab !== 'scanner' || !profile) return;
@@ -303,7 +329,25 @@ export default function StaffDashboardPage() {
           </div>
         </section>}
 {activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Operational reports</strong><p>Daily sales, payment reconciliation, and admission summaries will be available here.</p></div></div></section>}
-        {activeTab === 'payments' && <section className="staff-section" id="payments"><div className="section-heading"><div><h2>Payment desk</h2><p>Review payment status and reconcile confirmed transactions.</p></div></div><div className="workflow-note"><span>▣</span><div><strong>Payment reconciliation</strong><p>Payment records and verification controls will appear here as the payment workflow is connected.</p></div></div></section>}
+        {activeTab === 'payments' && <section className="staff-section" id="payments">
+          <div className="section-heading"><div><h2>Payment desk</h2><p>Review recorded cash and PayMongo transactions, their booking references, and verification status.</p></div><button type="button" className="outline-button" onClick={() => void loadPaymentDesk()} disabled={paymentLoading}>{paymentLoading ? 'Refreshing…' : 'Refresh'}</button></div>
+          <div className="staff-metrics payment-metrics">
+            <div className="staff-metric"><span>Records loaded</span><strong>{paymentTotals?.count ?? '—'}</strong></div>
+            <div className="staff-metric"><span>Paid records</span><strong>{paymentTotals?.paid ?? '—'}</strong></div>
+            <div className="staff-metric"><span>Pending</span><strong>{paymentTotals?.pending ?? '—'}</strong></div>
+            <div className="staff-metric"><span>Paid amount loaded</span><strong>{paymentTotals ? '₱'+paymentTotals.paid_amount.toLocaleString('en-PH',{minimumFractionDigits:2}) : '—'}</strong></div>
+          </div>
+          <div className="payment-filters"><label htmlFor="payment-status-filter">Status</label><select id="payment-status-filter" value={paymentStatus} onChange={e=>setPaymentStatus(e.target.value)}><option value="">All statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="failed">Failed</option><option value="cancelled">Cancelled</option><option value="refunded">Refunded</option></select><label htmlFor="payment-method-filter">Method</label><select id="payment-method-filter" value={paymentMethod} onChange={e=>setPaymentMethod(e.target.value)}><option value="">All methods</option><option value="cash">Cash</option><option value="paymongo">PayMongo</option></select></div>
+          {paymentMessage && <p className="booking-message" role="alert">{paymentMessage}</p>}
+          {paymentLoading ? <p className="result-muted">Loading payment records…</p> : payments.length ? <div className="payment-desk-list">{payments.map(p=><article className="payment-desk-row" key={p.id}>
+            <div className="payment-desk-main"><div><strong>{p.booking_reference}</strong><span>{p.purchaser_name} · {p.purchaser_email}</span></div><strong>{p.currency} {Number(p.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>
+            <div className="payment-desk-meta"><span className={`status-pill status-${p.status}`}>{p.status.replaceAll('_',' ')}</span><span>{p.method.toUpperCase()} · {p.provider}</span><span>Booking: {p.booking_status.replaceAll('_',' ')}</span><span>{new Date(p.created_at).toLocaleString()}</span></div>
+            {p.provider_reference && <p className="payment-ref">Provider reference: {p.provider_reference}</p>}
+            {p.verified_at && <p className="payment-ref">Verified: {new Date(p.verified_at).toLocaleString()}</p>}
+            {p.failure_reason && <p className="payment-ref payment-error">Reason: {p.failure_reason}</p>}
+          </article>)}</div> : <p className="result-muted">No payment records match these filters.</p>}
+          <div className="workflow-note"><span>ⓘ</span><div><strong>Payment verification policy</strong><p>PayMongo payments must be verified by the server-side provider webhook. Staff cannot manually mark an online payment as paid. Cash sales are recorded as paid only after staff confirms cash received.</p></div></div>
+        </section>}
         <footer className="staff-footer">Artist Playground · Internal staff workspace</footer>
       </main>
 
@@ -355,7 +399,7 @@ export default function StaffDashboardPage() {
         .workflow-note>span{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:8px;background:#172a32;color:#55cdec;font-size:1.1rem}
         .workflow-note strong{font-size:.8rem}.workflow-note p{color:#929ba6;font-size:.73rem;line-height:1.55;margin:.35rem 0 0}
         .staff-footer{border-top:1px solid #252a31;color:#66717e;font-size:.66rem;margin-top:2.5rem;padding:1.2rem 0}
-        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.scanner-camera{display:grid;gap:.65rem;margin:.7rem 0}.scanner-camera video{display:block;width:100%;max-height:340px;object-fit:contain;background:#050607;border:1px solid #303740;border-radius:8px}.scanner-camera-actions{display:flex;gap:.6rem;flex-wrap:wrap}.outline-button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.6rem .85rem;cursor:pointer;font-size:.72rem}.scan-result{margin-top:1rem;padding:1rem;border:1px solid #39414b;background:#111820;border-radius:8px}.scan-result h3{font-size:1rem;margin:.45rem 0}.scan-result p{font-size:.75rem;color:#aab4be}.scan-accepted{border-color:#2d8052;background:#10251b}.scan-already_redeemed,.scan-cancelled,.scan-refunded,.scan-unpaid,.scan-wrong_performance{border-color:#805b2d;background:#251c10}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
+        .cash-sale-form{display:grid;gap:.55rem}.cash-sale-form label{display:block;color:#cbd1d9;font-size:.72rem;margin:.35rem 0 .1rem}.cash-sale-form input,.cash-sale-form select{width:100%;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.75rem .8rem;color:#f4f5f7;font:inherit;font-size:.78rem}.cash-sale-two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.cash-sale-two-col>div{min-width:0}.attendee-heading{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem}.attendee-heading strong{font-size:.8rem}.attendee-row{position:relative;padding:.7rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px}.remove-attendee{align-self:end;background:transparent;border:0;color:#f19aa4;font-size:.68rem;cursor:pointer;padding:.6rem}.cash-sale-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #2b3038;padding-top:1rem;margin-top:.5rem}.cash-sale-total span{color:#aeb7c1;font-size:.8rem}.cash-sale-total strong{font-size:1.2rem}.sale-receipt{margin-top:1rem;padding:1rem;border:1px solid #245a3c;background:#10251b;border-radius:8px}.sale-receipt h3{font-size:1.2rem;margin:.4rem 0}.sale-receipt p{font-size:.75rem;color:#a8e8c2}.payment-filters{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:1rem 0}.payment-filters label{font-size:.7rem;color:#aeb7c1}.payment-filters select{background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.6rem;color:#f4f5f7;font:inherit;font-size:.75rem}.payment-desk-list{display:grid;gap:.65rem;margin:1rem 0}.payment-desk-row{background:#111419;border:1px solid #282e36;border-radius:9px;padding:1rem}.payment-desk-main{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start}.payment-desk-main>div{display:grid;gap:.3rem}.payment-desk-main strong{font-size:.85rem}.payment-desk-main span,.payment-desk-meta,.payment-ref{font-size:.68rem;color:#aeb7c1}.payment-desk-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.7rem}.payment-ref{margin:.5rem 0 0}.payment-error{color:#f19aa4}.status-pill{padding:.2rem .5rem;border-radius:30px;background:#272e36;color:#d6dde5;text-transform:uppercase;font-size:.6rem}.status-paid{background:#123323;color:#8de0ad}.status-pending{background:#382d13;color:#f2d27b}.status-failed,.status-cancelled,.status-refunded{background:#30252a;color:#e4a5b1}.scanner-camera{display:grid;gap:.65rem;margin:.7rem 0}.scanner-camera video{display:block;width:100%;max-height:340px;object-fit:contain;background:#050607;border:1px solid #303740;border-radius:8px}.scanner-camera-actions{display:flex;gap:.6rem;flex-wrap:wrap}.outline-button{background:#151a20;border:1px solid #39414b;border-radius:7px;color:#dce2e9;padding:.6rem .85rem;cursor:pointer;font-size:.72rem}.scan-result{margin-top:1rem;padding:1rem;border:1px solid #39414b;background:#111820;border-radius:8px}.scan-result h3{font-size:1rem;margin:.45rem 0}.scan-result p{font-size:.75rem;color:#aab4be}.scan-accepted{border-color:#2d8052;background:#10251b}.scan-already_redeemed,.scan-cancelled,.scan-refunded,.scan-unpaid,.scan-wrong_performance{border-color:#805b2d;background:#251c10}.booking-lookup-panel{background:#111419;border:1px solid #282e36;border-radius:10px;padding:1.2rem}
         .booking-search-form label{display:block;color:#cbd1d9;font-size:.72rem;margin-bottom:.5rem}
         .booking-search-row{display:flex;gap:.65rem;max-width:720px}
         .booking-search-row input{flex:1;min-width:0;background:#090c10;border:1px solid #39414b;border-radius:7px;padding:.8rem .9rem;color:#f4f5f7;font:inherit;font-size:.8rem}
