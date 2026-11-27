@@ -9,7 +9,7 @@ type SaleAttendee = { full_name: string; birth_date: string };
 type ScanPerformance = { id: string; starts_at: string; venue_name: string; production_title: string };
 type ScanResult = { result: string; message: string; ticket_reference?: string; attendee_name?: string };
 type RefundRow = { id:string; booking_reference:string; purchaser_name:string; purchaser_email:string; booking_status:string; payment_method:string; provider:string; payment_status:string; currency:string; provider_reference:string|null; amount:number; status:string; reason:string; requested_at:string; reviewed_at:string|null; completed_at:string|null };
-type DeskPayment = { id:string; booking_reference:string; purchaser_name:string; purchaser_email:string; booking_status:string; method:string; status:string; provider:string; provider_reference:string|null; amount:number; currency:string; verified_at:string|null; failure_reason:string|null; created_at:string };
+
 type BookingLookup = {
   booking: { booking_reference: string; purchaser_name: string; purchaser_email: string; status: string; currency: string; subtotal: number; total_amount: number; created_at: string; confirmed_at: string | null };
   tickets: { ticket_reference: string; status: string; attendee_name: string; category: string; performance: { starts_at: string; venue_name: string; status: string } | null }[];
@@ -20,16 +20,10 @@ type BookingLookup = {
 
 export default function StaffDashboardPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
-  const [payments, setPayments] = useState<DeskPayment[]>([]);
   const [refunds, setRefunds] = useState<RefundRow[]>([]);
   const [refundLoading, setRefundLoading] = useState(false);
   const [refundMessage, setRefundMessage] = useState('');
   const [refundReason, setRefundReason] = useState('');
-  const [paymentStatus, setPaymentStatus] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [paymentMessage, setPaymentMessage] = useState('');
-  const [paymentTotals, setPaymentTotals] = useState<{count:number;pending:number;paid:number;failed:number;cancelled:number;refunded:number;paid_amount:number}|null>(null);
   const [scanPerformances, setScanPerformances] = useState<ScanPerformance[]>([]);
   const [scanPerformance, setScanPerformance] = useState('');
   const [scanCredential, setScanCredential] = useState('');
@@ -39,8 +33,8 @@ export default function StaffDashboardPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
-  const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : (window.location.hash.slice(1) || 'overview'));
-  useEffect(() => { const sync = () => setActiveTab(window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
+  const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : ((window.location.hash.slice(1) === 'sales' || window.location.hash.slice(1) === 'payments' ? 'reports' : window.location.hash.slice(1) || 'overview')));
+  useEffect(() => { const sync = () => setActiveTab(window.location.hash.slice(1) === 'sales' || window.location.hash.slice(1) === 'payments' ? 'reports' : window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bookingReference, setBookingReference] = useState('');
@@ -145,25 +139,9 @@ export default function StaffDashboardPage() {
     catch(err){setRefundMessage(err instanceof Error?err.message:'Unable to review refund.');} finally{setRefundLoading(false);}
   }
 
-  async function loadPaymentDesk() {
-    setPaymentLoading(true); setPaymentMessage('');
-    try {
-      const supabase = createSupabaseBrowserClient();
-      const { data, error } = await supabase.functions.invoke('staff-payment-desk', {
-        body: { action: 'list', status: paymentStatus || undefined, method: paymentMethod || undefined, limit: 200 },
-      });
-      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load payment records.');
-      setPayments(data.payments as DeskPayment[]);
-      setPaymentTotals(data.totals);
-    } catch (err) {
-      setPaymentMessage(err instanceof Error ? err.message : 'Unable to load payment records.');
-    } finally { setPaymentLoading(false); }
-  }
-
   useEffect(() => {
-    if (activeTab === 'payments' && profile) void loadPaymentDesk();
     if (activeTab === 'refunds' && profile) void loadRefunds();
-  }, [activeTab, profile, paymentStatus, paymentMethod]);
+  }, [activeTab, profile]);
 
   useEffect(() => {
     if (activeTab !== 'scanner' || !profile) return;
@@ -299,16 +277,7 @@ export default function StaffDashboardPage() {
         <header className="staff-topbar"><div><p className="staff-eyebrow">STAFF WORKSPACE</p><h1>Good day{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.</h1><p className="staff-muted">Your operations desk for Artist Playground.</p></div><div className="staff-date">{today}</div></header>
         {error && <div className="staff-error" role="alert">{error}</div>}
 
-{activeTab === 'overview' &&         <section className="staff-welcome"><div><span className="welcome-label">ARTIST PLAYGROUND · OPERATIONS</span><h2>Everything you need for<br/>a smooth show day.</h2><p>Manage bookings, payments, admissions, and daily activity from one workspace.</p></div><div className="welcome-mark" aria-hidden="true">AP</div></section>}
-
-{activeTab === 'sales' &&         <section className="staff-section" id="sales"><div className="section-heading"><div><h2>Daily sales overview</h2><p>Live operational figures will appear here as sales and ticketing workflows are connected.</p></div><span className="live-indicator">WORKSPACE</span></div>
-          <div className="staff-metrics">
-            <article className="metric-card"><span>Today’s sales</span><strong>—</strong><small>Online + box office</small></article>
-            <article className="metric-card"><span>Bookings</span><strong>—</strong><small>Confirmed today</small></article>
-            <article className="metric-card"><span>Tickets admitted</span><strong>—</strong><small>Scanned today</small></article>
-            <article className="metric-card"><span>Pending cash</span><strong>—</strong><small>Awaiting confirmation</small></article>
-          </div>
-        </section>}
+{activeTab === 'overview' &&         <section className="staff-welcome"><div><span className="welcome-label">ARTIST PLAYGROUND · OPERATIONS</span><h2>Everything you need for<br/>a smooth show day.</h2><p>Manage productions, bookings, payments, and admissions from one workspace.</p></div><div className="welcome-mark" aria-hidden="true">AP</div></section>}
 
 {activeTab === 'bookings' &&         <section className="staff-section" id="bookings">
           <div className="section-heading"><div><h2>Booking lookup</h2><p>Search by the booking reference supplied by the customer.</p></div></div>
@@ -322,7 +291,7 @@ export default function StaffDashboardPage() {
               <div className="booking-result-heading"><div><span className="result-label">BOOKING REFERENCE</span><h3>{bookingResult.booking.booking_reference}</h3></div><span className={`booking-status status-${bookingResult.booking.status}`}>{bookingResult.booking.status.replaceAll('_',' ')}</span></div>
               <div className="booking-facts"><div><small>PURCHASER</small><strong>{bookingResult.booking.purchaser_name}</strong><span>{bookingResult.booking.purchaser_email}</span></div><div><small>BOOKED ON</small><strong>{new Date(bookingResult.booking.created_at).toLocaleString()}</strong></div><div><small>BOOKING TOTAL</small><strong>{bookingResult.booking.currency} {Number(bookingResult.booking.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div></div>
               <div className="result-subsection"><h4>Tickets ({bookingResult.tickets.length})</h4>{bookingResult.tickets.length ? <div className="ticket-result-list">{bookingResult.tickets.map(ticket => <article className="ticket-result" key={ticket.ticket_reference}><div><strong>{ticket.attendee_name}</strong><span>{ticket.category} · {ticket.ticket_reference}</span>{ticket.performance && <small>{new Date(ticket.performance.starts_at).toLocaleString()} · {ticket.performance.venue_name}</small>}</div><span className={`ticket-status ticket-${ticket.status}`}>{ticket.status}</span></article>)}</div> : <p className="result-muted">No tickets have been issued for this booking yet.</p>}</div>
-              <div className="result-subsection"><h4>Payments ({bookingResult.payments.length})</h4>{bookingResult.payments.length ? <div className="payment-result-list">{bookingResult.payments.map((payment,i) => <div className="payment-result" key={payment.provider_reference || i}><span>{payment.method.toUpperCase()} · {payment.status.replaceAll('_',' ')}</span><strong>{payment.currency} {Number(payment.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>)}</div> : <p className="result-muted">No payment records found.</p>}</div>
+              <div className="result-subsection"><h4>Payment history ({bookingResult.payments.length})</h4>{bookingResult.payments.length ? <div className="payment-result-list">{bookingResult.payments.map((payment,i) => <div className="payment-result" key={payment.provider_reference || i}><span>{payment.method.toUpperCase()} · {payment.status.replaceAll('_',' ')}</span><strong>{payment.currency} {Number(payment.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>)}</div> : <p className="result-muted">No payment records found.</p>}</div>
               <div className="result-subsection">
                 <h4>Ticket email delivery</h4>
                 <p className="result-muted">Send all tickets and their QR images in one email. During development, delivery goes only to the verified Resend test recipient.</p>
@@ -358,7 +327,6 @@ export default function StaffDashboardPage() {
             {!performances.length && <p className="result-muted">No published upcoming performances with available ticket inventory are open for box-office sales.</p>}
           </div>
         </section>}
-{activeTab === 'refunds' &&         <section className="staff-section" id="refunds"><div className="workflow-note"><span>↺</span><div><strong>Refund handling</strong><p>Staff will be able to review a booking and submit a refund request for approval. Approved refunds apply to the complete booking.</p></div></div></section>}
 {activeTab === 'scanner' && <section className="staff-section" id="scanner">
           <div className="section-heading"><div><h2>Ticket scanner</h2><p>Scan a ticket QR code or enter its reference to validate admission.</p></div></div>
           <div className="booking-lookup-panel">
@@ -381,7 +349,7 @@ export default function StaffDashboardPage() {
             {!scanPerformances.length && <p className="result-muted">No published scheduled performances are available for admission yet.</p>}
           </div>
         </section>}
-{activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Operational reports</strong><p>Daily sales, payment reconciliation, and admission summaries will be available here.</p></div></div></section>}
+{activeTab === 'reports' &&         <section className="staff-section" id="reports"><div className="workflow-note"><span>▥</span><div><strong>Production &amp; performance reports</strong><p>Review ticket sales, revenue, payment status, and admissions by production or individual performance. Reporting tools will appear here as they are connected.</div></div></section>}
 
         {activeTab === 'refunds' && <section className="staff-section" id="refunds">
           <div className="section-heading"><div><h2>Refund requests</h2><p>Refunds apply to the entire booking and payment only. Partial ticket refunds are not supported.</p></div><button type="button" className="outline-button" onClick={()=>void loadRefunds()} disabled={refundLoading}>{refundLoading?'Refreshing…':'Refresh'}</button></div>
@@ -399,25 +367,6 @@ export default function StaffDashboardPage() {
             {profile?.role==='system_admin' && r.status==='requested' && <div className="scanner-camera-actions"><button type="button" className="outline-button" disabled={refundLoading} onClick={()=>void reviewRefund(r.id,'approved')}>Approve request</button><button type="button" className="outline-button" disabled={refundLoading} onClick={()=>void reviewRefund(r.id,'rejected')}>Reject request</button></div>}
           </article>)}</div> : <p className="result-muted">No refund requests have been submitted.</p>}
           <div className="workflow-note"><span>ⓘ</span><div><strong>Approval is not a completed refund</strong><p>Approval records the company decision only. PayMongo processing is not connected yet; cash must actually be returned before completion. Tickets remain valid until a verified refund completion is recorded.</p></div></div>
-        </section>}
-        {activeTab === 'payments' && <section className="staff-section" id="payments">
-          <div className="section-heading"><div><h2>Payment desk</h2><p>Review recorded cash and PayMongo transactions, their booking references, and verification status.</p></div><button type="button" className="outline-button" onClick={() => void loadPaymentDesk()} disabled={paymentLoading}>{paymentLoading ? 'Refreshing…' : 'Refresh'}</button></div>
-          <div className="staff-metrics payment-metrics">
-            <div className="staff-metric"><span>Records loaded</span><strong>{paymentTotals?.count ?? '—'}</strong></div>
-            <div className="staff-metric"><span>Paid records</span><strong>{paymentTotals?.paid ?? '—'}</strong></div>
-            <div className="staff-metric"><span>Pending</span><strong>{paymentTotals?.pending ?? '—'}</strong></div>
-            <div className="staff-metric"><span>Paid amount loaded</span><strong>{paymentTotals ? '₱'+paymentTotals.paid_amount.toLocaleString('en-PH',{minimumFractionDigits:2}) : '—'}</strong></div>
-          </div>
-          <div className="payment-filters"><label htmlFor="payment-status-filter">Status</label><select id="payment-status-filter" value={paymentStatus} onChange={e=>setPaymentStatus(e.target.value)}><option value="">All statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="failed">Failed</option><option value="cancelled">Cancelled</option><option value="refunded">Refunded</option></select><label htmlFor="payment-method-filter">Method</label><select id="payment-method-filter" value={paymentMethod} onChange={e=>setPaymentMethod(e.target.value)}><option value="">All methods</option><option value="cash">Cash</option><option value="paymongo">PayMongo</option></select></div>
-          {paymentMessage && <p className="booking-message" role="alert">{paymentMessage}</p>}
-          {paymentLoading ? <p className="result-muted">Loading payment records…</p> : payments.length ? <div className="payment-desk-list">{payments.map(p=><article className="payment-desk-row" key={p.id}>
-            <div className="payment-desk-main"><div><strong>{p.booking_reference}</strong><span>{p.purchaser_name} · {p.purchaser_email}</span></div><strong>{p.currency} {Number(p.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>
-            <div className="payment-desk-meta"><span className={`status-pill status-${p.status}`}>{p.status.replaceAll('_',' ')}</span><span>{p.method.toUpperCase()} · {p.provider}</span><span>Booking: {p.booking_status.replaceAll('_',' ')}</span><span>{new Date(p.created_at).toLocaleString()}</span></div>
-            {p.provider_reference && <p className="payment-ref">Provider reference: {p.provider_reference}</p>}
-            {p.verified_at && <p className="payment-ref">Verified: {new Date(p.verified_at).toLocaleString()}</p>}
-            {p.failure_reason && <p className="payment-ref payment-error">Reason: {p.failure_reason}</p>}
-          </article>)}</div> : <p className="result-muted">No payment records match these filters.</p>}
-          <div className="workflow-note"><span>ⓘ</span><div><strong>Payment verification policy</strong><p>PayMongo payments must be verified by the server-side provider webhook. Staff cannot manually mark an online payment as paid. Cash sales are recorded as paid only after staff confirms cash received.</p></div></div>
         </section>}
         <footer className="staff-footer">Artist Playground · Internal staff workspace</footer>
       </main>
