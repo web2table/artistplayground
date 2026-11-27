@@ -4,11 +4,13 @@ Last reviewed: 2026-11-27
 
 This document records decisions explicitly confirmed for the Artist Playground ticketing platform. It is the source of truth for implementation until amended.
 
-## Scope
+## Scope and website experience
 - Ticket sales are for Artist Playground's own public productions.
 - School educational productions are excluded from this ticketing workflow; schools/organizers manage their own student tickets.
-- The existing Astro marketing website remains static-first and must not be redesigned as part of ticketing work.
-- Ticketing is a separate dynamic application backed by the dedicated Artist Playground Supabase project.
+- Ticketing must be part of the existing Artist Playground website, with one unified website experience and the same website origin.
+- Do not create a separate ticketing website, subdomain, or separately branded frontend.
+- Preserve the existing Astro website and visual identity; add ticketing routes without redesigning the marketing site.
+- Use only the dedicated Artist Playground Supabase project for ticketing data, authentication, and backend functions.
 - Do not use or modify Web2Table systems or databases.
 
 ## Sales channels and inventory
@@ -19,7 +21,7 @@ This document records decisions explicitly confirmed for the Artist Playground t
 - Each performance can have multiple ticket categories with their own prices and allocations, or a single category.
 - The sum of category allocations must not exceed the performance capacity.
 - Inventory changes and reservations must be concurrency-safe to prevent overselling.
-- Maximum tickets per booking is configurable at the performance level (recommended implementation scope; user approved configurability).
+- Maximum tickets per booking is configurable at the performance level.
 
 ## Purchaser and attendee details
 - Guest checkout only; customers do not create accounts or sign in.
@@ -29,10 +31,8 @@ This document records decisions explicitly confirmed for the Artist Playground t
 - Each attendee receives an individual ticket.
 
 ## Ticket identity and delivery
-- Every individual ticket has:
-  - One unique human-readable reference number.
-  - One unique QR token encoded in its QR code.
-  - Both identifiers resolve to the same ticket record.
+- Every individual ticket has one unique human-readable reference number and one unique QR token encoded in its QR code.
+- Both identifiers resolve to the same ticket record.
 - One attendee = one ticket record = one QR code = one reference number.
 - Tickets are digital and delivered by email only; no printed-ticket workflow.
 - Email delivery failures are logged. Resending must not create duplicate tickets or invalidate existing tickets.
@@ -57,9 +57,9 @@ This document records decisions explicitly confirmed for the Artist Playground t
 - If the company gives complimentary tickets, staff adjusts the available capacity accordingly. There is no separate complimentary-ticket issuance workflow in the initial scope.
 
 ## Staff access and authentication
-- One shared login gateway.
+- One shared login gateway within the existing Artist Playground website.
 - Two account roles: System Administrator and Staff.
-- After login, users are routed to different views/dashboards based on their assigned role.
+- After login, users are routed to different views within the same website based on their assigned role.
 - Role is assigned to the account and enforced by the backend; users do not choose their role at login.
 - Staff is one simple role for everyone, including the CEO. No manager or separate CEO role.
 - Staff handles day-to-day ticket sales, cash confirmation, refunds, booking lookup, and ticket scanning.
@@ -89,4 +89,4 @@ This document records decisions explicitly confirmed for the Artist Playground t
 - Attendee birthday purpose, retention, access, and privacy notice.
 - Scanner behavior during internet outages.
 - Whether attendee names/birthdays can be edited after purchase and the support process for incorrect purchaser email.
-- Final technical architecture, schema, and implementation sequencing.
+- Final database schema and implementation sequencing.
