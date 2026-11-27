@@ -13,6 +13,7 @@ const dateTime = (value: string) => new Date(value).toLocaleString('en-PH', { da
 export default function BookTicketsPage() {
   const [performances, setPerformances] = useState<Performance[]>([]);
   const [selectedPerformance, setSelectedPerformance] = useState('');
+  const [showBookingForm, setShowBookingForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [purchaserName, setPurchaserName] = useState('');
@@ -86,8 +87,32 @@ export default function BookTicketsPage() {
 
   return <div className="ap-page ap-page-book">
     <section className="booking-wrap">
-      {loading ? <div className="empty"><h2>Loading available performances…</h2><p>Checking current schedules and ticket availability.</p></div> : performances.length === 0 ? <div className="empty"><h2>Tickets are not on sale yet.</h2><p>There are no published performances with available ticket categories right now. Please check again soon or follow Artist Playground on social media for announcements.</p></div> : <div className="booking-grid">
-        <form className="booking-form" onSubmit={startCheckout}>
+      {loading ? <div className="empty"><h2>Loading available performances…</h2><p>Checking current schedules and ticket availability.</p></div> : performances.length === 0 ? <div className="empty"><h2>Tickets are not on sale yet.</h2><p>There are no published performances with available ticket categories right now. Please check again soon or follow Artist Playground on social media for announcements.</p></div> : !showBookingForm ? <div className="booking-list">
+        <div className="booking-list-heading"><p className="eyebrow">ARTIST PLAYGROUND · LIVE PRODUCTIONS</p><h1>Book Tickets</h1><p>Choose a show and performance to view ticket options.</p></div>
+        <div className="booking-show-grid">
+          {performances.map(item => {
+            const available = item.categories.filter(cat => cat.remaining > 0);
+            const startingPrice = available.length ? Math.min(...available.map(cat => cat.price)) : null;
+            return <article className="booking-show-card" key={item.id}>
+              {item.poster_url && <img className="booking-show-poster" src={item.poster_url} alt={item.production_title} />}
+              <div className="booking-show-content">
+                <p className="eyebrow">UPCOMING PERFORMANCE</p>
+                <h2>{item.production_title}</h2>
+                <p className="booking-show-date">{dateTime(item.starts_at)}</p>
+                <p className="booking-show-venue">{item.venue_name}{item.venue_address ? ' · ' + item.venue_address : ''}</p>
+                {item.description && <p className="booking-show-description">{item.description}</p>}
+                <div className="booking-show-bottom">
+                  <div><span>Tickets from</span><strong>{startingPrice === null ? 'Sold out' : money(startingPrice)}</strong></div>
+                  <button type="button" disabled={startingPrice === null} onClick={() => { setSelectedPerformance(item.id); setSelectedCategory(available[0]?.id || ''); setQuantity(1); setShowBookingForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Book Tickets</button>
+                </div>
+              </div>
+            </article>;
+          })}
+        </div>
+      </div> : <div className="booking-grid">
+        <div className="booking-form">
+          <button className="booking-back" type="button" onClick={() => setShowBookingForm(false)}>← Back to shows</button>
+          <form onSubmit={startCheckout}>
           <div className="step"><span>01</span><div><h2>Choose a performance</h2><p>Select the show date you want to attend.</p></div></div>
           <label htmlFor="performance">Performance</label>
           <select id="performance" value={selectedPerformance} onChange={event => { const next = performances.find(item => item.id === event.target.value); setSelectedPerformance(event.target.value); setSelectedCategory(next?.categories?.[0]?.id || ''); setQuantity(1); }}>
@@ -119,10 +144,28 @@ export default function BookTicketsPage() {
           {message && <p className="message" role="alert">{message}</p>}
           <button className="checkout" type="submit" disabled={!canSubmit || submitting}>{submitting ? 'Preparing secure checkout…' : 'Continue to payment · ' + money(subtotal)}</button>
           <p className="fine-print">Your tickets are issued only after payment is verified. Payment method fees, if any, are shown by the payment provider before you confirm payment.</p>
-        </form>
-        <aside className="order-summary"><p className="eyebrow">YOUR ORDER</p><h2>Booking summary</h2><div className="summary-line"><span>Tickets</span><strong>{quantity}</strong></div><div className="summary-line"><span>Category</span><strong>{category?.name || '—'}</strong></div><div className="summary-line"><span>Price each</span><strong>{money(category?.price || 0)}</strong></div><div className="summary-total"><span>Ticket subtotal</span><strong>{money(subtotal)}</strong></div><p>Online payment is completed through the secure payment checkout. Your booking is not confirmed until payment verification succeeds.</p></aside>
+          </form>
+        </div>
+        <aside className="order-summary"><p className="eyebrow">YOUR ORDER</p><h2>Booking summary</h2><div className="summary-line"><span>Tickets</span><strong>{quantity}</strong></div><div className="summary-line"><span>Category</span><strong>{category?.name || '—'}</strong></div><div className="summary-line"><span>Price each</span><strong>{money(category?.price || 0)}</strong></div><div className="summary-total"><span>Ticket subtotal</span><strong>{money(subtotal)}</strong></div><p>Payment will only begin after you complete the booking details and choose Continue to Payment.</p></aside>
       </div>}
     </section>
     
   </div>;
+
+    <style jsx>{`
+      .booking-list{max-width:1120px;margin:0 auto;padding:2rem 1.25rem 4rem}
+      .booking-list-heading{margin-bottom:1.5rem}.booking-list-heading h1{font-size:2rem;margin:.35rem 0}.booking-list-heading>p:last-child{color:#9aa4b2;font-size:.9rem}
+      .booking-show-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.1rem}
+      .booking-show-card{overflow:hidden;border:1px solid #292929;border-radius:14px;background:#111}
+      .booking-show-poster{width:100%;height:230px;object-fit:cover;display:block}
+      .booking-show-content{padding:1.2rem}.booking-show-content h2{font-size:1.25rem;margin:.35rem 0 .7rem}
+      .booking-show-date,.booking-show-venue{font-size:.86rem;color:#d4d4d4;margin:.35rem 0}
+      .booking-show-description{font-size:.82rem;color:#929292;line-height:1.55;margin-top:.8rem}
+      .booking-show-bottom{display:flex;justify-content:space-between;align-items:center;gap:1rem;border-top:1px solid #2b2b2b;margin-top:1.1rem;padding-top:1rem}
+      .booking-show-bottom div{display:grid;gap:.25rem}.booking-show-bottom span{font-size:.7rem;color:#9b9b9b}.booking-show-bottom strong{font-size:1.1rem;color:#fff000}
+      .booking-show-bottom button,.booking-back{background:#fff000;color:#080808;border:0;border-radius:8px;padding:.75rem 1rem;font-weight:800;cursor:pointer}
+      .booking-show-bottom button:disabled{opacity:.45;cursor:not-allowed}.booking-back{margin-bottom:1rem;background:transparent;color:#fff;border:1px solid #444}
+      @media(max-width:600px){.booking-list{padding:1.2rem .9rem 3rem}.booking-show-poster{height:190px}}
+    `}</style>
+
 }
