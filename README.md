@@ -1,6 +1,6 @@
 # Artist Playground
 
-Artist Playground is being migrated to a unified Next.js application.
+Artist Playground is a unified Next.js application.
 
 ## Stack
 
