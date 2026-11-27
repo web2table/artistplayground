@@ -135,15 +135,14 @@ export default function BookTicketsPage() {
             <input id={'attendee-name-' + index} value={person.full_name} onChange={event => setAttendees(current => current.map((item, i) => i === index ? { ...item, full_name: event.target.value } : item))} required minLength={2} />
             <label htmlFor={'attendee-birthday-' + index}>Birthday</label>
             <input id={'attendee-birthday-' + index} type="date" max={new Date().toISOString().slice(0, 10)} value={person.birth_date} onChange={event => setAttendees(current => current.map((item, i) => i === index ? { ...item, birth_date: event.target.value } : item))} required />
-            {index === 0 && <div className="ticket-quantity-control">
-              <label>Number of tickets</label>
-              <div className="ticket-quantity" role="group" aria-label="Number of tickets">
-                <button type="button" className="quantity-button" aria-label="Decrease tickets" onClick={() => setQuantity(current => Math.max(1, current - 1))} disabled={quantity <= 1}>−</button>
-                <output className="quantity-value" aria-live="polite">{quantity} {quantity === 1 ? 'ticket' : 'tickets'}</output>
-                <button type="button" className="quantity-button" aria-label="Increase tickets" onClick={() => setQuantity(current => Math.min(maxQuantity, current + 1))} disabled={quantity >= maxQuantity}>＋</button>
-              </div>
-            </div>}
+            {index > 0 && <button type="button" className="remove-ticket" onClick={() => { setAttendees(current => current.filter((_, i) => i !== index)); setQuantity(current => Math.max(1, current - 1)); }}>Remove ticket</button>}
           </div>)}
+          <div className="add-ticket-row">
+            <button type="button" className="add-ticket" onClick={() => setQuantity(current => Math.min(maxQuantity, current + 1))} disabled={quantity >= maxQuantity}>
+              <span aria-hidden="true">＋</span> Add another ticket
+            </button>
+            <span className="ticket-count">{quantity} of {maxQuantity} tickets selected</span>
+          </div>
           {message && <p className="message" role="alert">{message}</p>}
           </form>
         </div>
@@ -151,6 +150,14 @@ export default function BookTicketsPage() {
       </div>}
     </section>
     <style jsx>{`
+      .add-ticket-row{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;margin:1rem 0 1.25rem}
+      .add-ticket,.remove-ticket{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;border:1px solid #3b4650;border-radius:8px;background:#141a20;color:#eaf8fc;padding:.7rem .95rem;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+      .add-ticket{border-color:#087b99;color:#68dafa}
+      .add-ticket:hover:not(:disabled){background:#102832;border-color:#00bce8}
+      .add-ticket:disabled{opacity:.4;cursor:not-allowed}
+      .remove-ticket{margin-top:.85rem;background:transparent;border-color:#684047;color:#f0aab2;padding:.5rem .7rem}
+      .remove-ticket:hover{background:#2a171b}
+      .ticket-count{font-size:.72rem;color:#929ba6}
       .ticket-quantity{display:flex;align-items:center;gap:.7rem;width:max-content;min-width:210px;padding:.35rem;background:#090a0c;border:1px solid #3a3a3a;border-radius:10px}
       .quantity-button{display:grid;place-items:center;width:42px;height:42px;border:1px solid #3a3a3a;border-radius:8px;background:#17191d;color:#fff;font-size:1.35rem;line-height:1;cursor:pointer;transition:background .15s,border-color .15s}
       .quantity-button:hover:not(:disabled){background:#263039;border-color:#00bce8}
