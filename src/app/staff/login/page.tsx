@@ -2,21 +2,20 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 export default function StaffLoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const error = searchParams.get('error');
+    const error = new URLSearchParams(window.location.search).get('error');
     if (error === 'missing') setMessage('Enter your email and password.');
     else if (error === 'unauthorized') setMessage('This account is not authorized for staff access. Contact your system administrator.');
     else if (error === 'invalid') setMessage('Unable to sign in with those credentials.');
-  }, [searchParams]);
+  }, []);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
