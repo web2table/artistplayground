@@ -281,6 +281,8 @@ export default function StaffDashboardPage() {
         <a className="staff-brand" href={appPath('/')} aria-label="Artist Playground home"><span className="brand-symbol">AP</span><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
         <div className="staff-nav-label">WORKSPACE</div>
         <a className={`staff-nav-item ${activeTab === 'overview' ? 'selected' : ''}`} href="#overview" onClick={() => setActiveTab('overview')}><span>⌂</span> Overview</a>
+        <div className="staff-nav-label">MANAGEMENT</div>
+        <a className="staff-nav-item" href={appPath('/staff/productions/')}><span>▣</span> Productions</a>
         <div className="staff-nav-label">OPERATIONS</div>
         <a className={`staff-nav-item ${activeTab === 'sales' ? 'selected' : ''}`} href="#sales" onClick={() => setActiveTab('sales')}><span>₱</span> Daily sales</a>
         <a className={`staff-nav-item ${activeTab === 'bookings' ? 'selected' : ''}`} href="#bookings" onClick={() => setActiveTab('bookings')}><span>▤</span> Bookings</a>
