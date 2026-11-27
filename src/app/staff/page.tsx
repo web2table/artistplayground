@@ -303,6 +303,7 @@ export default function StaffDashboardPage() {
           {overviewLoading && !overview ? (
             <div className="overview-loading">Loading your ticketing overview…</div>
           ) : overview ? (
+            <>
             <div className="overview-metrics">
               <article className="overview-metric"><span>Published productions</span><strong>{overview.metrics.active_productions}</strong><small>Currently published shows</small></article>
               <article className="overview-metric"><span>Upcoming performances</span><strong>{overview.metrics.upcoming_performances}</strong><small>Scheduled future performances</small></article>
