@@ -41,6 +41,7 @@ export default function StaffDashboardPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
   const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : ((window.location.hash.slice(1) === 'sales' || window.location.hash.slice(1) === 'payments' ? 'reports' : window.location.hash.slice(1) || 'overview')));
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   useEffect(() => { const sync = () => setActiveTab(window.location.hash.slice(1) === 'sales' || window.location.hash.slice(1) === 'payments' ? 'reports' : window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -274,17 +275,20 @@ export default function StaffDashboardPage() {
     <div className="staff-workspace">
       <aside className="staff-sidebar">
         <a className="staff-brand" href="#overview" onClick={() => setActiveTab("overview")} aria-label="Staff workspace overview"><img className="staff-brand-logo" src={appPath("/ap.jpg")} alt="Artist Playground logo" /><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
-        <div className="staff-nav-label">WORKSPACE</div>
-        <a className={`staff-nav-item ${activeTab === 'overview' ? 'selected' : ''}`} href="#overview" onClick={() => setActiveTab('overview')}><span>⌂</span> Overview</a>
-        <div className="staff-nav-label">MANAGEMENT</div>
-        <a className="staff-nav-item" href={appPath('/staff/productions/')}><span>▣</span> Productions</a>
-        <div className="staff-nav-label">OPERATIONS</div>
-        <a className={`staff-nav-item ${activeTab === 'bookings' ? 'selected' : ''}`} href="#bookings" onClick={() => setActiveTab('bookings')}><span>▤</span> Bookings</a>
-        <a className={`staff-nav-item ${activeTab === 'refunds' ? 'selected' : ''}`} href="#refunds" onClick={() => setActiveTab('refunds')}><span>↺</span> Refunds</a>
-        <a className={`staff-nav-item ${activeTab === 'scanner' ? 'selected' : ''}`} href="#scanner" onClick={() => setActiveTab('scanner')}><span>▦</span> Ticket scanner</a>
-        <a className={`staff-nav-item ${activeTab === 'box-office' ? 'selected' : ''}`} href="#box-office" onClick={() => setActiveTab('box-office')}><span>＋</span> Box office</a>
-        <div className="staff-nav-label">INSIGHTS</div>
-        <a className={`staff-nav-item ${activeTab === 'reports' ? 'selected' : ''}`} href="#reports" onClick={() => setActiveTab('reports')}><span>▥</span> Reports</a>
+        <button type="button" className="staff-menu-toggle" aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={mobileMenuOpen} onClick={() => setMobileMenuOpen(open => !open)}><span className="staff-menu-icon" aria-hidden="true"><i></i><i></i><i></i></span><span>Menu</span></button>
+        <nav className={`staff-nav-links ${mobileMenuOpen ? 'is-open' : ''}`} aria-label="Staff navigation" onClick={() => setMobileMenuOpen(false)}>
+          <div className="staff-nav-label">WORKSPACE</div>
+          <a className={`staff-nav-item ${activeTab === 'overview' ? 'selected' : ''}`} href="#overview" onClick={() => setActiveTab('overview')}><span>⌂</span> Overview</a>
+          <div className="staff-nav-label">MANAGEMENT</div>
+          <a className="staff-nav-item" href={appPath('/staff/productions/')}><span>▣</span> Productions</a>
+          <div className="staff-nav-label">OPERATIONS</div>
+          <a className={`staff-nav-item ${activeTab === 'bookings' ? 'selected' : ''}`} href="#bookings" onClick={() => setActiveTab('bookings')}><span>▤</span> Bookings</a>
+          <a className={`staff-nav-item ${activeTab === 'refunds' ? 'selected' : ''}`} href="#refunds" onClick={() => setActiveTab('refunds')}><span>↺</span> Refunds</a>
+          <a className={`staff-nav-item ${activeTab === 'scanner' ? 'selected' : ''}`} href="#scanner" onClick={() => setActiveTab('scanner')}><span>▦</span> Ticket scanner</a>
+          <a className={`staff-nav-item ${activeTab === 'box-office' ? 'selected' : ''}`} href="#box-office" onClick={() => setActiveTab('box-office')}><span>＋</span> Box office</a>
+          <div className="staff-nav-label">INSIGHTS</div>
+          <a className={`staff-nav-item ${activeTab === 'reports' ? 'selected' : ''}`} href="#reports" onClick={() => setActiveTab('reports')}><span>▥</span> Reports</a>
+        </nav>
         <div className="staff-sidebar-bottom"><div className="staff-user"><span className="staff-avatar">{(profile?.display_name || 'S').slice(0,1).toUpperCase()}</span><span>{profile?.display_name || 'Staff member'}<small>Staff account</small></span></div><button type="button" onClick={signOut}>Sign out</button></div>
       </aside>
 
@@ -426,6 +430,10 @@ export default function StaffDashboardPage() {
       <style>{`
         .staff-workspace{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr);background:#090a0c;color:#f4f5f7;font-family:Inter,Arial,sans-serif}
         .staff-sidebar{position:sticky;top:0;height:100vh;min-height:620px;background:#0e1013;border-right:1px solid #252a31;padding:1.35rem 1rem;display:flex;flex-direction:column}
+        .staff-menu-toggle{display:none;align-items:center;gap:.65rem;background:#151a20;border:1px solid #303943;border-radius:8px;color:#e8edf2;padding:.65rem .8rem;font:inherit;font-size:.78rem;cursor:pointer}
+        .staff-menu-icon{display:grid;gap:4px;width:17px}.staff-menu-icon i{display:block;height:2px;width:17px;border-radius:2px;background:#62d7f5}
+        .staff-nav-links{display:flex;flex-direction:column}
+
         .staff-brand{display:flex;align-items:center;gap:.75rem;padding:.35rem .5rem 2.3rem;color:#f2f4f6;text-decoration:none;font-size:.68rem;font-weight:800;letter-spacing:.08em}
         .staff-brand small{display:block;color:#7f8995;font-size:.6rem;letter-spacing:.13em;margin-top:.35rem}
         .staff-brand-logo{display:block;flex:0 0 39px;width:39px;height:39px;object-fit:contain;border-radius:6px}
@@ -493,7 +501,7 @@ export default function StaffDashboardPage() {
         .staff-error{background:#2a1517;border:1px solid #713237;color:#ffc0c4;padding:.8rem;border-radius:8px;margin-bottom:1rem}
         .staff-loading{min-height:100vh;min-height:100svh;width:100%;display:grid;place-items:center;text-align:center;padding:2rem;background:#080808;color:#aaa;font-size:.9rem;letter-spacing:.02em}
         @media(max-width:1150px){.overview-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.work-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:760px){.scan-ticket-facts{grid-template-columns:1fr}.overview-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-panel-heading{align-items:flex-start}.overview-performance-main{align-items:flex-start;flex-direction:column;gap:.35rem}.overview-booking{align-items:flex-start}.overview-booking-right{align-items:flex-end}.cash-sale-two-col{grid-template-columns:1fr}.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:760px){.staff-menu-toggle{display:flex;width:100%;margin:.1rem 0 .6rem}.staff-nav-links{display:none;padding:.25rem 0 .5rem;border-top:1px solid #252a31}.staff-nav-links.is-open{display:flex}.staff-nav-links .staff-nav-item{display:flex;width:100%;margin:.08rem 0;padding:.72rem .75rem}.staff-nav-links .staff-nav-label{display:block}.scan-ticket-facts{grid-template-columns:1fr}.overview-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-panel-heading{align-items:flex-start}.overview-performance-main{align-items:flex-start;flex-direction:column;gap:.35rem}.overview-booking{align-items:flex-start}.overview-booking-right{align-items:flex-end}.cash-sale-two-col{grid-template-columns:1fr}.booking-search-row{flex-direction:column}.booking-facts{grid-template-columns:1fr}.staff-workspace{grid-template-columns:1fr}.staff-sidebar{position:static;height:auto;min-height:0;padding:1rem}.staff-brand{padding-bottom:1rem}.staff-nav-label,.staff-sidebar-bottom{display:none}.staff-sidebar{display:block}.staff-nav-item{display:inline-flex;margin-right:.2rem;padding:.55rem}.staff-main{padding:1.3rem 1rem}.staff-welcome{padding:1.3rem}.welcome-mark{font-size:5rem;padding:0}.work-grid{grid-template-columns:1fr}.staff-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
       `}</style>
     </div>
   );
