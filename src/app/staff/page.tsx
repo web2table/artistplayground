@@ -10,14 +10,7 @@ type BookingLookup = {
   payments: { method: string; status: string; amount: number; currency: string; provider_reference: string | null; created_at: string }[];
 };
 
-const workAreas = [
-  { href: '#sales', icon: '₱', title: 'Daily sales', description: 'Review today’s box-office and online sales.', tag: 'SALES' },
-  { href: '#bookings', icon: '▤', title: 'Bookings', description: 'Find bookings and review ticket details.', tag: 'BOOKING DESK' },
-  { href: '#payments', icon: '₱', title: 'Payment desk', description: 'Confirm cash payments and review payment status.', tag: 'PAYMENTS' },
-  { href: '#refunds', icon: '↺', title: 'Refund requests', description: 'Review booking refund requests and their status.', tag: 'REFUNDS' },
-  { href: '#scanner', icon: '▦', title: 'Ticket scanner', description: 'Scan QR tickets or look up a ticket reference.', tag: 'ADMISSION' },
-  { href: '#reports', icon: '▥', title: 'Operational reports', description: 'View sales, admissions, and daily activity reports.', tag: 'REPORTS' },
-];
+
 
 export default function StaffDashboardPage() {
   const [profile, setProfile] = useState<StaffProfile | null>(null);
