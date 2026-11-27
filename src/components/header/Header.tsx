@@ -11,8 +11,8 @@ const links = [
   { label: 'Theater', href: '/productions/' },
   { label: 'Workshops', href: '/workshops/' },
   { label: 'Events', href: '/events/' },
-  { label: 'Book Tickets', href: '/book/' },
   { label: 'Contact', href: '/contact/' },
+  { label: 'Book Tickets', href: '/book/' },
 ];
 
 export default function Header() {
@@ -31,7 +31,7 @@ export default function Header() {
       </button>
       <nav id="main-navigation" aria-label="Main navigation">
         {links.map((link) => (
-          <Link key={link.href} href={link.href} className={activeFor(link.href) ? 'is-active' : undefined} aria-current={activeFor(link.href) ? 'page' : undefined} onClick={() => setMenuOpen(false)}>
+          <Link key={link.href} href={link.href} className={`${activeFor(link.href) ? 'is-active ' : ''}${link.href === '/book/' ? 'nav-cta' : ''}`} aria-current={activeFor(link.href) ? 'page' : undefined} onClick={() => setMenuOpen(false)}>
             {link.label}
           </Link>
         ))}
@@ -44,6 +44,9 @@ export default function Header() {
         nav :global(a){text-decoration:none;font-size:var(--ap-size-nav);padding:.6rem .75rem;color:var(--ap-text);border:1px solid transparent;border-radius:.45rem;transition:color .15s,background .15s,border-color .15s}
         nav :global(a:hover),nav :global(a:focus-visible){color:var(--ap-yellow);border-color:var(--ap-border);outline:none}
         nav :global(a.is-active){color:var(--ap-yellow);border-color:var(--ap-yellow);background:transparent;font-weight:400;box-shadow:none}
+        nav :global(a.nav-cta){margin-left:.35rem;padding:.65rem 1.05rem;background:var(--ap-yellow);border:1px solid var(--ap-yellow);border-radius:.5rem;color:#080808;font-weight:800;box-shadow:0 2px 10px rgba(255,220,0,.12)}
+        nav :global(a.nav-cta:hover),nav :global(a.nav-cta:focus-visible){background:#ffe84a;border-color:#ffe84a;color:#080808;transform:translateY(-1px)}
+        nav :global(a.nav-cta.is-active){background:var(--ap-yellow);border-color:var(--ap-yellow);color:#080808}
         .menu-toggle{display:none;align-items:center;justify-content:center;gap:.65rem;border:1px solid var(--ap-border);background:#111;color:var(--ap-text);padding:.65rem .8rem;border-radius:.5rem;cursor:pointer}
         .menu-icon{display:flex;width:1.1rem;flex-direction:column;gap:4px}
         .menu-icon span{display:block;width:100%;height:2px;background:currentColor;transition:transform .2s,opacity .2s}
