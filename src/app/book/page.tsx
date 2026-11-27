@@ -15,6 +15,7 @@ export default function BookTicketsPage() {
   const [selectedPerformance, setSelectedPerformance] = useState('');
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [purchaserName, setPurchaserName] = useState('');
   const [purchaserEmail, setPurchaserEmail] = useState('');
@@ -136,10 +137,18 @@ export default function BookTicketsPage() {
             </div>
           </div>}
           <div className="step"><span>01</span><div><h2>Select tickets</h2><p>Ticket availability updates as bookings are confirmed.</p></div></div>
-          <label htmlFor="category">Ticket category</label>
-          <select id="category" value={selectedCategory} onChange={event => { setSelectedCategory(event.target.value); setQuantity(1); }}>
-            {categories.map(item => <option key={item.id} value={item.id} disabled={item.remaining < 1}>{item.name} · {money(item.price)} · {item.remaining} left</option>)}
-          </select>
+          <label id="category-label">Ticket category</label>
+          <div className="category-picker" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setCategoryMenuOpen(false); }} onKeyDown={event => { if (event.key === 'Escape') setCategoryMenuOpen(false); }}>
+            <button type="button" className={`category-picker-trigger ${categoryMenuOpen ? 'is-open' : ''}`} aria-labelledby="category-label" aria-haspopup="listbox" aria-expanded={categoryMenuOpen} onClick={() => setCategoryMenuOpen(open => !open)}>
+              <span>{category ? `${category.name} · ${money(category.price)} · ${category.remaining} left` : 'Choose a ticket category'}</span>
+              <span className="category-picker-chevron" aria-hidden="true">⌄</span>
+            </button>
+            {categoryMenuOpen && <div className="category-picker-options" role="listbox" aria-labelledby="category-label">
+              {categories.map(item => <button type="button" role="option" aria-selected={item.id === selectedCategory} key={item.id} disabled={item.remaining < 1} className={`category-picker-option ${item.id === selectedCategory ? 'is-selected' : ''}`} onClick={() => { setSelectedCategory(item.id); setQuantity(1); setCategoryMenuOpen(false); }}>
+                <span>{item.name}</span><span>{money(item.price)}</span><small>{item.remaining} left</small>
+              </button>)}
+            </div>}
+          </div>
           <div className="step"><span>02</span><div><h2>Purchaser details</h2><p>Your booking confirmation and all tickets will be sent to this email.</p></div></div>
           <label htmlFor="purchaser">Full name</label>
           <input id="purchaser" autoComplete="name" value={purchaserName} onChange={event => setPurchaserName(event.target.value)} required minLength={2} />
@@ -172,6 +181,17 @@ export default function BookTicketsPage() {
       .payment-toast{position:fixed;z-index:1000;top:1.25rem;left:50%;transform:translateX(-50%);width:min(calc(100% - 2rem),520px);padding:1rem 1.15rem;border:1px solid #3d4650;border-left:3px solid #00c8f5;border-radius:10px;background:rgba(12,15,19,.97);box-shadow:0 14px 38px rgba(0,0,0,.38);color:#f5e900;font-size:.82rem;line-height:1.5;animation:payment-toast-in .2s ease-out}
       @keyframes payment-toast-in{from{opacity:0;translate:0 -8px}to{opacity:1;translate:0 0}}
       @media(prefers-reduced-motion:reduce){.payment-toast{animation:none}}
+      .category-picker{position:relative;width:100%;z-index:20}
+      .category-picker-trigger{display:flex;align-items:center;justify-content:space-between;gap:.8rem;width:100%;min-height:48px;padding:.8rem .9rem;border:1px solid #39434e;border-radius:9px;background:#11161c;color:#f2f6f8;text-align:left;font:inherit;font-size:.88rem;cursor:pointer}
+      .category-picker-trigger:hover,.category-picker-trigger.is-open{border-color:#00c8f5;box-shadow:0 0 0 2px rgba(0,200,245,.1)}
+      .category-picker-trigger>span:first-child{min-width:0;overflow-wrap:anywhere}
+      .category-picker-chevron{flex:0 0 auto;color:#62d7f5;font-size:1.15rem;transition:transform .15s}.category-picker-trigger.is-open .category-picker-chevron{transform:rotate(180deg)}
+      .category-picker-options{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:100;max-height:240px;overflow-y:auto;padding:.35rem;border:1px solid #39434e;border-radius:9px;background:#10151b;box-shadow:0 14px 30px rgba(0,0,0,.55)}
+      .category-picker-option{display:flex;align-items:center;gap:.55rem;width:100%;padding:.75rem .7rem;border:0;border-radius:6px;background:transparent;color:#eef3f6;text-align:left;font:inherit;font-size:.82rem;cursor:pointer}
+      .category-picker-option:hover,.category-picker-option:focus-visible{outline:none;background:#1b303a}
+      .category-picker-option.is-selected{background:#12313b;color:#70e2ff}
+      .category-picker-option>span:first-child{font-weight:700}.category-picker-option>span:nth-child(2){margin-left:auto;white-space:nowrap;color:#f5e900}.category-picker-option small{color:#a2adb7;white-space:nowrap}
+      .category-picker-option:disabled{opacity:.4;cursor:not-allowed}
       .selected-show-summary{margin:0 0 1.5rem;padding:1.2rem 1.25rem 1.1rem;border:1px solid #303030;border-left:3px solid #fff000;border-radius:10px;background:#080808;box-shadow:0 8px 24px rgba(0,0,0,.18)}
       .selected-show-topline{display:flex;align-items:center;gap:.65rem;margin-bottom:.85rem}
       .selected-show-mark{display:grid;place-items:center;width:30px;height:30px;border:1px solid #00bce8;border-radius:7px;color:#00c8f5;font-size:.65rem;font-weight:900;letter-spacing:-.04em}
