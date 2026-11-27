@@ -123,10 +123,12 @@ export default function BookTicketsPage() {
           <select id="category" value={selectedCategory} onChange={event => { setSelectedCategory(event.target.value); setQuantity(1); }}>
             {categories.map(item => <option key={item.id} value={item.id} disabled={item.remaining < 1}>{item.name} · {money(item.price)} · {item.remaining} left</option>)}
           </select>
-          <label htmlFor="quantity">Number of tickets</label>
-          <select id="quantity" value={quantity} onChange={event => setQuantity(Number(event.target.value))}>
-            {Array.from({ length: maxQuantity }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1} {index === 0 ? 'ticket' : 'tickets'}</option>)}
-          </select>
+          <label>Number of tickets</label>
+          <div className="ticket-quantity" role="group" aria-label="Number of tickets">
+            <button type="button" className="quantity-button" aria-label="Decrease tickets" onClick={() => setQuantity(current => Math.max(1, current - 1))} disabled={quantity <= 1}>−</button>
+            <output className="quantity-value" aria-live="polite">{quantity} {quantity === 1 ? 'ticket' : 'tickets'}</output>
+            <button type="button" className="quantity-button" aria-label="Increase tickets" onClick={() => setQuantity(current => Math.min(maxQuantity, current + 1))} disabled={quantity >= maxQuantity}>＋</button>
+          </div>
           <div className="step"><span>03</span><div><h2>Purchaser details</h2><p>Your booking confirmation and all tickets will be sent to this email.</p></div></div>
           <label htmlFor="purchaser">Full name</label>
           <input id="purchaser" autoComplete="name" value={purchaserName} onChange={event => setPurchaserName(event.target.value)} required minLength={2} />
@@ -149,6 +151,11 @@ export default function BookTicketsPage() {
       </div>}
     </section>
     <style jsx>{`
+      .ticket-quantity{display:flex;align-items:center;gap:.7rem;width:max-content;min-width:210px;padding:.35rem;background:#090a0c;border:1px solid #3a3a3a;border-radius:10px}
+      .quantity-button{display:grid;place-items:center;width:42px;height:42px;border:1px solid #3a3a3a;border-radius:8px;background:#17191d;color:#fff;font-size:1.35rem;line-height:1;cursor:pointer;transition:background .15s,border-color .15s}
+      .quantity-button:hover:not(:disabled){background:#263039;border-color:#00bce8}
+      .quantity-button:disabled{opacity:.35;cursor:not-allowed}
+      .quantity-value{flex:1;min-width:82px;text-align:center;color:#fff;font-size:.9rem;font-weight:700;font-variant-numeric:tabular-nums}
       .booking-list{max-width:1120px;margin:0 auto;padding:2rem 1.25rem 4rem}
       .booking-list-heading{margin-bottom:1.5rem}.booking-list-heading h1{font-size:2rem;margin:.35rem 0}.booking-list-heading>p:last-child{color:#9aa4b2;font-size:.9rem}
       .booking-show-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.1rem}
