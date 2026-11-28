@@ -9,14 +9,14 @@ type PublicEvent = {
   image_url: string | null; info_url: string | null; lifecycle: 'upcoming' | 'ongoing' | 'past';
 };
 
-const tabs = [{id:'all',label:'All events'},{id:'show',label:'Shows'},{id:'workshop',label:'Workshops'},{id:'other',label:'Other events'}] as const;
+const tabOrder = [{id:'show',label:'Shows'},{id:'workshop',label:'Workshops'},{id:'other',label:'Other events'}] as const;
 const groups = [{id:'upcoming',label:'Upcoming'},{id:'ongoing',label:'Ongoing'},{id:'past',label:'Past events'}] as const;
 const dateLabel = (value: string) => new Date(value).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'long',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
 const categoryLabel = (type: PublicEvent['event_type']) => type === 'show' ? 'Show' : type === 'workshop' ? 'Workshop' : 'Artist Playground';
 
 export default function EventsPage() {
   const [events,setEvents] = useState<PublicEvent[]>([]);
-  const [filter,setFilter] = useState<(typeof tabs)[number]['id']>('all');
+  const [filter,setFilter] = useState<'all' | PublicEvent['event_type']>('all');
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState('');
   useEffect(() => {
@@ -32,6 +32,10 @@ export default function EventsPage() {
     })();
     return () => { active = false; };
   },[]);
+  const tabs = useMemo(() => [
+    {id:'all' as const,label:'All events'},
+    ...tabOrder.filter(tab => events.some(event => event.event_type === tab.id)),
+  ],[events]);
   const visible = useMemo(() => filter === 'all' ? events : events.filter(event => event.event_type === filter),[events,filter]);
   return <div className="ap-page ap-page-events ap-events-dynamic">
     <section className="hero"><p className="eyebrow">ARTIST PLAYGROUND · EVENTS</p><h1>What’s happening at Artist Playground</h1><p className="lead">Discover our upcoming shows, workshops, current activities, and past events.</p></section>
