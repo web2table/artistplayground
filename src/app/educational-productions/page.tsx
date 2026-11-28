@@ -85,7 +85,7 @@ Ultimately, "Kaming Nangalagas sa Dilim ng Gabi" serves as a thought-provoking e
       'Glenn Caspe — Technical Director',
       'Interns from Pamantasan ng Lungsod ng Valenzuela'
     ],
-    cast: 'Senior actors in the industry led by award-winning actor-director Roeder Camañag, Joe Gruta, Arkin Da Silva, Rainier Morales, and Paul Jake Paule, among others. New-generation actors from Artist Playground’s pool of actors, The Players, are joining the cast too.'
+
   },
   { number: '05', title: 'Junto Al Pasig: The Rock, Ballet & Multimedia Zarzuela', category: 'Zarzuela · José Rizal', description: 'Reimagines José Rizal’s 1880 masterpiece as a fusion of rock music, classical ballet, multimedia art, and theater on a single stage.', accent: 'blue', poster: juntoPoster }
 ];
@@ -154,7 +154,6 @@ export default function EducationalProductionsPage() {
             {'themes' in selectedWork && <section className="production-modal-section"><h3>Production themes</h3><p>{selectedWork.themes}</p></section>}
             {'artisticTeam' in selectedWork && selectedWork.artisticTeam && <section className="production-modal-section"><h3>Artistic team</h3><ul>{selectedWork.artisticTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
             {'productionTeam' in selectedWork && selectedWork.productionTeam && <section className="production-modal-section"><h3>Production team</h3><ul>{selectedWork.productionTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
-            {'cast' in selectedWork && <section className="production-modal-section"><h3>Cast</h3><p>{selectedWork.cast}</p></section>}
           </div>
         </div>
       </section>
