@@ -22,7 +22,7 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
       try {
         const supabase = createSupabaseBrowserClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError) throw authError;
+        if (authError && authError.name !== 'AuthSessionMissingError') throw authError;
         if (!user) {
           window.location.replace(appPath('/staff/login/'));
           return;
