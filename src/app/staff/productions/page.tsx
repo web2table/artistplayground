@@ -212,14 +212,7 @@ export default function StaffProductionsPage() {
     finally { setPublishing(''); }
   }
 
-  async function signOut() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    window.location.replace(appPath('/staff/login/'));
-  }
-
   return (
-      </aside>
       <main className="prod-main">
         <header className="prod-header"><div><p className="prod-eyebrow">STAFF WORKSPACE · MANAGEMENT</p><h1>Productions</h1><p>Create shows, schedule performances, and configure ticket inventory.</p></div><button className="prod-refresh" type="button" onClick={() => void loadProductions()} disabled={loading}>Refresh</button></header>
         {error && <div className="prod-alert error" role="alert">{error}</div>}
