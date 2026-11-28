@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
-type StaffProfile = { display_name?: string | null; active: boolean };
-
 export default function StaffLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState('Staff member');
@@ -39,7 +37,7 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
     window.location.replace(appPath('/staff/login/'));
   }
 
-  const isOverview = pathname === appPath('/staff') || pathname === appPath('/staff/');
+  const isOverview = pathname.endsWith('/staff') || pathname.endsWith('/staff/');
   const links = [
     { label: 'Overview', href: appPath('/staff/#overview'), icon: '⌂', active: isOverview },
     { label: 'Productions', href: appPath('/staff/productions/'), icon: '▣', active: pathname.includes('/staff/productions') },
