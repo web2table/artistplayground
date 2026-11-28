@@ -367,3 +367,8 @@ img { max-width: 100%; display: block; }
 .prod-count{display:grid;place-items:center;min-width:30px;height:30px;border-radius:50%;background:#202830;color:#dfe7ed;font-size:.75rem}
 @media(max-width:950px){.ap-event-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.ap-events-content{width:min(100% - 2rem,1500px)}.ap-event-grid{grid-template-columns:1fr}.ap-event-image{height:200px}.ap-staff-event-row{align-items:flex-start;flex-direction:column}.ap-staff-event-row-actions{width:100%}.ap-staff-event-row-actions button{flex:1}}
+
+/* Production poster upload preview in staff workspace */
+.prod-poster-preview{display:flex;align-items:flex-start;gap:1rem;margin-top:.8rem;flex-wrap:wrap}
+.prod-poster-preview img{display:block;width:min(220px,100%);max-height:300px;object-fit:contain;border:1px solid #343b44;border-radius:8px;background:#080a0c}
+.prod-field-hint{display:block;margin-top:.45rem;color:#9aa4af;font-size:.72rem}
