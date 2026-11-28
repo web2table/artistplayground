@@ -50,7 +50,7 @@ export default function SetStaffPasswordPage() {
       <section style={{ width: '100%', maxWidth: 480, background: '#111', color: '#fff', padding: '2rem', border: '1px solid #333', borderRadius: 12 }}>
         <p style={{ color: '#00a8d6', letterSpacing: '.12em', fontSize: '.75rem' }}>ARTIST PLAYGROUND</p>
         <h1 style={{ color: '#f5e900', marginBottom: '.75rem' }}>Set your password</h1>
-        <p>Choose a password to finish setting up your staff account.</p>
+        <p>Choose a password to finish setting up your management account.</p>
         {message && <p role="alert" style={{ color: '#ff8b8b' }}>{message}</p>}
         <form onSubmit={savePassword} style={{ display: 'grid', gap: '1rem', marginTop: '1.5rem' }}>
           <label style={{ display: 'grid', gap: '.4rem' }}>New password
