@@ -285,3 +285,17 @@ img { max-width: 100%; display: block; }
         .site-footer .footer-bottom{margin-top:1.5rem;padding-top:.75rem;border-top:1px solid var(--ap-border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:var(--ap-size-support)}
         @media(max-width:700px){.site-footer .footer-main{flex-direction:column;gap:1.5rem}.site-footer .follow-block{align-items:flex-start}.site-footer .footer-bottom{flex-direction:column;align-items:flex-start}}
       
+
+
+/* Workshops facilitator profile */
+.ap-page-workshops .facilitator{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr);gap:clamp(2rem,5vw,5rem);align-items:start;padding:clamp(2.5rem,6vw,5rem) 5vw}
+.ap-page-workshops .facilitator-photo-wrap{position:relative;overflow:hidden;border:1px solid var(--ap-border);border-top:3px solid var(--ap-yellow);border-radius:1rem;background:#111}
+.ap-page-workshops .facilitator-photo{width:100%;height:auto;max-height:760px;aspect-ratio:4/5;object-fit:cover;object-position:center top}
+.ap-page-workshops .facilitator-content{max-width:58rem}
+.ap-page-workshops .facilitator-content .eyebrow{margin:0 0 .8rem}
+.ap-page-workshops .facilitator-content h1{font-family:var(--ap-font-display);font-size:var(--ap-size-section);line-height:1.05;letter-spacing:-.035em;margin:.5rem 0 1rem}
+.ap-page-workshops .facilitator-content h1 span{color:var(--ap-yellow)}
+.ap-page-workshops .facilitator-content h2{font-size:var(--ap-size-card);line-height:1.1;margin:0 0 .4rem;color:var(--ap-text)}
+.ap-page-workshops .facilitator-role{color:var(--ap-blue);font-weight:800;letter-spacing:.04em;margin:.4rem 0 1.5rem}
+.ap-page-workshops .facilitator-content>p:not(.eyebrow):not(.facilitator-role){color:var(--ap-muted);line-height:1.75;margin:0 0 1rem}
+@media(max-width:800px){.ap-page-workshops .facilitator{grid-template-columns:1fr;gap:2rem}.ap-page-workshops .facilitator-photo-wrap{max-width:520px}.ap-page-workshops .facilitator-photo{max-height:620px}}
