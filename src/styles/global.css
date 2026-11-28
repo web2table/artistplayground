@@ -328,7 +328,7 @@ img { max-width: 100%; display: block; }
 @media(max-width:760px){.production-modal-backdrop{padding:.5rem}.production-modal{max-height:94vh}.production-modal-layout{grid-template-columns:1fr;gap:1.25rem;padding:1rem}.production-modal-poster-wrap{position:relative;top:auto;width:min(100%,300px);margin:0 auto}.production-modal-poster{max-height:38vh}.production-modal-content{padding:.25rem .25rem 1rem}.production-modal-close{position:sticky;top:.5rem;margin:.5rem .5rem -3.5rem 0}.production-modal-content h2{padding-right:2.5rem}}
 
 /* Staff-managed public events */
-.ap-events-dynamic .hero h1{max-width:850px;margin:.8rem 0;font-size:clamp(2.2rem,5vw,4.4rem);line-height:1.04;letter-spacing:-.04em}
+.ap-events-dynamic .hero h1{max-width:44rem;margin:.8rem 0 1rem;font-size:var(--ap-size-section);line-height:1.12;letter-spacing:-.035em}
 .ap-events-content{width:min(100% - 3rem,1500px);margin:3rem auto 5rem}
 .ap-events-filters{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:3rem}
 .ap-events-filters button{border:1px solid #343434;border-radius:999px;background:#101010;color:#d8d8d8;padding:.7rem 1.15rem;font:inherit;font-size:.82rem;cursor:pointer}
