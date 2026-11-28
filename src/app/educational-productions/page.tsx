@@ -8,7 +8,23 @@ import elFiliPoster from '../../elfili.jpg';
 import juntoPoster from '../../juntoalpasig.jpg';
 
 const works = [
-  { number: '01', title: 'Ibong Adarna', category: 'Corrido · Filipino literature', description: 'Follow Prince Juan and his brothers on their quest to capture the magical Adarna bird, through trials of courage, loyalty, betrayal, and forgiveness.', accent: 'blue', poster: ibongAdarnaPoster },
+  {
+    number: '01',
+    title: 'Mga Awit ng Ibong Adarna',
+    category: 'Corrido · Filipino literature',
+    description: 'A musical reimagining of the beloved Filipino epic through music, dance, and dramatic storytelling.',
+    accent: 'blue',
+    poster: ibongAdarnaPoster,
+    synopsis: `Mga Awit ng Ibong Adranal is a captivating theatrical experience that reimagines the beloved Filipino epic through a powerful blend of music, dance, and dramatic storytelling. The production transports the audience to a world of magic and mystery, using innovative stage design, dynamic choreography, and an evocative score to bring the legend to life.
+
+The musical features a rich tapestry of songs that range from haunting ballads to vibrant ensemble numbers, each capturing the emotional depth and grandeur of the tale. The choreography combines traditional Filipino dance forms with contemporary movement, creating visually stunning scenes that reflect the characters’ inner journeys.
+
+The set design is fluid and imaginative, with shifts in lighting and staging that seamlessly transform the space from royal courts to enchanted forests. Costumes are meticulously crafted, blending traditional elements with modern flair, enhancing the visual spectacle.
+
+Throughout the production, the music takes center stage, with powerful vocal performances that convey the epic’s themes of love, betrayal, and redemption. The score is a mix of traditional and modern influences, creating a soundscape that is both familiar and fresh, resonating deeply with the audience.
+
+The musical concludes with a rousing finale that leaves the audience uplifted, celebrating the enduring power of storytelling and the richness of Filipino culture.`
+  },
   {
     number: '02',
     title: 'Florante at Laura',
