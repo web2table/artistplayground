@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 export default function StaffLoginPage() {
   const router = useRouter();
@@ -49,8 +49,8 @@ export default function StaffLoginPage() {
   return (
     <section className="staff-auth">
       <div className="staff-auth-panel">
-        <p className="staff-auth-eyebrow">ARTIST PLAYGROUND</p>
-        <h1>Management sign in</h1>
+        <img className="staff-auth-logo" src={appPath('/ap.jpg')} alt="Artist Playground" />
+        <h1>Sign in</h1>
         <p className="staff-auth-copy">Authorized personnel only.</p>
         {message && <p className="staff-auth-error" role="alert">{message}</p>}
         <form onSubmit={handleSubmit} className="staff-auth-form">
@@ -63,17 +63,17 @@ export default function StaffLoginPage() {
         <Link className="staff-auth-back" href="/">← Back to website</Link>
       </div>
       <style>{`
-        .staff-auth{box-sizing:border-box;min-height:100vh;min-height:100svh;width:100%;display:grid;place-items:center;padding:2rem 1.25rem;background:#000;color:#fff}
-        .staff-auth-panel{width:min(100%,28rem);padding:2rem;border:1px solid #333;border-radius:1rem;background:#101010}
-        .staff-auth-eyebrow{color:#00a8d6;letter-spacing:.15em;font-size:.75rem;font-weight:800}
-        .staff-auth-panel h1{margin:.6rem 0;font-family:Manrope,sans-serif;font-size:2rem}
+        .staff-auth{box-sizing:border-box;min-height:100vh;min-height:100svh;width:100%;display:grid;place-items:center;padding:1.5rem 1rem;background:#000;color:#fff}
+        .staff-auth-panel{box-sizing:border-box;width:min(100%,28rem);padding:2rem;border:1px solid #333;border-radius:1rem;background:#101010}
+        .staff-auth-logo{display:block;width:112px;height:112px;object-fit:contain;margin:0 0 1.15rem}
+        .staff-auth-panel h1{margin:0 0 .6rem;font-family:Manrope,sans-serif;font-size:2rem;letter-spacing:-.04em}
         .staff-auth-copy{color:#aaa;margin-bottom:1.5rem}
         .staff-auth-error{padding:.75rem;border:1px solid #8b3333;border-radius:.5rem;color:#ffb5b5;font-size:.9rem}
         .staff-auth-form{display:grid;gap:.55rem}
         .staff-auth-form label{margin-top:.65rem;font-size:.9rem}
         .staff-auth-form input{width:100%;padding:.8rem;border:1px solid #444;border-radius:.45rem;background:#080808;color:#fff;font:inherit}
         .staff-auth-form input:focus{outline:2px solid #00a8d6;outline-offset:2px}
-        .staff-auth-form button{margin-top:1rem;padding:.85rem;border:0;border-radius:.45rem;background:#f5e900;color:#000;font:inherit;font-weight:800;cursor:pointer}
+        .staff-auth-form button{width:100%;margin-top:1rem;padding:.85rem;border:0;border-radius:.45rem;background:#f5e900;color:#000;font:inherit;font-weight:800;cursor:pointer}
         .staff-auth-back{display:inline-block;margin-top:1.5rem;color:#aaa;text-decoration:none;font-size:.9rem}
         .staff-auth-back:hover{color:#f5e900}
       `}</style>
