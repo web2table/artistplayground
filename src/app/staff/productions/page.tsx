@@ -228,7 +228,6 @@ export default function StaffProductionsPage() {
         <a className="prod-nav active" href={appPath('/staff/productions/')}>▣　Productions</a>
         <a className="prod-nav" href={appPath('/staff/events/')}>▤　Events</a>
         <div className="prod-nav-label">OPERATIONS</div>
-        <a className="prod-nav" href={appPath('/staff/#bookings')}>▤　Bookings</a>
         <a className="prod-nav" href={appPath('/staff/#refunds')}>↺　Refunds</a>
         <a className="prod-nav" href={appPath('/staff/#scanner')}>▦　Ticket scanner</a>
         <a className="prod-nav" href={appPath('/staff/#box-office')}>＋　Box office</a>
