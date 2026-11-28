@@ -23,7 +23,7 @@ export default function AdminDashboardPage() {
   const [inviteBusy, setInviteBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
-  const [activeSection, setActiveSection] = useState<'overview' | 'productions' | 'payments' | 'email' | 'monitoring' | 'staff'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'productions' | 'payments' | 'email' | 'monitoring' | 'security' | 'staff'>('overview');
   type AdminCategory = { id: string; name: string; price: number; allocation: number; reserved_count: number; sold_count: number; active: boolean };
   type AdminPerformance = { id: string; starts_at: string; venue_name: string; capacity: number; status: string; ticket_categories: AdminCategory[] };
   type AdminProduction = { id: string; slug: string; title: string; description: string | null; status: string; performances: AdminPerformance[] };
@@ -167,6 +167,7 @@ export default function AdminDashboardPage() {
         <button type="button" className={`sidebar-link ${activeSection === 'payments' ? 'active' : ''}`} onClick={() => setActiveSection('payments')}><span>₱</span> Payment monitoring</button>
         <button type="button" className={`sidebar-link ${activeSection === 'email' ? 'active' : ''}`} onClick={() => setActiveSection('email')}><span>✉</span> Email delivery</button>
         <button type="button" className={`sidebar-link ${activeSection === 'monitoring' ? 'active' : ''}`} onClick={() => setActiveSection('monitoring')}><span>⌁</span> System monitoring</button>
+        <button type="button" className={`sidebar-link ${activeSection === 'security' ? 'active' : ''}`} onClick={() => { setActiveSection('security'); void Promise.all([loadStaff(), loadOperations()]); }}><span>♧</span> Security & access</button>
         <button type="button" className={`sidebar-link ${activeSection === 'staff' ? 'active' : ''}`} onClick={() => setActiveSection('staff')}><span>♙</span> Staff management</button>
         <div className="sidebar-bottom">
           <div className="signed-user"><span className="user-avatar">SA</span><span>{staffName || 'System Admin'}<small>System Admin</small></span></div>
@@ -175,7 +176,7 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="admin-main" id="staff">
-        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'productions' ? 'Production management' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'productions' ? 'Review productions, scheduled performances and ticket inventory.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
+        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'productions' ? 'Production management' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : activeSection === 'security' ? 'Security & access' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'productions' ? 'Review productions, scheduled performances and ticket inventory.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : activeSection === 'security' ? 'Review account access, administrator assignments and recorded access changes.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
 
         {notice && <div className={noticeType === 'success' ? 'notice success' : 'notice error'} role="status">{notice}</div>}
 
@@ -262,6 +263,22 @@ export default function AdminDashboardPage() {
               {operations.audit_logs.length ? operations.audit_logs.map(row => <div className="overview-row" key={row.id}><div><strong>{row.action} · {row.entity_type}</strong><small>{row.entity_id || 'No entity reference'} · {JSON.stringify(row.details || {})}</small></div><span>{new Date(row.created_at).toLocaleString()}</span></div>) : <div className="empty-state">No audit activity recorded in the last 30 days.</div>}
             </section>
           </>}
+        </section>}
+
+        {activeSection === 'security' && <section className="admin-overview">
+          <div className="overview-heading"><div><h2>Access control review</h2><p className="muted">Account status and role assignments from the staff directory.</p></div><button type="button" className="outline-button" disabled={loading || operationsLoading} onClick={() => void Promise.all([loadStaff(), loadOperations()])}>Refresh access data</button></div>
+          <section className="stats">
+            <article className="stat-card"><span>Active accounts</span><strong>{staff.filter(member => member.active).length}</strong><small>Currently enabled profiles</small></article>
+            <article className="stat-card"><span>System administrators</span><strong>{staff.filter(member => member.active && member.role === 'system_admin').length}</strong><small>Active admin role assignments</small></article>
+            <article className="stat-card"><span>Pending invitations</span><strong>{staff.filter(member => member.active && !member.email_confirmed).length}</strong><small>Awaiting email confirmation</small></article>
+          </section>
+          <section className="panel overview-panel"><div className="panel-heading"><div><h2>Account access directory</h2><p className="muted">Use Staff Management to change roles or deactivate an account.</p></div></div>
+            {loading ? <div className="empty-state">Loading account directory…</div> : staff.length ? <div className="table-wrap"><table><thead><tr><th>ACCOUNT</th><th>ROLE</th><th>EMAIL STATUS</th><th>ACCESS</th><th>CREATED</th></tr></thead><tbody>{staff.map(member => <tr key={member.user_id}><td><strong>{member.display_name}</strong><small>{member.email}</small></td><td>{member.role === 'system_admin' ? 'System Admin' : 'Staff'}</td><td><span className={`status ${member.email_confirmed ? 'active' : 'pending'}`}>{member.email_confirmed ? 'Confirmed' : 'Pending'}</span></td><td><span className={`status ${member.active ? 'active' : 'inactive'}`}>{member.active ? 'Active' : 'Deactivated'}</span></td><td>{new Date(member.created_at).toLocaleDateString()}</td></tr>)}</tbody></table></div> : <div className="empty-state">No staff profiles found.</div>}
+            <p className="table-note">The system requires at least one active System Admin. Role and account changes are performed through the protected Staff Management workflow.</p>
+          </section>
+          <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent access-related audit events</h2><p className="muted">Audit records from the last 30 days. Only events actually written to the audit log appear here.</p></div></div>
+            {operationsLoading && !operations ? <div className="empty-state">Loading audit events…</div> : operationsError ? <div className="notice error" role="alert">{operationsError}</div> : operations && operations.audit_logs.filter(row => /staff|role|access|admin|invitation|account/i.test(row.action + ' ' + row.entity_type)).length ? operations.audit_logs.filter(row => /staff|role|access|admin|invitation|account/i.test(row.action + ' ' + row.entity_type)).map(row => <div className="overview-row" key={row.id}><div><strong>{row.action} · {row.entity_type}</strong><small>{row.entity_id || 'No entity reference'} · {JSON.stringify(row.details || {})}</small></div><span>{new Date(row.created_at).toLocaleString()}</span></div>) : <div className="empty-state">No access-related audit events found in the available 30-day audit window.</div>}
+          </section>
         </section>}
 
         {activeSection === 'staff' && <>
