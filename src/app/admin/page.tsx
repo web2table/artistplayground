@@ -23,7 +23,10 @@ export default function AdminDashboardPage() {
   const [inviteBusy, setInviteBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
-  const [activeSection, setActiveSection] = useState<'overview' | 'staff'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'payments' | 'email' | 'staff'>('overview');
+  const [operations, setOperations] = useState<{payments:Record<string, any>[];payment_counts_recent:Record<string,number>;email_deliveries:Record<string, any>[];email_counts_recent:Record<string,number>;webhook_events:Record<string, any>[];audit_logs:Record<string, any>[]} | null>(null);
+  const [operationsLoading, setOperationsLoading] = useState(false);
+  const [operationsError, setOperationsError] = useState('');
   const [overview, setOverview] = useState<{metrics:{active_productions:number;upcoming_performances:number;tickets_issued:number;pending_bookings:number;paid_revenue:number};upcoming:{id:string;title:string;starts_at:string;venue_name:string;remaining:number}[];recent_bookings:{booking_reference:string;purchaser_name:string;status:string;total_amount:number;currency:string;created_at:string}[]}|null>(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState('');
@@ -38,6 +41,18 @@ export default function AdminDashboardPage() {
     } catch (error) {
       setOverviewError(error instanceof Error ? error.message : 'Unable to load overview.');
     } finally { setOverviewLoading(false); }
+  }, []);
+
+  const loadOperations = useCallback(async () => {
+    setOperationsLoading(true); setOperationsError('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('system-admin-overview', { body: {} });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load system operations.');
+      setOperations(data);
+    } catch (error) {
+      setOperationsError(error instanceof Error ? error.message : 'Unable to load system operations.');
+    } finally { setOperationsLoading(false); }
   }, []);
 
   const notify = (message: string, type: 'success' | 'error' = 'success') => {
@@ -67,7 +82,7 @@ export default function AdminDashboardPage() {
         }
         if (active) {
           setStaffName(profile.display_name || user.email || 'System Admin');
-          await Promise.all([loadStaff(), loadOverview()]);
+          await Promise.all([loadStaff(), loadOverview(), loadOperations()]);
         }
       } catch (error) {
         if (active) notify(error instanceof Error ? error.message : 'Unable to load the staff workspace.', 'error');
@@ -75,7 +90,7 @@ export default function AdminDashboardPage() {
     }
     void initialize();
     return () => { active = false; };
-  }, [loadStaff, loadOverview]);
+  }, [loadStaff, loadOverview, loadOperations]);
 
   async function inviteStaff(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setInviteBusy(true); setNotice('');
@@ -123,6 +138,8 @@ export default function AdminDashboardPage() {
         <div className="sidebar-brand"><span className="brand-mark">AP</span><span>ARTIST PLAYGROUND<small>TICKETING ADMIN</small></span></div>
         <p className="sidebar-label">WORKSPACE</p>
         <button type="button" className={`sidebar-link ${activeSection === 'overview' ? 'active' : ''}`} onClick={() => setActiveSection('overview')}><span>▦</span> Overview</button>
+        <button type="button" className={`sidebar-link ${activeSection === 'payments' ? 'active' : ''}`} onClick={() => setActiveSection('payments')}><span>₱</span> Payment monitoring</button>
+        <button type="button" className={`sidebar-link ${activeSection === 'email' ? 'active' : ''}`} onClick={() => setActiveSection('email')}><span>✉</span> Email delivery</button>
         <button type="button" className={`sidebar-link ${activeSection === 'staff' ? 'active' : ''}`} onClick={() => setActiveSection('staff')}><span>♙</span> Staff management</button>
         <div className="sidebar-bottom">
           <div className="signed-user"><span className="user-avatar">SA</span><span>{staffName || 'System Admin'}<small>System Admin</small></span></div>
@@ -131,7 +148,7 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="admin-main" id="staff">
-        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
+        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
 
         {notice && <div className={noticeType === 'success' ? 'notice success' : 'notice error'} role="status">{notice}</div>}
 
@@ -150,6 +167,33 @@ export default function AdminDashboardPage() {
             </section>
             <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent bookings</h2><p className="muted">Latest customer booking activity.</p></div></div>
               {overview.recent_bookings.length ? overview.recent_bookings.map(item => <div className="overview-row" key={item.booking_reference}><div><strong>{item.purchaser_name}</strong><small>{item.booking_reference} · {new Date(item.created_at).toLocaleString()}</small></div><span>{item.status} · {item.currency} {Number(item.total_amount).toLocaleString()}</span></div>) : <div className="empty-state">No bookings recorded yet.</div>}
+            </section>
+          </>}
+        </section>}
+
+        {(activeSection === 'payments' || activeSection === 'email') && <section className="admin-overview">
+          <div className="overview-heading"><div><h2>{activeSection === 'payments' ? 'Payment activity' : 'Ticket email activity'}</h2><p className="muted">Operational records from the production database.</p></div><button type="button" className="outline-button" disabled={operationsLoading} onClick={() => void loadOperations()}>{operationsLoading ? 'Refreshing…' : 'Refresh data'}</button></div>
+          {operationsLoading && !operations ? <div className="empty-state">Loading operational records…</div> : operationsError ? <div className="notice error" role="alert">{operationsError}</div> : operations && <>
+            {activeSection === 'payments' ? <>
+              <section className="stats">
+                {Object.entries(operations.payment_counts_recent).map(([status,count]) => <article className="stat-card" key={status}><span>{status.replaceAll('_',' ')}</span><strong>{count}</strong><small>Latest 12 payment records</small></article>)}
+              </section>
+              <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent payments</h2><p className="muted">Payment method, provider reference and verification state.</p></div></div>
+                {operations.payments.length ? <div className="table-wrap"><table><thead><tr><th>BOOKING</th><th>CUSTOMER</th><th>METHOD / PROVIDER</th><th>AMOUNT</th><th>STATUS</th><th>VERIFIED</th><th>CREATED</th></tr></thead><tbody>{operations.payments.map(row => <tr key={row.id}><td>{row.bookings?.booking_reference || row.booking_id}</td><td>{row.bookings?.purchaser_name || '—'}</td><td>{row.method} / {row.provider}</td><td>{row.currency} {Number(row.amount).toLocaleString()}</td><td><span className={`status ${row.status === 'paid' ? 'active' : row.status === 'failed' ? 'inactive' : 'pending'}`}>{row.status}</span>{row.failure_reason && <small>{row.failure_reason}</small>}</td><td>{row.verified_at ? new Date(row.verified_at).toLocaleString() : '—'}</td><td>{new Date(row.created_at).toLocaleString()}</td></tr>)}</tbody></table></div> : <div className="empty-state">No payment records found.</div>}
+              </section>
+              <section className="panel overview-panel"><div className="panel-heading"><div><h2>PayMongo webhook events</h2><p className="muted">Most recently processed payment notifications.</p></div></div>
+                {operations.webhook_events.length ? operations.webhook_events.map(row => <div className="overview-row" key={row.event_id}><div><strong>{row.event_type}</strong><small>{row.event_id}</small></div><span>{row.livemode ? 'Live mode' : 'Test mode'} · {new Date(row.processed_at).toLocaleString()}</span></div>) : <div className="empty-state">No webhook events recorded.</div>}
+              </section>
+            </> : <>
+              <section className="stats">
+                {Object.entries(operations.email_counts_recent).map(([status,count]) => <article className="stat-card" key={status}><span>{status.replaceAll('_',' ')}</span><strong>{count}</strong><small>Latest 12 delivery attempts</small></article>)}
+              </section>
+              <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent email deliveries</h2><p className="muted">Delivery status from the email provider callback and send process.</p></div></div>
+                {operations.email_deliveries.length ? <div className="table-wrap"><table><thead><tr><th>BOOKING</th><th>RECIPIENT</th><th>PROVIDER</th><th>ATTEMPT</th><th>STATUS</th><th>SENT</th><th>CREATED</th></tr></thead><tbody>{operations.email_deliveries.map(row => <tr key={row.id}><td>{row.bookings?.booking_reference || row.booking_id}</td><td>{row.recipient_email}</td><td>{row.provider}</td><td>{row.attempt_number}</td><td><span className={`status ${row.status === 'delivered' || row.status === 'sent' ? 'active' : row.status === 'failed' || row.status === 'bounced' ? 'inactive' : 'pending'}`}>{row.status}</span>{row.error_message && <small>{row.error_message}</small>}</td><td>{row.sent_at ? new Date(row.sent_at).toLocaleString() : '—'}</td><td>{new Date(row.created_at).toLocaleString()}</td></tr>)}</tbody></table></div> : <div className="empty-state">No email delivery records found.</div>}
+              </section>
+            </>}
+            <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent administrative activity</h2><p className="muted">Audit log entries from the last 30 days.</p></div></div>
+              {operations.audit_logs.length ? operations.audit_logs.map(row => <div className="overview-row" key={row.id}><div><strong>{row.action} · {row.entity_type}</strong><small>{row.entity_id || 'No entity reference'} · {JSON.stringify(row.details || {})}</small></div><span>{new Date(row.created_at).toLocaleString()}</span></div>) : <div className="empty-state">No audit activity recorded in the last 30 days.</div>}
             </section>
           </>}
         </section>}
