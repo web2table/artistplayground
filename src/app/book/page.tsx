@@ -109,7 +109,7 @@ export default function BookTicketsPage() {
             const available = item.categories.filter(cat => cat.remaining > 0);
             const startingPrice = available.length ? Math.min(...available.map(cat => cat.price)) : null;
             return <article className="booking-show-card" key={item.id}>
-              {item.poster_url && <img className="booking-show-poster" src={item.poster_url} alt={item.production_title} />}
+              {item.poster_url ? <img className="booking-show-poster" src={item.poster_url} alt={item.production_title + ' poster'} /> : <div className="booking-show-poster booking-show-poster-placeholder" aria-label="No production poster uploaded"><span>ARTIST<br/>PLAYGROUND</span></div>}
               <div className="booking-show-content">
                 <p className="eyebrow">UPCOMING PERFORMANCE</p>
                 <h2>{item.production_title}</h2>
@@ -224,8 +224,11 @@ export default function BookTicketsPage() {
       .booking-list{max-width:1120px;margin:0 auto;padding:2rem 1.25rem 4rem}
       .booking-list-heading{margin-bottom:1.5rem}.booking-list-heading h1{font-size:2rem;margin:.35rem 0}.booking-list-heading>p:last-child{color:#9aa4b2;font-size:.9rem}
       .booking-show-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.1rem}
-      .booking-show-card{overflow:hidden;border:1px solid #292929;border-radius:14px;background:#111}
-      .booking-show-poster{width:100%;height:230px;object-fit:cover;display:block}
+      .booking-show-card{display:flex;align-items:stretch;overflow:hidden;border:1px solid #292929;border-radius:14px;background:#111;min-height:260px}
+      .booking-show-poster{flex:0 0 220px;width:220px;height:auto;min-height:260px;object-fit:contain;display:block;background:#080808}
+      .booking-show-poster-placeholder{display:grid;place-items:center;color:#00c8f5;text-align:center;font-size:.9rem;font-weight:900;letter-spacing:.16em;line-height:1.5;background:linear-gradient(145deg,#191919,#050505)}
+      .booking-show-content{display:flex;flex:1;min-width:0;flex-direction:column;justify-content:center;padding:1.2rem}
+      .booking-show-bottom{margin-top:auto}
       .booking-show-content{padding:1.2rem}.booking-show-content h2{font-size:1.25rem;margin:.35rem 0 .7rem}
       .booking-show-date,.booking-show-venue{font-size:.86rem;color:#d4d4d4;margin:.35rem 0}
       .booking-show-description{font-size:.82rem;color:#929292;line-height:1.55;margin-top:.8rem}
@@ -233,7 +236,7 @@ export default function BookTicketsPage() {
       .booking-show-bottom div{display:grid;gap:.25rem}.booking-show-bottom span{font-size:.7rem;color:#9b9b9b}.booking-show-bottom strong{font-size:1.1rem;color:#fff000}
       .booking-show-bottom button,.booking-back{background:#fff000;color:#080808;border:0;border-radius:8px;padding:.75rem 1rem;font-weight:800;cursor:pointer}
       .booking-show-bottom button:disabled{opacity:.45;cursor:not-allowed}.booking-back{margin-bottom:1rem;background:transparent;color:#fff;border:1px solid #444}
-      @media(max-width:600px){.booking-list{padding:1.2rem .9rem 3rem}.booking-show-poster{height:190px}}
+      @media(max-width:600px){.booking-list{padding:1.2rem .9rem 3rem}.booking-show-card{flex-direction:column}.booking-show-poster{flex:0 0 auto;width:100%;height:260px;min-height:260px;object-fit:contain}.booking-show-content{padding:1rem}}
     `}</style>
   </div>;
 
