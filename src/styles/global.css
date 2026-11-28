@@ -290,7 +290,7 @@ img { max-width: 100%; display: block; }
 /* Workshops facilitator profile */
 .ap-page-workshops .facilitator{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr);gap:clamp(2rem,5vw,5rem);align-items:start;padding:clamp(2.5rem,6vw,5rem) 5vw}
 .ap-page-workshops .facilitator-photo-wrap{position:relative;overflow:hidden;border:1px solid var(--ap-border);border-top:3px solid var(--ap-yellow);border-radius:1rem;background:#111}
-.ap-page-workshops .facilitator-photo{width:100%;height:auto;max-height:760px;aspect-ratio:4/5;object-fit:cover;object-position:center top}
+.ap-page-workshops .facilitator-photo{display:block;width:100%;height:auto;max-height:760px;aspect-ratio:auto;object-fit:contain;object-position:center;background:#111}
 .ap-page-workshops .facilitator-content{max-width:58rem}
 .ap-page-workshops .facilitator-content .eyebrow{margin:0 0 .8rem}
 .ap-page-workshops .facilitator-content h1{font-family:var(--ap-font-display);font-size:var(--ap-size-section);line-height:1.05;letter-spacing:-.035em;margin:.5rem 0 1rem}
