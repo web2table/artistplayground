@@ -42,7 +42,25 @@ Through faith, perseverance, and true love, Florante and Laura are reunited and 
 
 Florante at Laura remains a timeless tale that reflects the Filipino values of katapatan (loyalty), pag-ibig (love), and katarungan (justice), reminding audiences that hope and righteousness endure even in the darkest moments.`
   },
-  { number: '03', title: 'Noli Me Tangere', category: 'Novel · José Rizal', description: 'Crisostomo Ibarra returns to the Philippines and confronts corruption, abuse, and social injustice under colonial rule as he hopes to improve his community.', accent: 'blue', poster: noliPoster },
+  {
+    number: '03',
+    title: 'Huwag Mo Kaming Hawakan: Noli Me Tangere',
+    category: 'Devised play · José Rizal',
+    description: 'A devised play inspired by Noli Me Tangere, exploring the loss of identity and honor in a society marked by corruption and oppression.',
+    accent: 'blue',
+    poster: noliPoster,
+    synopsis: `"Kaming Nangalagas sa Dilim ng Gabi" is a gripping devised play inspired by Jose Rizal's renowned novel, "Noli Me Tangere." It delves into the profound effects of losing one's identity and honor within a society plagued by corruption and oppression.
+
+Set in the late 19th century Philippines during Spanish colonial rule, the play follows the lives of various characters from Rizal's novel, who are grappling with the relentless burden of societal expectations and the consequences of compromising their integrity. The narrative primarily revolves around the central character, Crisostomo Ibarra, a young idealist returning to his homeland after studying abroad.
+
+As the story unfolds, Ibarra encounters an array of individuals entangled in a web of deceit and moral decay. Through their interconnected stories, the play explores the multifaceted impacts of losing one's identity and honor. Ibarra's journey serves as a lens through which the audience witnesses the tragic consequences of succumbing to societal pressures, compromising values, and abandoning personal convictions.
+
+The play delves into the internal struggles faced by each character as they navigate a society rife with corruption, injustice, and social inequality. It sheds light on the choices they make in their pursuit of power, acceptance, or survival, often at the expense of their integrity. As the characters confront their own inner demons, the audience witnesses the profound psychological and emotional toll of such compromises.
+
+"Kaming Nangalagas sa Dilim ng Gabi" skillfully weaves together poignant dialogues, evocative visuals, and powerful performances to emphasize the profound impact of losing one's identity and honor. The play serves as a stark reminder of the timeless relevance of Rizal's themes, urging audiences to reflect on the consequences of sacrificing personal integrity for societal acceptance or personal gain.
+
+Ultimately, "Kaming Nangalagas sa Dilim ng Gabi" serves as a thought-provoking exploration of the human condition, exposing the devastating consequences of forsaking one's identity and honor in a world marked by corruption and oppression. It compels viewers to question the choices they make and the values they hold dear, urging them to strive for a society built on truth, justice, and personal integrity.`
+  },
   {
     number: '04',
     title: 'El Filibusterismo',
