@@ -13,7 +13,7 @@ export default function StaffLoginPage() {
   useEffect(() => {
     const error = new URLSearchParams(window.location.search).get('error');
     if (error === 'missing') setMessage('Enter your email and password.');
-    else if (error === 'unauthorized') setMessage('This account is not authorized for staff access. Contact your system administrator.');
+    else if (error === 'unauthorized') setMessage('This account is not authorized for management access. Contact your system administrator.');
     else if (error === 'invalid') setMessage('Unable to sign in with those credentials.');
   }, []);
 
@@ -40,7 +40,7 @@ export default function StaffLoginPage() {
       router.replace(profile.role === 'system_admin' ? '/admin/' : '/staff/');
     } catch (error) {
       setMessage(error instanceof Error && error.message === 'unauthorized'
-        ? 'This account is not authorized for staff access. Contact your system administrator.'
+        ? 'This account is not authorized for management access. Contact your system administrator.'
         : 'Unable to sign in with those credentials.');
       setBusy(false);
     }
@@ -50,7 +50,7 @@ export default function StaffLoginPage() {
     <section className="staff-auth">
       <div className="staff-auth-panel">
         <p className="staff-auth-eyebrow">ARTIST PLAYGROUND</p>
-        <h1>Staff sign in</h1>
+        <h1>Management sign in</h1>
         <p className="staff-auth-copy">Authorized personnel only.</p>
         {message && <p className="staff-auth-error" role="alert">{message}</p>}
         <form onSubmit={handleSubmit} className="staff-auth-form">
