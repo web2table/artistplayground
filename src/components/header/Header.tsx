@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 const links = [
-  { label: 'Home', href: '/' },
-  { label: 'About', href: '/about/' },
+  { label: 'About', href: '/' },
   { label: 'Educational Theater', href: '/educational-productions/' },
   { label: 'Workshops', href: '/workshops/' },
   { label: 'Events', href: '/events/' },
@@ -21,7 +20,7 @@ export default function Header() {
 
   return (
     <header className={`site-header${menuOpen ? ' menu-open' : ''}`}>
-      <Link className="brand" href="/" aria-label="Artist Playground home">
+      <Link className="brand" href="/" aria-label="Artist Playground">
         <img className="brand-logo" src="https://raw.githubusercontent.com/web2table/artistplayground/main/ap.jpg" alt="Artist Playground logo" width="220" height="56" style={{ display: "block", width: "auto", height: "3.5rem", maxWidth: "220px", objectFit: "contain" }} />
       </Link>
       <button className={`menu-toggle${menuOpen ? " is-open" : ""}`} type="button" aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}>
