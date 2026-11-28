@@ -5,7 +5,7 @@ import { appPath, createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 type Category = { id: string; name: string; price: number; allocation: number; reserved_count: number; sold_count: number; active: boolean };
 type Performance = { id: string; starts_at: string; doors_open_at: string | null; venue_name: string; venue_address: string | null; capacity: number; status: string; ticket_categories: Category[] };
-type Production = { id: string; slug: string; title: string; description: string | null; status: string; created_at: string; performances: Performance[] };
+type Production = { id: string; slug: string; title: string; description: string | null; poster_url: string | null; status: string; created_at: string; performances: Performance[] };
 type EditableCategory = Omit<Category, 'price' | 'allocation'> & { price: string; allocation: string };
 type EditablePerformance = Omit<Performance, 'capacity' | 'ticket_categories'> & { capacity: string; ticket_categories: EditableCategory[] };
 
@@ -80,6 +80,9 @@ export default function StaffProductionsPage() {
   const [editing, setEditing] = useState<Production | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [editPosterUrl, setEditPosterUrl] = useState('');
+  const [posterUrl, setPosterUrl] = useState('');
+  const [posterUploading, setPosterUploading] = useState(false);
   const [editPerformances, setEditPerformances] = useState<EditablePerformance[]>([]);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -121,17 +124,34 @@ export default function StaffProductionsPage() {
     return () => { active = false; };
   }, [loadProductions]);
 
+  async function uploadPoster(file: File, editingExisting = false) {
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) { setError('Choose a JPG, PNG, or WebP poster image.'); return; }
+    if (file.size > 8 * 1024 * 1024) { setError('Poster image must be 8 MB or smaller.'); return; }
+    setPosterUploading(true); setError(''); setMessage('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const extension = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/png' ? 'png' : 'webp';
+      const path = 'shows/' + crypto.randomUUID() + '.' + extension;
+      const { error: uploadError } = await supabase.storage.from('production-posters').upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: false });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('production-posters').getPublicUrl(path);
+      if (editingExisting) setEditPosterUrl(data.publicUrl); else setPosterUrl(data.publicUrl);
+      setMessage('Poster uploaded. Save the show to publish the poster with its details.');
+    } catch (e) { setError(e instanceof Error ? e.message : 'Unable to upload poster.'); }
+    finally { setPosterUploading(false); }
+  }
+
   async function createProduction(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError(''); setMessage('');
     try {
       const data = await invoke({
-        action: 'create', title, description, starts_at: new Date(startsAt).toISOString(),
+        action: 'create', title, description, poster_url: posterUrl, starts_at: new Date(startsAt).toISOString(),
         doors_open_at: doorsAt ? new Date(doorsAt).toISOString() : null,
         venue_name: venue, venue_address: venueAddress, capacity: Number(capacity),
         categories: newCategories.map(cat => ({ name: cat.name.trim(), price: Number(cat.price), allocation: Number(cat.allocation) })),
       });
       setMessage(data.message || 'Show created.');
-      setTitle(''); setDescription(''); setStartsAt(''); setDoorsAt(''); setVenue(''); setVenueAddress('');
+      setTitle(''); setDescription(''); setPosterUrl(''); setStartsAt(''); setDoorsAt(''); setVenue(''); setVenueAddress('');
       setCapacity('50'); setNewCategories([{ name: 'General Admission', price: '100', allocation: '50' }]);
       await loadProductions();
     } catch (e) { setError(e instanceof Error ? e.message : 'Unable to create show.'); }
@@ -142,6 +162,7 @@ export default function StaffProductionsPage() {
     setEditing(show);
     setEditTitle(show.title);
     setEditDescription(show.description || '');
+    setEditPosterUrl(show.poster_url || '');
     setEditPerformances(show.performances.map(perf => ({ ...perf, capacity: String(perf.capacity), ticket_categories: perf.ticket_categories.map(cat => ({ ...cat, price: String(cat.price), allocation: String(cat.allocation) })) })));
     setError(''); setMessage('');
   }
@@ -158,7 +179,7 @@ export default function StaffProductionsPage() {
     setSaving(true); setError(''); setMessage('');
     try {
       const data = await invoke({
-        action: 'update', production_id: editing.id, title: editTitle, description: editDescription,
+        action: 'update', production_id: editing.id, title: editTitle, description: editDescription, poster_url: editPosterUrl,
         performances: editPerformances.map(perf => ({
           id: perf.id, starts_at: perf.starts_at, doors_open_at: perf.doors_open_at,
           venue_name: perf.venue_name, venue_address: perf.venue_address, capacity: Number(perf.capacity),
@@ -223,6 +244,7 @@ export default function StaffProductionsPage() {
           <form className="prod-form" onSubmit={createProduction}>
             <div className="prod-field full"><label htmlFor="show-title">Show title</label><input id="show-title" value={title} onChange={e=>setTitle(e.target.value)} placeholder="e.g. TEST SHOW – DO NOT PURCHASE" required maxLength={160}/></div>
             <div className="prod-field full"><label htmlFor="show-description">Description</label><textarea id="show-description" value={description} onChange={e=>setDescription(e.target.value)} placeholder="Short description of the production" rows={3}/></div>
+            <div className="prod-field full"><label htmlFor="show-poster">Production poster</label><input id="show-poster" type="file" accept="image/jpeg,image/png,image/webp" disabled={posterUploading || saving} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadPoster(file);e.currentTarget.value='';}}/><small className="prod-field-hint">JPG, PNG, or WebP · maximum 8 MB</small>{posterUrl && <div className="prod-poster-preview"><img src={posterUrl} alt="Production poster preview"/><button type="button" className="prod-remove-category" onClick={()=>setPosterUrl('')}>Remove poster</button></div>}{posterUploading && <small className="prod-field-hint">Uploading poster…</small>}</div>
             <div className="prod-field"><label>Performance date and time</label><div className="prod-date-time"><label htmlFor="show-start-date">Date<input id="show-start-date" type="date" value={startsAt.slice(0,10)} onChange={e=>setStartsAt(e.target.value + (startsAt.length >= 16 ? startsAt.slice(10) : 'T' + (startsAt.slice(11,16) || '19:00')))} required/></label><label>Time<TimePicker label="Performance time" value={startsAt.slice(11,16)} onChange={v=>setStartsAt((startsAt.slice(0,10) || new Date().toLocaleDateString('en-CA')) + 'T' + v)}/></label></div></div>
             <div className="prod-field"><label>Doors open (optional)</label><div className="prod-date-time"><label htmlFor="show-doors-date">Date<input id="show-doors-date" type="date" value={doorsAt.slice(0,10)} onChange={e=>setDoorsAt(e.target.value + (doorsAt.length >= 16 ? doorsAt.slice(10) : 'T' + (doorsAt.slice(11,16) || '18:30')))} /></label><label>Time<TimePicker label="Doors open time" value={doorsAt.slice(11,16)} onChange={v=>setDoorsAt((doorsAt.slice(0,10) || startsAt.slice(0,10)) + 'T' + v)}/></label></div></div>
             <div className="prod-field"><label htmlFor="show-venue">Venue name</label><input id="show-venue" value={venue} onChange={e=>setVenue(e.target.value)} placeholder="Artist Playground Test Venue" required/></div>
@@ -246,6 +268,7 @@ export default function StaffProductionsPage() {
           <form className="prod-form" onSubmit={saveEdit}>
             <div className="prod-field full"><label>Show title</label><input value={editTitle} onChange={e=>setEditTitle(e.target.value)} required maxLength={160}/></div>
             <div className="prod-field full"><label>Description</label><textarea rows={3} value={editDescription} onChange={e=>setEditDescription(e.target.value)}/></div>
+            <div className="prod-field full"><label htmlFor="edit-show-poster">Production poster</label><input id="edit-show-poster" type="file" accept="image/jpeg,image/png,image/webp" disabled={posterUploading || saving} onChange={e=>{const file=e.target.files?.[0];if(file)void uploadPoster(file,true);e.currentTarget.value='';}}/><small className="prod-field-hint">JPG, PNG, or WebP · maximum 8 MB</small>{editPosterUrl && <div className="prod-poster-preview"><img src={editPosterUrl} alt="Production poster preview"/><button type="button" className="prod-remove-category" onClick={()=>setEditPosterUrl('')}>Remove poster</button></div>}{posterUploading && <small className="prod-field-hint">Uploading poster…</small>}</div>
             {editPerformances.map((perf, pi)=><div className="prod-edit-performance" key={perf.id}>
               <h3>Performance {pi+1}</h3>
               <div className="prod-form">
