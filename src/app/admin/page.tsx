@@ -23,7 +23,13 @@ export default function AdminDashboardPage() {
   const [inviteBusy, setInviteBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
-  const [activeSection, setActiveSection] = useState<'overview' | 'payments' | 'email' | 'monitoring' | 'staff'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'productions' | 'payments' | 'email' | 'monitoring' | 'staff'>('overview');
+  type AdminCategory = { id: string; name: string; price: number; allocation: number; reserved_count: number; sold_count: number; active: boolean };
+  type AdminPerformance = { id: string; starts_at: string; venue_name: string; capacity: number; status: string; ticket_categories: AdminCategory[] };
+  type AdminProduction = { id: string; slug: string; title: string; description: string | null; status: string; performances: AdminPerformance[] };
+  const [productions, setProductions] = useState<AdminProduction[]>([]);
+  const [productionsLoading, setProductionsLoading] = useState(false);
+  const [productionsError, setProductionsError] = useState('');
   type RelatedBooking = { booking_reference?: string; purchaser_name?: string };
   type PaymentRow = { id: string; booking_id: string; method: string; provider: string; amount: number; currency: string; status: string; verified_at: string | null; failure_reason: string | null; created_at: string; bookings: RelatedBooking | null };
   type EmailRow = { id: string; booking_id: string; recipient_email: string; provider: string; attempt_number: number; status: string; error_message: string | null; sent_at: string | null; created_at: string; bookings: Pick<RelatedBooking, 'booking_reference'> | null };
@@ -48,6 +54,18 @@ export default function AdminDashboardPage() {
     } catch (error) {
       setOverviewError(error instanceof Error ? error.message : 'Unable to load overview.');
     } finally { setOverviewLoading(false); }
+  }, []);
+
+  const loadProductions = useCallback(async () => {
+    setProductionsLoading(true); setProductionsError('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('manage-productions', { body: { action: 'list' } });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load productions.');
+      setProductions(data.productions as AdminProduction[]);
+    } catch (error) {
+      setProductionsError(error instanceof Error ? error.message : 'Unable to load productions.');
+    } finally { setProductionsLoading(false); }
   }, []);
 
   const loadOperations = useCallback(async () => {
@@ -145,6 +163,7 @@ export default function AdminDashboardPage() {
         <div className="sidebar-brand"><span className="brand-mark">AP</span><span>ARTIST PLAYGROUND<small>TICKETING ADMIN</small></span></div>
         <p className="sidebar-label">WORKSPACE</p>
         <button type="button" className={`sidebar-link ${activeSection === 'overview' ? 'active' : ''}`} onClick={() => setActiveSection('overview')}><span>▦</span> Overview</button>
+        <button type="button" className={`sidebar-link ${activeSection === 'productions' ? 'active' : ''}`} onClick={() => { setActiveSection('productions'); void loadProductions(); }}><span>▣</span> Production management</button>
         <button type="button" className={`sidebar-link ${activeSection === 'payments' ? 'active' : ''}`} onClick={() => setActiveSection('payments')}><span>₱</span> Payment monitoring</button>
         <button type="button" className={`sidebar-link ${activeSection === 'email' ? 'active' : ''}`} onClick={() => setActiveSection('email')}><span>✉</span> Email delivery</button>
         <button type="button" className={`sidebar-link ${activeSection === 'monitoring' ? 'active' : ''}`} onClick={() => setActiveSection('monitoring')}><span>⌁</span> System monitoring</button>
@@ -156,7 +175,7 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="admin-main" id="staff">
-        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
+        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'productions' ? 'Production management' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'productions' ? 'Review productions, scheduled performances and ticket inventory.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
 
         {notice && <div className={noticeType === 'success' ? 'notice success' : 'notice error'} role="status">{notice}</div>}
 
@@ -177,6 +196,23 @@ export default function AdminDashboardPage() {
               {overview.recent_bookings.length ? overview.recent_bookings.map(item => <div className="overview-row" key={item.booking_reference}><div><strong>{item.purchaser_name}</strong><small>{item.booking_reference} · {new Date(item.created_at).toLocaleString()}</small></div><span>{item.status} · {item.currency} {Number(item.total_amount).toLocaleString()}</span></div>) : <div className="empty-state">No bookings recorded yet.</div>}
             </section>
           </>}
+        </section>}
+
+        {activeSection === 'productions' && <section className="admin-overview">
+          <div className="overview-heading"><div><h2>Productions and ticket inventory</h2><p className="muted">Central read-only view of shows, schedules, venues and category allocations.</p></div><button type="button" className="outline-button" disabled={productionsLoading} onClick={() => void loadProductions()}>{productionsLoading ? 'Refreshing…' : 'Refresh productions'}</button></div>
+          {productionsLoading && !productions.length ? <div className="empty-state">Loading productions…</div> : productionsError ? <div className="notice error" role="alert">{productionsError}</div> : productions.length ? productions.map(show => <section className="panel overview-panel" key={show.id}>
+            <div className="panel-heading"><div><h2>{show.title}</h2><p className="muted">{show.slug} · {show.status} · {show.performances.length} performance(s)</p></div><span className={`status ${show.status === 'published' ? 'active' : show.status === 'archived' ? 'inactive' : 'pending'}`}>{show.status}</span></div>
+            {show.description && <p className="muted">{show.description}</p>}
+            {show.performances.length ? show.performances.map(perf => {
+              const allocated = perf.ticket_categories.reduce((sum, cat) => sum + cat.allocation, 0);
+              const sold = perf.ticket_categories.reduce((sum, cat) => sum + cat.sold_count, 0);
+              const reserved = perf.ticket_categories.reduce((sum, cat) => sum + cat.reserved_count, 0);
+              return <div className="production-admin-performance" key={perf.id}>
+                <div className="overview-row"><div><strong>{new Date(perf.starts_at).toLocaleString()} · {perf.venue_name}</strong><small>Capacity {perf.capacity} · {allocated} allocated · {sold} sold · {reserved} reserved</small></div><span className={`status ${perf.status === 'scheduled' ? 'active' : 'pending'}`}>{perf.status}</span></div>
+                {perf.ticket_categories.length ? <div className="table-wrap"><table><thead><tr><th>CATEGORY</th><th>PRICE</th><th>ALLOCATION</th><th>SOLD</th><th>RESERVED</th><th>AVAILABILITY</th><th>STATUS</th></tr></thead><tbody>{perf.ticket_categories.map(cat => <tr key={cat.id}><td><strong>{cat.name}</strong></td><td>₱{Number(cat.price).toLocaleString('en-PH',{minimumFractionDigits:2})}</td><td>{cat.allocation}</td><td>{cat.sold_count}</td><td>{cat.reserved_count}</td><td>{Math.max(0,cat.allocation-cat.sold_count-cat.reserved_count)}</td><td><span className={`status ${cat.active ? 'active' : 'inactive'}`}>{cat.active ? 'Active' : 'Inactive'}</span></td></tr>)}</tbody></table></div> : <div className="empty-state">No ticket categories configured.</div>}
+              </div>;
+            }) : <div className="empty-state">No performances scheduled for this production.</div>}
+          </section>) : <div className="empty-state">No productions found.</div>}
         </section>}
 
         {(activeSection === 'payments' || activeSection === 'email') && <section className="admin-overview">
@@ -290,7 +326,7 @@ export default function AdminDashboardPage() {
         .stat-card,.panel{background:#111419;border:1px solid #282d35;border-radius:12px}
         .stat-card{padding:1.1rem 1.2rem}.stat-card span,.stat-card small{display:block;color:#9ba3ae;font-size:.76rem}.stat-card strong{display:block;font-size:1.8rem;margin:.35rem 0}.stat-card small{font-size:.68rem;color:#727b87}
         .content-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr);gap:1.2rem;align-items:start}
-        .overview-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:1rem}.overview-heading h2{font-size:1rem;margin:0}.overview-panel{margin-top:1rem}.overview-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.9rem 0;border-top:1px solid #282d35;font-size:.75rem}.overview-row>div{display:grid;gap:.3rem;min-width:0}.overview-row strong{color:#f4f5f7}.overview-row small,.overview-row>span{color:#929aa6;font-size:.68rem}.overview-row>span{text-align:right}
+        .overview-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;margin-bottom:1rem}.overview-heading h2{font-size:1rem;margin:0}.overview-panel{margin-top:1rem}.production-admin-performance{border-top:1px solid #282d35;margin-top:1rem;padding-top:.4rem}.production-admin-performance table{min-width:720px}.overview-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.9rem 0;border-top:1px solid #282d35;font-size:.75rem}.overview-row>div{display:grid;gap:.3rem;min-width:0}.overview-row strong{color:#f4f5f7}.overview-row small,.overview-row>span{color:#929aa6;font-size:.68rem}.overview-row>span{text-align:right}
         .panel{padding:1.2rem;min-width:0}.panel-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:1.2rem}.panel-heading h2{font-size:1rem;margin:0}.outline-button{background:transparent;border:1px solid #39414b;color:#e3e7ec;border-radius:7px;padding:.55rem .8rem;cursor:pointer;font-size:.75rem}
         .table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:680px;text-align:left}th{color:#7f8996;font-size:.62rem;letter-spacing:.1em;font-weight:700;padding:.75rem .65rem;border-bottom:1px solid #2b3038}td{padding:.9rem .65rem;border-bottom:1px solid #242932;font-size:.76rem;color:#cbd1d9}td strong,td small{display:block}td strong{color:#f4f5f7;font-size:.78rem}td small{color:#828c99;margin-top:.3rem;font-size:.68rem}td select{background:#171b21;border:1px solid #343b45;color:#e8ebef;padding:.45rem;border-radius:6px;font-size:.72rem}
         .status{display:inline-block;border-radius:99px;padding:.35rem .55rem;font-size:.65rem;white-space:nowrap}.status.active{background:#123323;color:#8de0ad}.status.pending{background:#382d13;color:#f2d27b}.status.inactive{background:#30252a;color:#e4a5b1}
