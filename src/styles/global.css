@@ -343,7 +343,7 @@ img { max-width: 100%; display: block; }
 .ap-event-image-placeholder{display:grid;place-items:center;background:linear-gradient(135deg,#171717,#080808);color:var(--ap-blue);font-size:1rem;font-weight:900;letter-spacing:.18em;text-align:center}
 .ap-event-card-body{display:flex;flex:1;min-width:0;flex-direction:column;justify-content:center;padding:1.5rem 1.6rem}
 .ap-event-type{color:var(--ap-blue);font-size:.68rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
-.ap-event-card h3{font-size:1.3rem;line-height:1.2;margin:.55rem 0 .8rem}
+.ap-event-card h3{font-size:1.3rem;line-height:1.2;letter-spacing:normal;word-spacing:normal;margin:.55rem 0 .8rem}
 .ap-event-description{color:#aeb5bc;font-size:.88rem;line-height:1.65;white-space:pre-line}
 .ap-event-facts{border-top:1px solid #292929;margin-top:1.1rem;padding-top:1rem}
 .ap-event-facts p{color:#c8cdd2;font-size:.8rem;line-height:1.5;margin:.55rem 0}
