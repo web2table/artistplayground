@@ -4,19 +4,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 type PublicEvent = {
-  id: string; event_type: 'show' | 'workshop' | 'other'; title: string; description: string;
+  id: string; event_type: string; title: string; description: string;
   starts_at: string; ends_at: string | null; venue_name: string; venue_address: string | null;
   image_url: string | null; info_url: string | null; lifecycle: 'upcoming' | 'ongoing' | 'past';
 };
 
-const tabOrder = [{id:'show',label:'Shows'},{id:'workshop',label:'Workshops'},{id:'other',label:'Other events'}] as const;
 const groups = [{id:'upcoming',label:'Upcoming'},{id:'ongoing',label:'Ongoing'},{id:'past',label:'Past events'}] as const;
 const dateLabel = (value: string) => new Date(value).toLocaleString('en-PH',{timeZone:'Asia/Manila',month:'long',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-const categoryLabel = (type: PublicEvent['event_type']) => type === 'show' ? 'Show' : type === 'workshop' ? 'Workshop' : 'Artist Playground';
+const categoryLabel = (type: string) => type === 'show' ? 'Show' : type === 'other' ? 'Other event' : type.replace(/[-_]+/g, ' ').replace(/\b\w/g, letter => letter.toUpperCase());
 
 export default function EventsPage() {
   const [events,setEvents] = useState<PublicEvent[]>([]);
-  const [filter,setFilter] = useState<'all' | PublicEvent['event_type']>('all');
+  const [filter,setFilter] = useState('all');
   const [loading,setLoading] = useState(true);
   const [error,setError] = useState('');
   useEffect(() => {
@@ -33,8 +32,8 @@ export default function EventsPage() {
     return () => { active = false; };
   },[]);
   const tabs = useMemo(() => [
-    {id:'all' as const,label:'All events'},
-    ...tabOrder.filter(tab => events.some(event => event.event_type === tab.id)),
+    {id:'all',label:'All events'},
+    ...Array.from(new Set(events.map(event => event.event_type))).map(type => ({id:type,label:type === 'show' ? 'Shows' : type === 'other' ? 'Other events' : categoryLabel(type) + (type.toLowerCase().endsWith('s') ? '' : 's')})),
   ],[events]);
   const visible = useMemo(() => filter === 'all' ? events : events.filter(event => event.event_type === filter),[events,filter]);
   return <div className="ap-page ap-page-events ap-events-dynamic">
