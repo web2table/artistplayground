@@ -10,24 +10,38 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
   const [displayName, setDisplayName] = useState('Management member');
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeHash, setActiveHash] = useState('');
+  const [authReady, setAuthReady] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     let active = true;
-    (async () => {
-      const supabase = createSupabaseBrowserClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.replace(appPath('/staff/login/'));
-        return;
+    async function verifyManagementSession() {
+      setAuthError('');
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        if (!user) {
+          window.location.replace(appPath('/staff/login/'));
+          return;
+        }
+        const { data, error } = await supabase.from('staff_profiles')
+          .select('display_name,active').eq('user_id', user.id).maybeSingle();
+        if (error) throw error;
+        if (!data?.active) {
+          await supabase.auth.signOut();
+          window.location.replace(appPath('/staff/login/?error=unauthorized'));
+          return;
+        }
+        if (active) {
+          setDisplayName(data.display_name || 'Management member');
+          setAuthReady(true);
+        }
+      } catch (error) {
+        if (active) setAuthError(error instanceof Error ? error.message : 'Unable to verify your management session.');
       }
-      const { data } = await supabase.from('staff_profiles').select('display_name,active').eq('user_id', user.id).maybeSingle();
-      if (!data?.active) {
-        await supabase.auth.signOut();
-        window.location.replace(appPath('/staff/login/?error=unauthorized'));
-        return;
-      }
-      if (active) setDisplayName(data.display_name || 'Management member');
-    })();
+    }
+    void verifyManagementSession();
     return () => { active = false; };
   }, []);
 
@@ -83,8 +97,8 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
           <button type="button" onClick={signOut}>Sign out</button>
         </div>
       </aside>
-      <div className="ap-staff-page">{children}</div>
-      
+      <div className="ap-staff-page">{authReady ? children : authError ? <main className="ap-staff-auth-state" role="alert"><h1>Unable to verify session</h1><p>{authError}</p><button type="button" onClick={() => window.location.reload()}>Try again</button></main> : <main className="ap-staff-auth-state" aria-live="polite">Verifying management access…</main>}</div>
+      <style jsx>{`.ap-staff-auth-state{min-height:60vh;display:grid;align-content:center;justify-items:center;gap:.75rem;padding:2rem;text-align:center;color:#dce2e9}.ap-staff-auth-state p{max-width:34rem;color:#9aa4af}.ap-staff-auth-state button{padding:.7rem 1rem;border:1px solid #39414b;border-radius:7px;background:#151a20;color:#fff;cursor:pointer}`}</style>
     </div>
   );
 }
