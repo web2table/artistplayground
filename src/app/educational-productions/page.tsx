@@ -152,8 +152,8 @@ export default function EducationalProductionsPage() {
               <p>{'synopsis' in selectedWork && selectedWork.synopsis ? selectedWork.synopsis : selectedWork.description}</p>
             </section>
             {'themes' in selectedWork && <section className="production-modal-section"><h3>Production themes</h3><p>{selectedWork.themes}</p></section>}
-            {'artisticTeam' in selectedWork && <section className="production-modal-section"><h3>Artistic team</h3><ul>{selectedWork.artisticTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
-            {'productionTeam' in selectedWork && <section className="production-modal-section"><h3>Production team</h3><ul>{selectedWork.productionTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
+            {'artisticTeam' in selectedWork && selectedWork.artisticTeam && <section className="production-modal-section"><h3>Artistic team</h3><ul>{selectedWork.artisticTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
+            {'productionTeam' in selectedWork && selectedWork.productionTeam && <section className="production-modal-section"><h3>Production team</h3><ul>{selectedWork.productionTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
             {'cast' in selectedWork && <section className="production-modal-section"><h3>Cast</h3><p>{selectedWork.cast}</p></section>}
           </div>
         </div>
