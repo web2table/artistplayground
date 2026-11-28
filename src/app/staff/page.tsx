@@ -40,9 +40,9 @@ export default function StaffDashboardPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
-  const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : ((window.location.hash.slice(1) === 'sales' || window.location.hash.slice(1) === 'payments' ? 'reports' : window.location.hash.slice(1) || 'overview')));
+  const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : ((['sales','payments'].includes(window.location.hash.slice(1)) ? 'reports' : window.location.hash.slice(1) === 'bookings' ? 'overview' : window.location.hash.slice(1) || 'overview')));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  useEffect(() => { const sync = () => setActiveTab(window.location.hash.slice(1) === 'sales' || window.location.hash.slice(1) === 'payments' ? 'reports' : window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
+  useEffect(() => { const sync = () => setActiveTab(['sales','payments'].includes(window.location.hash.slice(1)) ? 'reports' : window.location.hash.slice(1) === 'bookings' ? 'overview' : window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bookingReference, setBookingReference] = useState('');
@@ -283,7 +283,6 @@ export default function StaffDashboardPage() {
           <a className="staff-nav-item" href={appPath('/staff/productions/')}><span>▣</span> Productions</a>
           <a className="staff-nav-item" href={appPath('/staff/events/')}><span>▤</span> Events</a>
           <div className="staff-nav-label">OPERATIONS</div>
-          <a className={`staff-nav-item ${activeTab === 'bookings' ? 'selected' : ''}`} href="#bookings" onClick={() => setActiveTab('bookings')}><span>▤</span> Bookings</a>
           <a className={`staff-nav-item ${activeTab === 'refunds' ? 'selected' : ''}`} href="#refunds" onClick={() => setActiveTab('refunds')}><span>↺</span> Refunds</a>
           <a className={`staff-nav-item ${activeTab === 'scanner' ? 'selected' : ''}`} href="#scanner" onClick={() => setActiveTab('scanner')}><span>▦</span> Ticket scanner</a>
           <a className={`staff-nav-item ${activeTab === 'box-office' ? 'selected' : ''}`} href="#box-office" onClick={() => setActiveTab('box-office')}><span>＋</span> Box office</a>
@@ -321,35 +320,12 @@ export default function StaffDashboardPage() {
               </article>)}</div>:<div className="overview-empty">No upcoming published performances. Add a performance in Productions to see it here.</div>}
             </div>
             <div className="overview-panel">
-              <div className="overview-panel-heading"><div><h3>Recent bookings</h3><p>Latest customer booking activity</p></div><a href="#bookings" onClick={()=>setActiveTab('bookings')}>Find a booking →</a></div>
+              <div className="overview-panel-heading"><div><h3>Recent bookings</h3><p>Latest customer booking activity</p></div><span>Latest customer booking activity</span></div>
               {overview.recent_bookings.length?<div className="overview-bookings">{overview.recent_bookings.map(b=><div className="overview-booking" key={b.booking_reference}><div><strong>{b.purchaser_name}</strong><span>{b.booking_reference} · {new Date(b.created_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</span></div><div className="overview-booking-right"><strong>{b.currency} {Number(b.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong><span className={'overview-status status-'+b.status}>{b.status.replaceAll('_',' ')}</span></div></div>)}</div>:<div className="overview-empty">No bookings have been recorded yet.</div>}
             </div>
             <p className="overview-updated">Last updated {new Date(overview.generated_at).toLocaleString('en-PH',{dateStyle:'medium',timeStyle:'short'})}</p>
           </>
           ) : null}
-        </section>}
-
-{activeTab === 'bookings' &&         <section className="staff-section" id="bookings">
-          <div className="section-heading"><div><h2>Booking lookup</h2><p>Search by the booking reference supplied by the customer.</p></div></div>
-          <div className="booking-lookup-panel">
-            <form className="booking-search-form" onSubmit={searchBooking}>
-              <label htmlFor="booking-reference">Booking reference</label>
-              <div className="booking-search-row"><input id="booking-reference" value={bookingReference} onChange={e => setBookingReference(e.target.value.toUpperCase())} placeholder="Enter booking reference" maxLength={40} pattern="[A-Za-z0-9-]+" required /><button type="submit" disabled={bookingLoading}>{bookingLoading ? 'Searching…' : 'Find booking'}</button></div>
-            </form>
-            {bookingMessage && <p className="booking-message" role="status">{bookingMessage}</p>}
-            {bookingResult && <div className="booking-result">
-              <div className="booking-result-heading"><div><span className="result-label">BOOKING REFERENCE</span><h3>{bookingResult.booking.booking_reference}</h3></div><span className={`booking-status status-${bookingResult.booking.status}`}>{bookingResult.booking.status.replaceAll('_',' ')}</span></div>
-              <div className="booking-facts"><div><small>PURCHASER</small><strong>{bookingResult.booking.purchaser_name}</strong><span>{bookingResult.booking.purchaser_email}</span></div><div><small>BOOKED ON</small><strong>{new Date(bookingResult.booking.created_at).toLocaleString()}</strong></div><div><small>BOOKING TOTAL</small><strong>{bookingResult.booking.currency} {Number(bookingResult.booking.total_amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div></div>
-              <div className="result-subsection"><h4>Tickets ({bookingResult.tickets.length})</h4>{bookingResult.tickets.length ? <div className="ticket-result-list">{bookingResult.tickets.map(ticket => <article className="ticket-result" key={ticket.ticket_reference}><div><strong>{ticket.attendee_name}</strong><span>{ticket.category} · {ticket.ticket_reference}</span>{ticket.performance && <small>{new Date(ticket.performance.starts_at).toLocaleString()} · {ticket.performance.venue_name}</small>}</div><span className={`ticket-status ticket-${ticket.status}`}>{ticket.status}</span></article>)}</div> : <p className="result-muted">No tickets have been issued for this booking yet.</p>}</div>
-              <div className="result-subsection"><h4>Payment history ({bookingResult.payments.length})</h4>{bookingResult.payments.length ? <div className="payment-result-list">{bookingResult.payments.map((payment,i) => <div className="payment-result" key={payment.provider_reference || i}><span>{payment.method.toUpperCase()} · {payment.status.replaceAll('_',' ')}</span><strong>{payment.currency} {Number(payment.amount).toLocaleString('en-PH',{minimumFractionDigits:2})}</strong></div>)}</div> : <p className="result-muted">No payment records found.</p>}</div>
-              <div className="result-subsection">
-                <h4>Ticket email delivery</h4>
-                <p className="result-muted">Send all tickets and their QR images in one email. During development, delivery goes only to the verified Resend test recipient.</p>
-                <button type="button" className="outline-button" onClick={() => void sendTicketEmail()} disabled={ticketEmailLoading || bookingResult.booking.status !== 'confirmed' || !bookingResult.tickets.length}>{ticketEmailLoading ? 'Sending ticket email…' : 'Send / resend ticket email'}</button>
-                {ticketEmailMessage && <p className="booking-message" role="status">{ticketEmailMessage}</p>}
-              </div>
-            </div>}
-          </div>
         </section>}
 
 {activeTab === 'box-office' &&         <section className="staff-section" id="box-office">
