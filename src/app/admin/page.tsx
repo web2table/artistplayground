@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
   const loadStaff = useCallback(async () => {
     const supabase = createSupabaseBrowserClient();
     const { data, error } = await supabase.functions.invoke('manage-staff', { body: { action: 'list' } });
-    if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load staff accounts.');
+    if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load management accounts.');
     setStaff(data.staff as StaffRecord[]);
   }, []);
 
@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
           await Promise.all([loadStaff(), loadOverview(), loadOperations(), loadMaintenance()]);
         }
       } catch (error) {
-        if (active) notify(error instanceof Error ? error.message : 'Unable to load the staff workspace.', 'error');
+        if (active) notify(error instanceof Error ? error.message : 'Unable to load the management workspace.', 'error');
       } finally { if (active) setLoading(false); }
     }
     void initialize();
@@ -176,10 +176,10 @@ export default function AdminDashboardPage() {
       const { data, error } = await supabase.functions.invoke('manage-staff', {
         body: { action: 'update', user_id: member.user_id, ...changes },
       });
-      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to update staff account.');
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to update management account.');
       notify(`${member.display_name}'s account was updated.`);
       await loadStaff();
-    } catch (error) { notify(error instanceof Error ? error.message : 'Unable to update staff account.', 'error'); }
+    } catch (error) { notify(error instanceof Error ? error.message : 'Unable to update management account.', 'error'); }
     finally { setBusyId(''); }
   }
 
@@ -203,7 +203,7 @@ export default function AdminDashboardPage() {
         <button type="button" className={`sidebar-link ${activeSection === 'email' ? 'active' : ''}`} onClick={() => setActiveSection('email')}><span>✉</span> Email delivery</button>
         <button type="button" className={`sidebar-link ${activeSection === 'monitoring' ? 'active' : ''}`} onClick={() => setActiveSection('monitoring')}><span>⌁</span> System monitoring</button>
         <button type="button" className={`sidebar-link ${activeSection === 'security' ? 'active' : ''}`} onClick={() => { setActiveSection('security'); void Promise.all([loadStaff(), loadOperations()]); }}><span>♧</span> Security & access</button>
-        <button type="button" className={`sidebar-link ${activeSection === 'staff' ? 'active' : ''}`} onClick={() => setActiveSection('staff')}><span>♙</span> Staff management</button>
+        <button type="button" className={`sidebar-link ${activeSection === 'staff' ? 'active' : ''}`} onClick={() => setActiveSection('staff')}><span>♙</span> Management accounts</button>
         <button type="button" className={`sidebar-link ${activeSection === 'maintenance' ? 'active' : ''}`} onClick={() => { setActiveSection('maintenance'); void loadMaintenance(); }}><span>☼</span> Maintenance mode</button>
         <div className="sidebar-bottom">
           <div className="signed-user"><span className="user-avatar">SA</span><span>{staffName || 'System Admin'}<small>System Admin</small></span></div>
@@ -212,7 +212,7 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="admin-main" id="staff">
-        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'productions' ? 'Production management' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : activeSection === 'security' ? 'Security & access' : activeSection === 'maintenance' ? 'Maintenance mode' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'productions' ? 'Review productions, scheduled performances and ticket inventory.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : activeSection === 'security' ? 'Review account access, administrator assignments and recorded access changes.' : activeSection === 'maintenance' ? 'Temporarily take the public website and ticket booking offline while keeping staff access available.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
+        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'productions' ? 'Production management' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : activeSection === 'security' ? 'Security & access' : activeSection === 'maintenance' ? 'Maintenance mode' : 'Management accounts'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'productions' ? 'Review productions, scheduled performances and ticket inventory.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : activeSection === 'security' ? 'Review account access, administrator assignments and recorded access changes.' : activeSection === 'maintenance' ? 'Temporarily take the public website and ticket booking offline while keeping staff access available.' : 'Manage management account access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
 
         {notice && <div className={noticeType === 'success' ? 'notice success' : 'notice error'} role="status">{notice}</div>}
 
@@ -283,7 +283,7 @@ export default function AdminDashboardPage() {
           <div className="overview-heading"><div><h2>Operational health</h2><p className="muted">Database-backed signals, refreshed on demand. These are not live infrastructure probes.</p></div><button type="button" className="outline-button" disabled={operationsLoading} onClick={() => void loadOperations()}>{operationsLoading ? 'Refreshing…' : 'Refresh monitoring'}</button></div>
           {operationsLoading && !operations ? <div className="empty-state">Loading system signals…</div> : operationsError ? <div className="notice error" role="alert">{operationsError}</div> : operations && <>
             <section className="stats">
-              <article className="stat-card"><span>Active staff accounts</span><strong>{operations.system_signals.active_staff_accounts}</strong><small>Enabled staff profiles</small></article>
+              <article className="stat-card"><span>Active management accounts</span><strong>{operations.system_signals.active_staff_accounts}</strong><small>Enabled management profiles</small></article>
               <article className="stat-card"><span>Pending payments</span><strong>{operations.system_signals.pending_payments}</strong><small>Awaiting verification</small></article>
               <article className="stat-card"><span>Failed / bounced emails</span><strong>{operations.system_signals.failed_or_bounced_emails}</strong><small>Recorded delivery failures</small></article>
               <article className="stat-card"><span>Recent ticket scans</span><strong>{operations.system_signals.recent_ticket_scans}</strong><small>Latest 20 scan records</small></article>
@@ -302,14 +302,14 @@ export default function AdminDashboardPage() {
         </section>}
 
         {activeSection === 'security' && <section className="admin-overview">
-          <div className="overview-heading"><div><h2>Access control review</h2><p className="muted">Account status and role assignments from the staff directory.</p></div><button type="button" className="outline-button" disabled={loading || operationsLoading} onClick={() => void Promise.all([loadStaff(), loadOperations()])}>Refresh access data</button></div>
+          <div className="overview-heading"><div><h2>Access control review</h2><p className="muted">Account status and role assignments from the management directory.</p></div><button type="button" className="outline-button" disabled={loading || operationsLoading} onClick={() => void Promise.all([loadStaff(), loadOperations()])}>Refresh access data</button></div>
           <section className="stats">
             <article className="stat-card"><span>Active accounts</span><strong>{staff.filter(member => member.active).length}</strong><small>Currently enabled profiles</small></article>
             <article className="stat-card"><span>System administrators</span><strong>{staff.filter(member => member.active && member.role === 'system_admin').length}</strong><small>Active admin role assignments</small></article>
             <article className="stat-card"><span>Pending invitations</span><strong>{staff.filter(member => member.active && !member.email_confirmed).length}</strong><small>Awaiting email confirmation</small></article>
           </section>
           <section className="panel overview-panel"><div className="panel-heading"><div><h2>Account access directory</h2><p className="muted">Use Staff Management to change roles or deactivate an account.</p></div></div>
-            {loading ? <div className="empty-state">Loading account directory…</div> : staff.length ? <div className="table-wrap"><table><thead><tr><th>ACCOUNT</th><th>ROLE</th><th>EMAIL STATUS</th><th>ACCESS</th><th>CREATED</th></tr></thead><tbody>{staff.map(member => <tr key={member.user_id}><td><strong>{member.display_name}</strong><small>{member.email}</small></td><td>{member.role === 'system_admin' ? 'System Admin' : 'Staff'}</td><td><span className={`status ${member.email_confirmed ? 'active' : 'pending'}`}>{member.email_confirmed ? 'Confirmed' : 'Pending'}</span></td><td><span className={`status ${member.active ? 'active' : 'inactive'}`}>{member.active ? 'Active' : 'Deactivated'}</span></td><td>{new Date(member.created_at).toLocaleDateString()}</td></tr>)}</tbody></table></div> : <div className="empty-state">No staff profiles found.</div>}
+            {loading ? <div className="empty-state">Loading account directory…</div> : staff.length ? <div className="table-wrap"><table><thead><tr><th>ACCOUNT</th><th>ROLE</th><th>EMAIL STATUS</th><th>ACCESS</th><th>CREATED</th></tr></thead><tbody>{staff.map(member => <tr key={member.user_id}><td><strong>{member.display_name}</strong><small>{member.email}</small></td><td>{member.role === 'system_admin' ? 'System Admin' : 'Staff'}</td><td><span className={`status ${member.email_confirmed ? 'active' : 'pending'}`}>{member.email_confirmed ? 'Confirmed' : 'Pending'}</span></td><td><span className={`status ${member.active ? 'active' : 'inactive'}`}>{member.active ? 'Active' : 'Deactivated'}</span></td><td>{new Date(member.created_at).toLocaleDateString()}</td></tr>)}</tbody></table></div> : <div className="empty-state">No management profiles found.</div>}
             <p className="table-note">The system requires at least one active System Admin. Role and account changes are performed through the protected Staff Management workflow.</p>
           </section>
           <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent access-related audit events</h2><p className="muted">Audit records from the last 30 days. Only events actually written to the audit log appear here.</p></div></div>
@@ -321,10 +321,10 @@ export default function AdminDashboardPage() {
           <div className="overview-heading"><div><h2>Public website availability</h2><p className="muted">Show the cinematic Artist Playground maintenance page to public visitors.</p></div><button type="button" className="outline-button" disabled={maintenanceLoading} onClick={() => void loadMaintenance()}>{maintenanceLoading ? 'Checking…' : 'Refresh status'}</button></div>
           <section className="panel overview-panel">
             {maintenanceError && <div className="notice error" role="alert">{maintenanceError}</div>}
-            <div className="panel-heading"><div><h2>Maintenance mode</h2><p className="muted">Staff and System Admin workspaces remain accessible when maintenance is enabled.</p></div><span className={'status ' + (maintenanceEnabled ? 'pending' : 'active')}>{maintenanceEnabled ? 'Maintenance enabled' : 'Website online'}</span></div>
+            <div className="panel-heading"><div><h2>Maintenance mode</h2><p className="muted">Management and System Admin workspaces remain accessible when maintenance is enabled.</p></div><span className={'status ' + (maintenanceEnabled ? 'pending' : 'active')}>{maintenanceEnabled ? 'Maintenance enabled' : 'Website online'}</span></div>
             <div className="overview-row"><div><strong>Public website</strong><small>{maintenanceEnabled ? 'Visitors see the maintenance page instead of public pages.' : 'Visitors can browse the public website normally.'}</small></div><span>{maintenanceEnabled ? 'Temporarily unavailable' : 'Available'}</span></div>
             <div className="overview-row"><div><strong>Ticket booking and checkout</strong><small>Checkout is also blocked securely on the server while maintenance is enabled.</small></div><span>{maintenanceEnabled ? 'Blocked' : 'Available'}</span></div>
-            <div className="overview-row"><div><strong>Staff and System Admin</strong><small>Existing staff operations and administrator access are not disabled.</small></div><span>Always accessible</span></div>
+            <div className="overview-row"><div><strong>Management and System Admin</strong><small>Existing management operations and administrator access are not disabled.</small></div><span>Always accessible</span></div>
             <label htmlFor="maintenance-message" style={{display:'block',marginTop:'1.2rem',fontSize:'.75rem',color:'#cbd1d9'}}>Visitor message</label>
             <textarea id="maintenance-message" value={maintenanceMessage} maxLength={300} onChange={event => setMaintenanceMessage(event.target.value)} rows={3} style={{boxSizing:'border-box',width:'100%',marginTop:'.5rem',padding:'.8rem',resize:'vertical',background:'#0b0e12',border:'1px solid #343b45',borderRadius:7,color:'#f4f6f8',font:'inherit',fontSize:'.8rem'}} />
             <div style={{display:'flex',gap:'.7rem',flexWrap:'wrap',marginTop:'1rem'}}>
@@ -337,26 +337,26 @@ export default function AdminDashboardPage() {
 
         {activeSection === 'staff' && <>
         <section className="stats">
-          <article className="stat-card"><span>Total accounts</span><strong>{staff.length}</strong><small>Registered staff profiles</small></article>
-          <article className="stat-card"><span>Active accounts</span><strong>{activeCount}</strong><small>Can access staff tools</small></article>
+          <article className="stat-card"><span>Total accounts</span><strong>{staff.length}</strong><small>Registered management profiles</small></article>
+          <article className="stat-card"><span>Active accounts</span><strong>{activeCount}</strong><small>Can access management tools</small></article>
           <article className="stat-card"><span>Pending invitations</span><strong>{pendingCount}</strong><small>Awaiting first confirmation</small></article>
         </section>
 
         <section className="content-grid">
           <div className="panel staff-panel">
-            <div className="panel-heading"><div><h2>Staff accounts</h2><p className="muted">Review account status and access roles.</p></div><button type="button" className="outline-button" onClick={() => { setLoading(true); void loadStaff().catch(e => notify(e.message, 'error')).finally(() => setLoading(false)); }}>Refresh</button></div>
-            {loading ? <div className="empty-state">Loading staff accounts…</div> : staff.length === 0 ? <div className="empty-state">No staff accounts found.</div> : (
+            <div className="panel-heading"><div><h2>Management accounts</h2><p className="muted">Review account status and access roles.</p></div><button type="button" className="outline-button" onClick={() => { setLoading(true); void loadStaff().catch(e => notify(e.message, 'error')).finally(() => setLoading(false)); }}>Refresh</button></div>
+            {loading ? <div className="empty-state">Loading management accounts…</div> : staff.length === 0 ? <div className="empty-state">No management accounts found.</div> : (
               <div className="table-wrap"><table><thead><tr><th>TEAM MEMBER</th><th>ROLE</th><th>STATUS</th><th>LAST SIGN IN</th><th>ACCESS</th></tr></thead><tbody>
                 {staff.map(member => <tr key={member.user_id}>
                   <td><strong>{member.display_name}</strong><small>{member.email}</small></td>
-                  <td><select aria-label={`Role for ${member.display_name}`} value={member.role} disabled={busyId === member.user_id} onChange={e => void updateStaff(member, { role: e.target.value })}><option value="staff">Staff</option><option value="system_admin">System Admin</option></select></td>
+                  <td><select aria-label={`Role for ${member.display_name}`} value={member.role} disabled={busyId === member.user_id} onChange={e => void updateStaff(member, { role: e.target.value })}><option value="staff">Management</option><option value="system_admin">System Admin</option></select></td>
                   <td><span className={`status ${!member.active ? 'inactive' : member.email_confirmed ? 'active' : 'pending'}`}>{!member.active ? 'Inactive' : member.email_confirmed ? 'Active' : 'Invitation pending'}</span></td>
                   <td>{member.last_sign_in_at ? new Date(member.last_sign_in_at).toLocaleDateString() : '—'}</td>
                   <td><button type="button" className={member.active ? 'text-action danger' : 'text-action'} disabled={busyId === member.user_id} onClick={() => void updateStaff(member, { active: !member.active })}>{busyId === member.user_id ? 'Saving…' : member.active ? 'Deactivate' : 'Activate'}</button></td>
                 </tr>)}
               </tbody></table></div>
             )}
-            <p className="table-note">Deactivated accounts cannot access staff operations. At least one active System Admin must remain.</p>
+            <p className="table-note">Deactivated accounts cannot access management operations. At least one active System Admin must remain.</p>
           </div>
 
           <section className="panel invite-panel">
@@ -364,7 +364,7 @@ export default function AdminDashboardPage() {
             <form onSubmit={inviteStaff} className="invite-form">
               <label htmlFor="display_name">Full name</label><input id="display_name" name="display_name" type="text" maxLength={120} placeholder="Enter full name" required />
               <label htmlFor="email">Email address</label><input id="email" name="email" type="email" maxLength={254} placeholder="name@example.com" required />
-              <label htmlFor="role">Account role</label><select id="role" name="role" defaultValue="staff"><option value="staff">Staff</option><option value="system_admin">System Admin</option></select>
+              <label htmlFor="role">Account role</label><select id="role" name="role" defaultValue="staff"><option value="staff">Management</option><option value="system_admin">System Admin</option></select>
               <button className="primary-button" type="submit" disabled={inviteBusy}>{inviteBusy ? 'Sending invitation…' : 'Send invitation'}</button>
             </form>
             <div className="invite-help"><strong>Invitation process</strong><p>The team member receives an email link to set their password. Accounts remain pending until the email invitation is accepted.</p></div>
