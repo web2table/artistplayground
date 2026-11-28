@@ -24,7 +24,12 @@ export default function AdminDashboardPage() {
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
   const [activeSection, setActiveSection] = useState<'overview' | 'payments' | 'email' | 'staff'>('overview');
-  const [operations, setOperations] = useState<{payments:Record<string, any>[];payment_counts_recent:Record<string,number>;email_deliveries:Record<string, any>[];email_counts_recent:Record<string,number>;webhook_events:Record<string, any>[];audit_logs:Record<string, any>[]} | null>(null);
+  type RelatedBooking = { booking_reference?: string; purchaser_name?: string };
+  type PaymentRow = { id: string; booking_id: string; method: string; provider: string; amount: number; currency: string; status: string; verified_at: string | null; failure_reason: string | null; created_at: string; bookings: RelatedBooking | null };
+  type EmailRow = { id: string; booking_id: string; recipient_email: string; provider: string; attempt_number: number; status: string; error_message: string | null; sent_at: string | null; created_at: string; bookings: Pick<RelatedBooking, 'booking_reference'> | null };
+  type WebhookRow = { event_id: string; event_type: string; livemode: boolean; processed_at: string };
+  type AuditRow = { id: number; action: string; entity_type: string; entity_id: string | null; details: Record<string, unknown>; created_at: string };
+  const [operations, setOperations] = useState<{payments:PaymentRow[];payment_counts_recent:Record<string,number>;email_deliveries:EmailRow[];email_counts_recent:Record<string,number>;webhook_events:WebhookRow[];audit_logs:AuditRow[]} | null>(null);
   const [operationsLoading, setOperationsLoading] = useState(false);
   const [operationsError, setOperationsError] = useState('');
   const [overview, setOverview] = useState<{metrics:{active_productions:number;upcoming_performances:number;tickets_issued:number;pending_bookings:number;paid_revenue:number};upcoming:{id:string;title:string;starts_at:string;venue_name:string;remaining:number}[];recent_bookings:{booking_reference:string;purchaser_name:string;status:string;total_amount:number;currency:string;created_at:string}[]}|null>(null);
