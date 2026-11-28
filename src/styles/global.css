@@ -299,3 +299,30 @@ img { max-width: 100%; display: block; }
 .ap-page-workshops .facilitator-role{color:var(--ap-blue);font-weight:800;letter-spacing:.04em;margin:.4rem 0 1.5rem}
 .ap-page-workshops .facilitator-content>p:not(.eyebrow):not(.facilitator-role){color:var(--ap-muted);line-height:1.75;margin:0 0 1rem}
 @media(max-width:800px){.ap-page-workshops .facilitator{grid-template-columns:1fr;gap:2rem}.ap-page-workshops .facilitator-photo-wrap{max-width:520px}.ap-page-workshops .facilitator-photo{max-height:620px}}
+
+
+/* The Classics Now — production details modal */
+.ap-page-educational-productions .poster-trigger{position:relative;display:block;width:100%;padding:0;border:0;background:#080808;cursor:pointer;text-align:inherit}
+.ap-page-educational-productions .poster-trigger .poster{transition:transform .25s ease,opacity .25s ease}
+.ap-page-educational-productions .poster-trigger:hover .poster,.ap-page-educational-productions .poster-trigger:focus-visible .poster{transform:scale(1.025);opacity:.82}
+.ap-page-educational-productions .poster-trigger:focus-visible{outline:2px solid var(--ap-yellow);outline-offset:-3px}
+.ap-page-educational-productions .poster-hint{position:absolute;left:50%;bottom:1rem;transform:translate(-50%,.4rem);padding:.6rem .85rem;border:1px solid var(--ap-yellow);border-radius:.4rem;background:rgba(0,0,0,.88);color:var(--ap-yellow);font-size:.68rem;font-weight:800;letter-spacing:.08em;white-space:nowrap;opacity:0;transition:opacity .2s,transform .2s}
+.ap-page-educational-productions .poster-trigger:hover .poster-hint,.ap-page-educational-productions .poster-trigger:focus-visible .poster-hint{opacity:1;transform:translate(-50%,0)}
+.production-modal-backdrop{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:clamp(.75rem,3vw,2rem);background:rgba(0,0,0,.84);backdrop-filter:blur(8px)}
+.production-modal{position:relative;width:min(1100px,100%);max-height:min(90vh,900px);overflow:auto;border:1px solid #353535;border-top:3px solid var(--ap-yellow);border-radius:1rem;background:#101010;color:var(--ap-text);box-shadow:0 24px 90px rgba(0,0,0,.65)}
+.production-modal-close{position:sticky;top:.8rem;float:right;z-index:2;display:grid;place-items:center;width:2.7rem;height:2.7rem;margin:.8rem .8rem -3.5rem 0;border:1px solid #555;border-radius:50%;background:#181818;color:#fff;font-size:1.8rem;line-height:1;cursor:pointer}
+.production-modal-close:hover,.production-modal-close:focus-visible{border-color:var(--ap-yellow);color:var(--ap-yellow);outline:none}
+.production-modal-layout{display:grid;grid-template-columns:minmax(230px,.72fr) minmax(0,1.28fr);gap:clamp(1.5rem,4vw,3rem);padding:clamp(1.2rem,3vw,2.5rem)}
+.production-modal-poster-wrap{align-self:start;position:sticky;top:1rem;overflow:hidden;border:1px solid #333;border-radius:.6rem;background:#080808}
+.production-modal-poster{width:100%;height:auto;max-height:72vh;object-fit:contain}
+.production-modal-content{padding:1rem 1.2rem 1rem 0}
+.production-modal-content>.eyebrow{color:var(--ap-blue);font-size:var(--ap-size-eyebrow);font-weight:800;letter-spacing:.14em}
+.production-modal-number{color:var(--ap-muted);font-size:.78rem;letter-spacing:.06em}
+.production-modal-content h2{margin:.5rem 0 1.5rem;color:var(--ap-yellow);font-size:clamp(1.8rem,4vw,3rem);line-height:1.05}
+.production-modal-section{padding:1.1rem 0;border-top:1px solid #303030}
+.production-modal-section h3{margin:0 0 .65rem;color:var(--ap-blue);font-size:1rem;letter-spacing:0}
+.production-modal-section p,.production-modal-section li{color:var(--ap-muted);font-size:.92rem;line-height:1.7}
+.production-modal-section p{margin:0}
+.production-modal-section ul{margin:0;padding-left:1.2rem}
+.production-modal-section li+li{margin-top:.3rem}
+@media(max-width:760px){.production-modal-backdrop{padding:.5rem}.production-modal{max-height:94vh}.production-modal-layout{grid-template-columns:1fr;gap:1.25rem;padding:1rem}.production-modal-poster-wrap{position:relative;top:auto;width:min(100%,300px);margin:0 auto}.production-modal-poster{max-height:38vh}.production-modal-content{padding:.25rem .25rem 1rem}.production-modal-close{position:sticky;top:.5rem;margin:.5rem .5rem -3.5rem 0}.production-modal-content h2{padding-right:2.5rem}}
