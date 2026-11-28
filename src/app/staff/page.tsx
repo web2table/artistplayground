@@ -281,6 +281,7 @@ export default function StaffDashboardPage() {
           <a className={`staff-nav-item ${activeTab === 'overview' ? 'selected' : ''}`} href="#overview" onClick={() => setActiveTab('overview')}><span>⌂</span> Overview</a>
           <div className="staff-nav-label">MANAGEMENT</div>
           <a className="staff-nav-item" href={appPath('/staff/productions/')}><span>▣</span> Productions</a>
+          <a className="staff-nav-item" href={appPath('/staff/events/')}><span>▤</span> Events</a>
           <div className="staff-nav-label">OPERATIONS</div>
           <a className={`staff-nav-item ${activeTab === 'bookings' ? 'selected' : ''}`} href="#bookings" onClick={() => setActiveTab('bookings')}><span>▤</span> Bookings</a>
           <a className={`staff-nav-item ${activeTab === 'refunds' ? 'selected' : ''}`} href="#refunds" onClick={() => setActiveTab('refunds')}><span>↺</span> Refunds</a>
