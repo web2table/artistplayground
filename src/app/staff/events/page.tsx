@@ -76,7 +76,7 @@ export default function StaffEventsPage(){
  const edit=(row:EventRow)=>{setForm({id:row.id,event_type:row.event_type,title:row.title,description:row.description||'',starts_at:localValue(row.starts_at),ends_at:localValue(row.ends_at),venue_name:row.venue_name||'',venue_address:row.venue_address||'',image_url:row.image_url||'',info_url:row.info_url||'',status:row.status});setError('');setMessage('');window.scrollTo({top:0,behavior:'smooth'});};
  async function save(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setSaving(true);setError('');setMessage('');try{const data=await invoke({action:'save',...(form.id?{id:form.id}:{}),event_type:form.event_type,title:form.title,description:form.description,starts_at:isoValue(form.starts_at),ends_at:isoValue(form.ends_at),venue_name:form.venue_name,venue_address:form.venue_address,image_url:form.image_url,info_url:form.info_url,status:form.status});setMessage(data.message);setForm(blank());await load();}catch(e){setError(e instanceof Error?e.message:'Unable to save event.');}finally{setSaving(false);}}
  async function remove(row:EventRow){if(!window.confirm('Delete “'+row.title+'”? This cannot be undone.'))return;setSaving(true);setError('');try{const data=await invoke({action:'delete',id:row.id});setMessage(data.message);if(form.id===row.id)setForm(blank());await load();}catch(e){setError(e instanceof Error?e.message:'Unable to delete event.');}finally{setSaving(false);}}
- return <main className="prod-main"><header className="prod-header"><div><p className="prod-eyebrow">STAFF WORKSPACE · MANAGEMENT</p><h1>Events</h1><p>Publish and manage workshops and other public Artist Playground activities.</p></div><button className="prod-refresh" type="button" onClick={()=>void load()} disabled={loading}>Refresh</button></header>
+ return <><main className="prod-main"><header className="prod-header"><div><p className="prod-eyebrow">STAFF WORKSPACE · MANAGEMENT</p><h1>Events</h1><p>Publish and manage workshops and other public Artist Playground activities.</p></div><button className="prod-refresh" type="button" onClick={()=>void load()} disabled={loading}>Refresh</button></header>
  {error&&<div className="prod-alert error" role="alert">{error}</div>}{message&&<div className="prod-alert success" role="status">{message}</div>}
  <section className="prod-panel"><div className="prod-panel-heading"><div><h2>{form.id?'Edit event':'Create an event'}</h2><p>Manage workshops and public activities. Show productions are managed separately.</p></div><span className="prod-plus">＋</span></div>
  <form className="prod-form" onSubmit={save}>
@@ -129,5 +129,5 @@ export default function StaffEventsPage(){
         .prod-count{display:grid;place-items:center;min-width:30px;height:30px;border-radius:50%;background:#202830;color:#dfe7ed;font-size:.75rem}
         .prod-field-hint{display:block;margin-top:.45rem;color:#9aa4af;font-size:.72rem}
         @media(max-width:760px){.ap-staff-event-row{align-items:flex-start;flex-direction:column}.ap-staff-event-row-actions{width:100%}.ap-staff-event-row-actions button{flex:1}}
-      `}</style>;
+      `}</style></>; 
 }
