@@ -215,7 +215,7 @@ export default function StaffProductionsPage() {
   return (
     <>
       <main className="prod-main">
-        <header className="prod-header"><div><p className="prod-eyebrow">STAFF WORKSPACE · MANAGEMENT</p><h1>Productions</h1><p>Create shows, schedule performances, and configure ticket inventory.</p></div><button className="prod-refresh" type="button" onClick={() => void loadProductions()} disabled={loading}>Refresh</button></header>
+        <header className="prod-header"><div><p className="prod-eyebrow">MANAGEMENT WORKSPACE · MANAGEMENT</p><h1>Productions</h1><p>Create shows, schedule performances, and configure ticket inventory.</p></div><button className="prod-refresh" type="button" onClick={() => void loadProductions()} disabled={loading}>Refresh</button></header>
         {error && <div className="prod-alert error" role="alert">{error}</div>}
         {message && <div className="prod-alert success" role="status">{message}</div>}
         <section className="prod-panel">
@@ -284,7 +284,7 @@ export default function StaffProductionsPage() {
             <div className="prod-card-actions"><span className="prod-published-note">{show.status === 'published' ? 'Listed in public ticket catalog' : 'Draft · Not listed publicly'}</span><div className="prod-card-buttons"><button type="button" className="prod-edit-button" onClick={()=>beginEdit(show)}>Edit show</button><button type="button" className="prod-delete-button" onClick={()=>void deleteProduction(show)} disabled={saving}>Delete</button>{show.status === 'draft' && <button type="button" onClick={()=>void publish(show.id)} disabled={publishing===show.id}>{publishing===show.id?'Publishing…':'Publish show'}</button>}</div></div>
           </article>)}</div>}
         </section>
-        <footer className="prod-footer">Artist Playground · Internal staff workspace</footer>
+        <footer className="prod-footer">Artist Playground · Internal management workspace</footer>
       </main>
       
     </>
