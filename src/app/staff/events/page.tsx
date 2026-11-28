@@ -43,13 +43,13 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (valu
 }
 
 
-type EventRow={id:string;event_type:'workshop'|'other';title:string;description:string;starts_at:string;ends_at:string|null;venue_name:string;venue_address:string|null;image_url:string|null;info_url:string|null;status:'draft'|'published'|'cancelled'};
+type EventRow={id:string;event_type:string;title:string;description:string;starts_at:string;ends_at:string|null;venue_name:string;venue_address:string|null;image_url:string|null;info_url:string|null;status:'draft'|'published'|'cancelled'};
 const localValue=(value:string|null)=>value?new Date(value).toLocaleString('sv-SE',{timeZone:'Asia/Manila'}).replace(' ','T').slice(0,16):'';
 const isoValue=(value:string)=>value?new Date(value).toISOString():null;
 
 export default function StaffEventsPage(){
  const [rows,setRows]=useState<EventRow[]>([]),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState('');
- const blank=()=>({id:'',event_type:'workshop' as 'workshop'|'other',title:'',description:'',starts_at:'',ends_at:'',venue_name:'',venue_address:'',image_url:'',info_url:'',status:'draft' as 'draft'|'published'|'cancelled'});
+ const blank=()=>({id:'',event_type:'Workshop',title:'',description:'',starts_at:'',ends_at:'',venue_name:'',venue_address:'',image_url:'',info_url:'',status:'draft' as 'draft'|'published'|'cancelled'});
  const [form,setForm]=useState(blank());
  const [posterUploading,setPosterUploading]=useState(false);
  const invoke=async(body:Record<string,unknown>)=>{const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('manage-events',{body});if(error||!data?.ok)throw new Error(data?.error||error?.message||'The request could not be completed.');return data;};
@@ -80,7 +80,7 @@ export default function StaffEventsPage(){
  {error&&<div className="prod-alert error" role="alert">{error}</div>}{message&&<div className="prod-alert success" role="status">{message}</div>}
  <section className="prod-panel"><div className="prod-panel-heading"><div><h2>{form.id?'Edit event':'Create an event'}</h2><p>Manage workshops and public activities. Show productions are managed separately.</p></div><span className="prod-plus">＋</span></div>
  <form className="prod-form" onSubmit={save}>
- <div className="prod-field"><label htmlFor="event-type">Event type</label><select id="event-type" value={form.event_type} onChange={e=>set('event_type',e.target.value)}><option value="workshop">Workshop</option><option value="other">Other event</option></select></div>
+ <div className="prod-field"><label htmlFor="event-type">Event type</label><input id="event-type" type="text" value={form.event_type} onChange={e=>set('event_type',e.target.value)} required maxLength={60} placeholder="e.g. Workshop, Audition, Open Call"/></div>
  <div className="prod-field"><label htmlFor="event-status">Visibility</label><select id="event-status" value={form.status} onChange={e=>set('status',e.target.value)}><option value="draft">Draft (not public)</option><option value="published">Published</option><option value="cancelled">Cancelled</option></select></div>
  <div className="prod-field full"><label htmlFor="event-title">Event title</label><input id="event-title" value={form.title} onChange={e=>set('title',e.target.value)} required maxLength={160} placeholder="Workshop or event name"/></div>
  <div className="prod-field full"><label htmlFor="event-description">Description</label><textarea id="event-description" rows={4} value={form.description} onChange={e=>set('description',e.target.value)} placeholder="Tell visitors what to expect."/></div>
@@ -93,6 +93,6 @@ export default function StaffEventsPage(){
  <div className="ap-staff-event-actions"><button className="prod-submit" type="submit" disabled={saving}>{saving?'Saving…':form.id?'Save changes':'Create event'}</button>{form.id&&<button type="button" className="prod-refresh" onClick={()=>setForm(blank())} disabled={saving}>Cancel edit</button>}</div>
  </form></section>
  <section className="prod-panel"><div className="prod-panel-heading"><div><h2>Managed events</h2><p>Published, draft, and cancelled workshops and public activities.</p></div><span className="prod-count">{rows.length}</span></div>
- {loading?<p className="prod-muted">Loading events…</p>:rows.length===0?<p className="prod-muted">No management events yet.</p>:<div className="ap-staff-event-list">{rows.map(row=><article className="ap-staff-event-row" key={row.id}><div><span className={'ap-staff-event-status '+row.status}>{row.status}</span><h3>{row.title}</h3><p>{row.event_type==='workshop'?'Workshop':'Other event'} · {new Date(row.starts_at).toLocaleString('en-PH',{timeZone:'Asia/Manila',dateStyle:'medium',timeStyle:'short'})}{row.venue_name?' · '+row.venue_name:''}</p></div><div className="ap-staff-event-row-actions"><button type="button" onClick={()=>edit(row)}>Edit</button><button type="button" className="danger" onClick={()=>void remove(row)} disabled={saving}>Delete</button></div></article>)}</div>}</section>
+ {loading?<p className="prod-muted">Loading events…</p>:rows.length===0?<p className="prod-muted">No management events yet.</p>:<div className="ap-staff-event-list">{rows.map(row=><article className="ap-staff-event-row" key={row.id}><div><span className={'ap-staff-event-status '+row.status}>{row.status}</span><h3>{row.title}</h3><p>{row.event_type} · {new Date(row.starts_at).toLocaleString('en-PH',{timeZone:'Asia/Manila',dateStyle:'medium',timeStyle:'short'})}{row.venue_name?' · '+row.venue_name:''}</p></div><div className="ap-staff-event-row-actions"><button type="button" onClick={()=>edit(row)}>Edit</button><button type="button" className="danger" onClick={()=>void remove(row)} disabled={saving}>Delete</button></div></article>)}</div>}</section>
  </main></>; 
 }
