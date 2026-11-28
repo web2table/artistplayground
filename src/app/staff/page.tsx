@@ -67,7 +67,7 @@ export default function StaffDashboardPage() {
         const supabase = createSupabaseBrowserClient();
         const authResult = await Promise.race([
           supabase.auth.getUser(),
-          new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('Staff session check timed out. Please sign in again.')), 15000)),
+          new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('Management session check timed out. Please sign in again.')), 15000)),
         ]);
         const { data: { user } } = authResult;
         if (!user) { window.location.replace(appPath('/staff/login/')); return; }
@@ -80,7 +80,7 @@ export default function StaffDashboardPage() {
         }
         if (active) setProfile(data as StaffProfile);
       } catch {
-        if (active) setError('Unable to verify your staff session. Please sign in again.');
+        if (active) setError('Unable to verify your management session. Please sign in again.');
       } finally { if (active) setLoading(false); }
     }
     void load();
@@ -170,7 +170,7 @@ export default function StaffDashboardPage() {
   async function validateTicketValue(value: string) {
     const credential=value.trim(); if(!credential)return;
     setScanLoading(true);setScanResult(null);setCameraMessage('');setScanCredential(credential);
-    try { const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'validate',credential,device_label:'Staff workspace'}});
+    try { const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'validate',credential,device_label:'Management workspace'}});
       if(error||!data?.ok)throw new Error(data?.error||error?.message||'Ticket validation failed.');setScanResult(data as ScanResult);
     } catch(err){setCameraMessage(err instanceof Error?err.message:'Unable to validate ticket.');} finally{setScanLoading(false);}
   }
@@ -178,14 +178,14 @@ export default function StaffDashboardPage() {
   async function denyTicketEntry(){
     if(!scanCredential.trim()||!scanResult||!['ready','unpaid','wrong_performance'].includes(scanResult.result))return;
     setScanLoading(true);setCameraMessage('');
-    try{const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'deny_entry',credential:scanCredential.trim(),device_label:'Staff workspace'}});
+    try{const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'deny_entry',credential:scanCredential.trim(),device_label:'Management workspace'}});
       if(error||!data?.ok)throw new Error(data?.error||error?.message||'Unable to record denied entry.');
       setScanResult(current=>current?{...current,result:'denied',message:data.message}:current);
     }catch(err){setCameraMessage(err instanceof Error?err.message:'Unable to record denied entry.');}finally{setScanLoading(false);}
   }
   async function clockInTicket(){
     if(!scanCredential.trim()||scanResult?.result!=='ready')return;setScanLoading(true);setCameraMessage('');
-    try{const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'clock_in',credential:scanCredential.trim(),device_label:'Staff workspace'}});
+    try{const supabase=createSupabaseBrowserClient();const {data,error}=await supabase.functions.invoke('staff-ticket-scan',{body:{action:'clock_in',credential:scanCredential.trim(),device_label:'Management workspace'}});
       if(error||!data?.ok)throw new Error(data?.error||error?.message||'Unable to record admission.');
       setScanResult(current=>current?{...current,result:data.result,message:data.message,attendee_name:data.attendee_name||current.attendee_name,ticket_reference:data.ticket_reference||current.ticket_reference}:data as ScanResult);
       if(data.result==='accepted')setScanCredential('');
@@ -262,12 +262,12 @@ export default function StaffDashboardPage() {
 
   const today = new Intl.DateTimeFormat('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
-  if (loading) return <main className="staff-loading" style={{ minHeight: '100svh', width: '100%', display: 'grid', placeItems: 'center', textAlign: 'center', padding: '2rem', boxSizing: 'border-box', background: '#080808', color: '#aaa', fontSize: '.9rem', letterSpacing: '.02em' }}>Loading staff workspace…</main>;
+  if (loading) return <main className="staff-loading" style={{ minHeight: '100svh', width: '100%', display: 'grid', placeItems: 'center', textAlign: 'center', padding: '2rem', boxSizing: 'border-box', background: '#080808', color: '#aaa', fontSize: '.9rem', letterSpacing: '.02em' }}>Loading management workspace…</main>;
 
   return (
     <>
       <main className="staff-main" id="overview">
-        <header className="staff-topbar"><div><p className="staff-eyebrow">STAFF WORKSPACE</p><h1>Good day{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.</h1><p className="staff-muted">Your operations desk for Artist Playground.</p></div><div className="staff-date">{today}</div></header>
+        <header className="staff-topbar"><div><p className="staff-eyebrow">MANAGEMENT WORKSPACE</p><h1>Good day{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.</h1><p className="staff-muted">Your operations desk for Artist Playground.</p></div><div className="staff-date">{today}</div></header>
         {error && <div className="staff-error" role="alert">{error}</div>}
 
 {activeTab === 'overview' && <section className="staff-section staff-overview" id="overview-dashboard">
@@ -351,7 +351,7 @@ export default function StaffDashboardPage() {
               </div>
               {scanResult.result==='ready'&&<button type="button" className="primary-button scan-clock-in" onClick={clockInTicket} disabled={scanLoading}>{scanLoading?'Recording admission…':'Clock in attendee'}</button>}
               {['ready','unpaid','wrong_performance'].includes(scanResult.result)&&<button type="button" className="outline-button scan-deny-entry" onClick={denyTicketEntry} disabled={scanLoading}>Deny entry</button>}
-              {scanResult.result==='denied'&&<p className="scan-denied">Entry denied by staff. Ticket remains valid for its assigned show.</p>}
+              {scanResult.result==='denied'&&<p className="scan-denied">Entry denied by management. Ticket remains valid for its assigned show.</p>}
               {scanResult.result==='accepted'&&<p className="scan-clocked-in">✓ Attendee successfully clocked in.</p>}
             </div>}
           </div>
@@ -375,7 +375,7 @@ export default function StaffDashboardPage() {
           </article>)}</div> : <p className="result-muted">No refund requests have been submitted.</p>}
           <div className="workflow-note"><span>ⓘ</span><div><strong>Approval is not a completed refund</strong><p>Approval records the company decision only. PayMongo processing is not connected yet; cash must actually be returned before completion. Tickets remain valid until a verified refund completion is recorded.</p></div></div>
         </section>}
-        <footer className="staff-footer">Artist Playground · Internal staff workspace</footer>
+        <footer className="staff-footer">Artist Playground · Internal management workspace</footer>
       </main>
 
       
