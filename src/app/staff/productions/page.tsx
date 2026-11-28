@@ -219,20 +219,6 @@ export default function StaffProductionsPage() {
   }
 
   return (
-    <div className="prod-workspace">
-      <aside className="prod-sidebar">
-        <a className="prod-brand" href={appPath('/')}><img className="prod-mark" src={appPath('/ap.jpg')} alt="Artist Playground logo" /><span>ARTIST PLAYGROUND<small>STAFF WORKSPACE</small></span></a>
-        <div className="prod-nav-label">WORKSPACE</div>
-        <a className="prod-nav" href={appPath('/staff/#overview')}>⌂　Overview</a>
-        <div className="prod-nav-label">MANAGEMENT</div>
-        <a className="prod-nav active" href={appPath('/staff/productions/')}>▣　Productions</a>
-        <a className="prod-nav" href={appPath('/staff/events/')}>▤　Events</a>
-        <div className="prod-nav-label">OPERATIONS</div>
-        <a className="prod-nav" href={appPath('/staff/#refunds')}>↺　Refunds</a>
-        <a className="prod-nav" href={appPath('/staff/#scanner')}>▦　Ticket scanner</a>
-        <a className="prod-nav" href={appPath('/staff/#box-office')}>＋　Box office</a>
-        <a className="prod-nav" href={appPath('/staff/#reports')}>▥　Reports</a>
-        <div className="prod-sidebar-bottom"><span>Staff Workspace</span><button type="button" onClick={signOut}>Sign out</button></div>
       </aside>
       <main className="prod-main">
         <header className="prod-header"><div><p className="prod-eyebrow">STAFF WORKSPACE · MANAGEMENT</p><h1>Productions</h1><p>Create shows, schedule performances, and configure ticket inventory.</p></div><button className="prod-refresh" type="button" onClick={() => void loadProductions()} disabled={loading}>Refresh</button></header>
@@ -327,6 +313,5 @@ export default function StaffProductionsPage() {
         .prod-performance{margin-top:1rem;padding:.85rem;background:#0c0f13;border:1px solid #252b33;border-radius:8px;display:grid;gap:.5rem}.prod-performance>div:first-child{display:grid;gap:.25rem}.prod-performance strong{font-size:.75rem}.prod-performance span{font-size:.68rem;color:#aeb7c1}.prod-category{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;border-top:1px solid #242a32;padding-top:.5rem}.prod-card-actions{display:flex;justify-content:flex-end;margin-top:.8rem}.prod-card-actions button{background:#f5e900;border:0;border-radius:7px;color:#090909;padding:.65rem .9rem;font-size:.72rem;font-weight:800;cursor:pointer}.prod-card-actions button:disabled{opacity:.6}.prod-published-note{font-size:.68rem;color:#8de0ad}.prod-empty{padding:1.5rem;text-align:center;color:#929ba6;background:#111419;border:1px solid #282e36;border-radius:9px;font-size:.78rem}.prod-footer{border-top:1px solid #252a31;color:#66717e;font-size:.66rem;margin-top:2.5rem;padding:1.2rem 0}
         @media(max-width:760px){.prod-modal-backdrop{padding:.5rem;align-items:flex-end}.prod-modal{max-height:94vh;padding:1rem;border-radius:14px 14px 8px 8px}.prod-modal .prod-panel-heading{top:-1rem}.prod-card-actions{align-items:flex-start}.prod-card-buttons{flex-wrap:wrap}.prod-workspace{grid-template-columns:1fr}.prod-sidebar{position:static;height:auto;min-height:0;padding:1rem}.prod-brand{padding-bottom:1rem}.prod-nav-label,.prod-sidebar-bottom{display:none}.prod-nav{display:inline-block;padding:.55rem;margin-right:.2rem}.prod-main{padding:1.3rem 1rem}.prod-form{grid-template-columns:1fr}.prod-field.full,.prod-form-note,.prod-submit{grid-column:1}.prod-category{justify-content:flex-start}}
       `}</style>
-    </div>
   );
 }
