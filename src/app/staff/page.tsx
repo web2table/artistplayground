@@ -41,8 +41,7 @@ export default function StaffDashboardPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const frameRef = useRef<number | null>(null);
   const [activeTab, setActiveTab] = useState(() => typeof window === 'undefined' ? 'overview' : ((['sales','payments'].includes(window.location.hash.slice(1)) ? 'reports' : window.location.hash.slice(1) === 'bookings' ? 'overview' : window.location.hash.slice(1) || 'overview')));
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  useEffect(() => { const sync = () => setActiveTab(['sales','payments'].includes(window.location.hash.slice(1)) ? 'reports' : window.location.hash.slice(1) === 'bookings' ? 'overview' : window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
+    useEffect(() => { const sync = () => setActiveTab(['sales','payments'].includes(window.location.hash.slice(1)) ? 'reports' : window.location.hash.slice(1) === 'bookings' ? 'overview' : window.location.hash.slice(1) || 'overview'); window.addEventListener('hashchange', sync); return () => window.removeEventListener('hashchange', sync); }, []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [bookingReference, setBookingReference] = useState('');
@@ -261,19 +260,11 @@ export default function StaffDashboardPage() {
     } finally { setSaleLoading(false); }
   }
 
-  async function signOut() {
-    const supabase = createSupabaseBrowserClient();
-    await supabase.auth.signOut();
-    window.location.replace(appPath('/staff/login/'));
-  }
-
   const today = new Intl.DateTimeFormat('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date());
 
   if (loading) return <main className="staff-loading" style={{ minHeight: '100svh', width: '100%', display: 'grid', placeItems: 'center', textAlign: 'center', padding: '2rem', boxSizing: 'border-box', background: '#080808', color: '#aaa', fontSize: '.9rem', letterSpacing: '.02em' }}>Loading staff workspace…</main>;
 
   return (
-      </aside>
-
       <main className="staff-main" id="overview">
         <header className="staff-topbar"><div><p className="staff-eyebrow">STAFF WORKSPACE</p><h1>Good day{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}.</h1><p className="staff-muted">Your operations desk for Artist Playground.</p></div><div className="staff-date">{today}</div></header>
         {error && <div className="staff-error" role="alert">{error}</div>}
