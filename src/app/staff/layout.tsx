@@ -12,8 +12,10 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
   const [activeHash, setActiveHash] = useState('');
   const [authReady, setAuthReady] = useState(false);
   const [authError, setAuthError] = useState('');
+  const isLoginPage = pathname.includes('/staff/login');
 
   useEffect(() => {
+    if (isLoginPage) return;
     let active = true;
     async function verifyManagementSession() {
       setAuthError('');
@@ -43,7 +45,7 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
     }
     void verifyManagementSession();
     return () => { active = false; };
-  }, []);
+  }, [isLoginPage]);
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
@@ -70,6 +72,8 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
     { label: 'Box office', href: appPath('/staff/#box-office'), icon: '＋', active: isOverview && activeHash === '#box-office' },
     { label: 'Reports', href: appPath('/staff/#reports'), icon: '▥', active: isOverview && activeHash === '#reports' },
   ];
+
+  if (isLoginPage) return <>{children}</>;
 
   return (
     <div className="ap-staff-shell">
