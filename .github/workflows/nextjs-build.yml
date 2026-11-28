@@ -41,6 +41,9 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     needs: build
+    concurrency:
+      group: artist-playground-github-pages
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     permissions:
       pages: write
