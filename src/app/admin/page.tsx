@@ -23,13 +23,15 @@ export default function AdminDashboardPage() {
   const [inviteBusy, setInviteBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
-  const [activeSection, setActiveSection] = useState<'overview' | 'payments' | 'email' | 'staff'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'payments' | 'email' | 'monitoring' | 'staff'>('overview');
   type RelatedBooking = { booking_reference?: string; purchaser_name?: string };
   type PaymentRow = { id: string; booking_id: string; method: string; provider: string; amount: number; currency: string; status: string; verified_at: string | null; failure_reason: string | null; created_at: string; bookings: RelatedBooking | null };
   type EmailRow = { id: string; booking_id: string; recipient_email: string; provider: string; attempt_number: number; status: string; error_message: string | null; sent_at: string | null; created_at: string; bookings: Pick<RelatedBooking, 'booking_reference'> | null };
   type WebhookRow = { event_id: string; event_type: string; livemode: boolean; processed_at: string };
   type AuditRow = { id: number; action: string; entity_type: string; entity_id: string | null; details: Record<string, unknown>; created_at: string };
-  const [operations, setOperations] = useState<{payments:PaymentRow[];payment_counts_recent:Record<string,number>;email_deliveries:EmailRow[];email_counts_recent:Record<string,number>;webhook_events:WebhookRow[];audit_logs:AuditRow[]} | null>(null);
+  type ScanRow = { id: string; scan_result: string; scanned_at: string; device_label: string | null; tickets: { ticket_reference: string; attendees: { full_name: string } | null } | null };
+  type SystemSignals = { active_staff_accounts: number; pending_payments: number; failed_or_bounced_emails: number; recent_ticket_scans: number; denied_entries: number };
+  const [operations, setOperations] = useState<{payments:PaymentRow[];payment_counts_recent:Record<string,number>;email_deliveries:EmailRow[];email_counts_recent:Record<string,number>;webhook_events:WebhookRow[];audit_logs:AuditRow[];ticket_scans:ScanRow[];system_signals:SystemSignals} | null>(null);
   const [operationsLoading, setOperationsLoading] = useState(false);
   const [operationsError, setOperationsError] = useState('');
   const [overview, setOverview] = useState<{metrics:{active_productions:number;upcoming_performances:number;tickets_issued:number;pending_bookings:number;paid_revenue:number};upcoming:{id:string;title:string;starts_at:string;venue_name:string;remaining:number}[];recent_bookings:{booking_reference:string;purchaser_name:string;status:string;total_amount:number;currency:string;created_at:string}[]}|null>(null);
@@ -145,6 +147,7 @@ export default function AdminDashboardPage() {
         <button type="button" className={`sidebar-link ${activeSection === 'overview' ? 'active' : ''}`} onClick={() => setActiveSection('overview')}><span>▦</span> Overview</button>
         <button type="button" className={`sidebar-link ${activeSection === 'payments' ? 'active' : ''}`} onClick={() => setActiveSection('payments')}><span>₱</span> Payment monitoring</button>
         <button type="button" className={`sidebar-link ${activeSection === 'email' ? 'active' : ''}`} onClick={() => setActiveSection('email')}><span>✉</span> Email delivery</button>
+        <button type="button" className={`sidebar-link ${activeSection === 'monitoring' ? 'active' : ''}`} onClick={() => setActiveSection('monitoring')}><span>⌁</span> System monitoring</button>
         <button type="button" className={`sidebar-link ${activeSection === 'staff' ? 'active' : ''}`} onClick={() => setActiveSection('staff')}><span>♙</span> Staff management</button>
         <div className="sidebar-bottom">
           <div className="signed-user"><span className="user-avatar">SA</span><span>{staffName || 'System Admin'}<small>System Admin</small></span></div>
@@ -153,7 +156,7 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="admin-main" id="staff">
-        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
+        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
 
         {notice && <div className={noticeType === 'success' ? 'notice success' : 'notice error'} role="status">{notice}</div>}
 
@@ -198,6 +201,28 @@ export default function AdminDashboardPage() {
               </section>
             </>}
             <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent administrative activity</h2><p className="muted">Audit log entries from the last 30 days.</p></div></div>
+              {operations.audit_logs.length ? operations.audit_logs.map(row => <div className="overview-row" key={row.id}><div><strong>{row.action} · {row.entity_type}</strong><small>{row.entity_id || 'No entity reference'} · {JSON.stringify(row.details || {})}</small></div><span>{new Date(row.created_at).toLocaleString()}</span></div>) : <div className="empty-state">No audit activity recorded in the last 30 days.</div>}
+            </section>
+          </>}
+        </section>}
+
+        {activeSection === 'monitoring' && <section className="admin-overview">
+          <div className="overview-heading"><div><h2>Operational health</h2><p className="muted">Database-backed signals, refreshed on demand. These are not live infrastructure probes.</p></div><button type="button" className="outline-button" disabled={operationsLoading} onClick={() => void loadOperations()}>{operationsLoading ? 'Refreshing…' : 'Refresh monitoring'}</button></div>
+          {operationsLoading && !operations ? <div className="empty-state">Loading system signals…</div> : operationsError ? <div className="notice error" role="alert">{operationsError}</div> : operations && <>
+            <section className="stats">
+              <article className="stat-card"><span>Active staff accounts</span><strong>{operations.system_signals.active_staff_accounts}</strong><small>Enabled staff profiles</small></article>
+              <article className="stat-card"><span>Pending payments</span><strong>{operations.system_signals.pending_payments}</strong><small>Awaiting verification</small></article>
+              <article className="stat-card"><span>Failed / bounced emails</span><strong>{operations.system_signals.failed_or_bounced_emails}</strong><small>Recorded delivery failures</small></article>
+              <article className="stat-card"><span>Recent ticket scans</span><strong>{operations.system_signals.recent_ticket_scans}</strong><small>Latest 20 scan records</small></article>
+              <article className="stat-card"><span>Denied entries</span><strong>{operations.system_signals.denied_entries}</strong><small>Within latest 20 scans</small></article>
+            </section>
+            <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent ticket scan activity</h2><p className="muted">Accepted, denied and other recorded scan outcomes.</p></div></div>
+              {operations.ticket_scans.length ? operations.ticket_scans.map(row => <div className="overview-row" key={row.id}><div><strong>{row.tickets?.attendees?.full_name || 'Attendee unavailable'} · {row.tickets?.ticket_reference || 'Ticket unavailable'}</strong><small>{row.device_label || 'Unlabelled device'}</small></div><span><span className={`status ${row.scan_result === 'accepted' ? 'active' : row.scan_result === 'denied' ? 'inactive' : 'pending'}`}>{row.scan_result}</span> · {new Date(row.scanned_at).toLocaleString()}</span></div>) : <div className="empty-state">No ticket scans recorded yet.</div>}
+            </section>
+            <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent webhook processing</h2><p className="muted">Latest PayMongo events received and recorded.</p></div></div>
+              {operations.webhook_events.length ? operations.webhook_events.map(row => <div className="overview-row" key={row.event_id}><div><strong>{row.event_type}</strong><small>{row.event_id}</small></div><span>{row.livemode ? 'Live mode' : 'Test mode'} · {new Date(row.processed_at).toLocaleString()}</span></div>) : <div className="empty-state">No webhook events recorded.</div>}
+            </section>
+            <section className="panel overview-panel"><div className="panel-heading"><div><h2>Administrative audit trail</h2><p className="muted">Actions recorded during the last 30 days.</p></div></div>
               {operations.audit_logs.length ? operations.audit_logs.map(row => <div className="overview-row" key={row.id}><div><strong>{row.action} · {row.entity_type}</strong><small>{row.entity_id || 'No entity reference'} · {JSON.stringify(row.details || {})}</small></div><span>{new Date(row.created_at).toLocaleString()}</span></div>) : <div className="empty-state">No audit activity recorded in the last 30 days.</div>}
             </section>
           </>}
