@@ -378,7 +378,7 @@ export default function StaffDashboardPage() {
         <footer className="staff-footer">Artist Playground · Internal staff workspace</footer>
       </main>
 
-      <style>{`
+      <style jsx global>{`
         .staff-workspace{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr);background:#090a0c;color:#f4f5f7;font-family:Inter,Arial,sans-serif}
         .staff-sidebar{position:sticky;top:0;height:100vh;min-height:620px;background:#0e1013;border-right:1px solid #252a31;padding:1.35rem 1rem;display:flex;flex-direction:column}
         .staff-menu-toggle{display:none;align-items:center;justify-content:center;width:42px;height:42px;padding:0;border:0;background:transparent;border-radius:8px;color:#e8edf2;cursor:pointer}
