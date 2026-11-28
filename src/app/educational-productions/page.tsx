@@ -15,7 +15,7 @@ const works = [
     description: 'A musical reimagining of the beloved Filipino epic through music, dance, and dramatic storytelling.',
     accent: 'blue',
     poster: ibongAdarnaPoster,
-    synopsis: `Mga Awit ng Ibong Adranal is a captivating theatrical experience that reimagines the beloved Filipino epic through a powerful blend of music, dance, and dramatic storytelling. The production transports the audience to a world of magic and mystery, using innovative stage design, dynamic choreography, and an evocative score to bring the legend to life.
+    synopsis: `Mga Awit ng Ibong Adarna is a captivating theatrical experience that reimagines the beloved Filipino epic through a powerful blend of music, dance, and dramatic storytelling. The production transports the audience to a world of magic and mystery, using innovative stage design, dynamic choreography, and an evocative score to bring the legend to life.
 
 The musical features a rich tapestry of songs that range from haunting ballads to vibrant ensemble numbers, each capturing the emotional depth and grandeur of the tale. The choreography combines traditional Filipino dance forms with contemporary movement, creating visually stunning scenes that reflect the characters’ inner journeys.
 
