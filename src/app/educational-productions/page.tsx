@@ -69,25 +69,8 @@ Ultimately, "Kaming Nangalagas sa Dilim ng Gabi" serves as a thought-provoking e
     accent: 'gold',
     poster: elFiliPoster,
     synopsis: 'El Filibusterismo addresses topics of great importance to the movement, namely clerical abuses, racism against the Philippine people, and the need for political reform. The story began thirteen years after the deaths of Sisa and Elias. Ibarra disguised as Simoun continued plotting his revenge on the government. Secrets are revealed and choices are made that create chaos and havoc to the characters in this novel. How much blood will be spilled and what are the roles of the youth to this day.',
-    themes: 'Revenge, racism against Filipino people, control, abuse of government, and the relativity of truth and goodness.',
-    artisticTeam: [
-      'Andre Tiangco — Director',
-      'Robert Macaraeg — Assistant Director',
-      'Jhuss Hitosis — Costume Designer',
-      'Steffi Cruz — Lighting Designer',
-      'Nico Cabanit — Graphic / Layout Designer',
-      'Jess Briones — Video Projection Design'
-    ],
-    productionTeam: [
-      'Kimberly Claire Somoza — Production Manager',
-      'Princess Tuason — Stage Manager',
-      'Emma Lorena — Assistant Stage Manager',
-      'Glenn Caspe — Technical Director',
-      'Interns from Pamantasan ng Lungsod ng Valenzuela'
-    ],
-
   },
-  { number: '05', title: 'Junto Al Pasig: The Rock, Ballet & Multimedia Zarzuela', category: 'Zarzuela · José Rizal', description: 'Reimagines José Rizal’s 1880 masterpiece as a fusion of rock music, classical ballet, multimedia art, and theater on a single stage.', accent: 'blue', poster: juntoPoster }
+  { number: '05', title: 'Junto Al Pasig: The Rock, Ballet & Multimedia Zarzuela', category: 'Zarzuela · José Rizal', description: 'Reimagines José Rizal’s 1880 masterpiece as a fusion of rock music, classical ballet, multimedia art, and theater on a single stage.', accent: 'blue', poster: juntoPoster, synopsis: 'Junto Al Pasig reimagines José Rizal’s 1880 masterpiece as a fusion of rock music, classical ballet, multimedia art, and theater on a single stage.' }
 ];
 
 type Work = (typeof works)[number];
@@ -151,9 +134,7 @@ export default function EducationalProductionsPage() {
               <h3>Synopsis</h3>
               <p>{'synopsis' in selectedWork && selectedWork.synopsis ? selectedWork.synopsis : selectedWork.description}</p>
             </section>
-            {'themes' in selectedWork && <section className="production-modal-section"><h3>Production themes</h3><p>{selectedWork.themes}</p></section>}
-            {'artisticTeam' in selectedWork && selectedWork.artisticTeam && <section className="production-modal-section"><h3>Artistic team</h3><ul>{selectedWork.artisticTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
-            {'productionTeam' in selectedWork && selectedWork.productionTeam && <section className="production-modal-section"><h3>Production team</h3><ul>{selectedWork.productionTeam.map(member => <li key={member}>{member}</li>)}</ul></section>}
+
           </div>
         </div>
       </section>
