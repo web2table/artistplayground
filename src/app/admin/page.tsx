@@ -46,6 +46,7 @@ export default function AdminDashboardPage() {
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
   const [maintenanceMessage, setMaintenanceMessage] = useState('We are making improvements to our website. We will be back soon. Thank you for your patience!');
   const [maintenanceLoading, setMaintenanceLoading] = useState(false);
+  const [maintenanceError, setMaintenanceError] = useState('');
   const [maintenanceBusy, setMaintenanceBusy] = useState(false);
 
   const loadOverview = useCallback(async () => {
@@ -86,6 +87,7 @@ export default function AdminDashboardPage() {
 
   const loadMaintenance = useCallback(async () => {
     setMaintenanceLoading(true);
+    setMaintenanceError('');
     try {
       const supabase = createSupabaseBrowserClient();
       const { data, error } = await supabase.functions.invoke('maintenance-control', { body: { action: 'status' } });
@@ -93,7 +95,7 @@ export default function AdminDashboardPage() {
       setMaintenanceEnabled(data.enabled === true);
       if (typeof data.message === 'string' && data.message) setMaintenanceMessage(data.message);
     } catch (error) {
-      notify(error instanceof Error ? error.message : 'Unable to load maintenance status.', 'error');
+      setMaintenanceError(error instanceof Error ? error.message : 'Unable to load maintenance status.');
     } finally { setMaintenanceLoading(false); }
   }, []);
 
@@ -318,6 +320,7 @@ export default function AdminDashboardPage() {
         {activeSection === 'maintenance' && <section className="admin-overview">
           <div className="overview-heading"><div><h2>Public website availability</h2><p className="muted">Show the cinematic Artist Playground maintenance page to public visitors.</p></div><button type="button" className="outline-button" disabled={maintenanceLoading} onClick={() => void loadMaintenance()}>{maintenanceLoading ? 'Checking…' : 'Refresh status'}</button></div>
           <section className="panel overview-panel">
+            {maintenanceError && <div className="notice error" role="alert">{maintenanceError}</div>}
             <div className="panel-heading"><div><h2>Maintenance mode</h2><p className="muted">Staff and System Admin workspaces remain accessible when maintenance is enabled.</p></div><span className={'status ' + (maintenanceEnabled ? 'pending' : 'active')}>{maintenanceEnabled ? 'Maintenance enabled' : 'Website online'}</span></div>
             <div className="overview-row"><div><strong>Public website</strong><small>{maintenanceEnabled ? 'Visitors see the maintenance page instead of public pages.' : 'Visitors can browse the public website normally.'}</small></div><span>{maintenanceEnabled ? 'Temporarily unavailable' : 'Available'}</span></div>
             <div className="overview-row"><div><strong>Ticket booking and checkout</strong><small>Checkout is also blocked securely on the server while maintenance is enabled.</small></div><span>{maintenanceEnabled ? 'Blocked' : 'Available'}</span></div>
