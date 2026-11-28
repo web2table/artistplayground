@@ -9,7 +9,23 @@ import juntoPoster from '../../juntoalpasig.jpg';
 
 const works = [
   { number: '01', title: 'Ibong Adarna', category: 'Corrido · Filipino literature', description: 'Follow Prince Juan and his brothers on their quest to capture the magical Adarna bird, through trials of courage, loyalty, betrayal, and forgiveness.', accent: 'blue', poster: ibongAdarnaPoster },
-  { number: '02', title: 'Florante at Laura', category: 'Awit · Filipino literature', description: 'Set in the kingdom of Albania, the poem follows Florante amid betrayal and political turmoil, with themes of love, friendship, injustice, and patriotism.', accent: 'gold', poster: florantePoster },
+  {
+    number: '02',
+    title: 'Florante at Laura',
+    category: 'Awit · Filipino literature',
+    description: 'Set in the kingdom of Albania, the poem follows Florante amid betrayal and political turmoil, with themes of love, friendship, injustice, and patriotism.',
+    accent: 'gold',
+    poster: florantePoster,
+    synopsis: `Florante at Laura is a classic Filipino epic by Francisco Balagtas that tells a powerful story of love, honor, and resilience amid war and betrayal.
+
+Set in the kingdoms of Albania and Persia, the story follows Florante, a brave Albanian warrior, who is betrayed by his fellow countryman Adolfo and left bound and helpless in a dark forest. There, Florante mourns his fate and his deep love for Laura, the daughter of King Linceo of Albania.
+
+Meanwhile, Laura faces her own struggle as Adolfo seizes power and attempts to force her affection. Refusing to surrender her love and principles, Laura escapes the palace, driven by loyalty and courage. Her journey leads her to the same forest where Florante is imprisoned.
+
+Through faith, perseverance, and true love, Florante and Laura are reunited and freed from oppression. Justice is restored as truth prevails over deceit, and rightful leadership returns to the kingdom.
+
+Florante at Laura remains a timeless tale that reflects the Filipino values of katapatan (loyalty), pag-ibig (love), and katarungan (justice), reminding audiences that hope and righteousness endure even in the darkest moments.`
+  },
   { number: '03', title: 'Noli Me Tangere', category: 'Novel · José Rizal', description: 'Crisostomo Ibarra returns to the Philippines and confronts corruption, abuse, and social injustice under colonial rule as he hopes to improve his community.', accent: 'blue', poster: noliPoster },
   {
     number: '04',
