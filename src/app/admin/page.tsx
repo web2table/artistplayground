@@ -23,7 +23,7 @@ export default function AdminDashboardPage() {
   const [inviteBusy, setInviteBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
-  const [activeSection, setActiveSection] = useState<'overview' | 'productions' | 'payments' | 'email' | 'monitoring' | 'security' | 'staff'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'productions' | 'payments' | 'email' | 'monitoring' | 'security' | 'staff' | 'maintenance'>('overview');
   type AdminCategory = { id: string; name: string; price: number; allocation: number; reserved_count: number; sold_count: number; active: boolean };
   type AdminPerformance = { id: string; starts_at: string; venue_name: string; capacity: number; status: string; ticket_categories: AdminCategory[] };
   type AdminProduction = { id: string; slug: string; title: string; description: string | null; status: string; performances: AdminPerformance[] };
@@ -43,6 +43,10 @@ export default function AdminDashboardPage() {
   const [overview, setOverview] = useState<{metrics:{active_productions:number;upcoming_performances:number;tickets_issued:number;pending_bookings:number;paid_revenue:number};upcoming:{id:string;title:string;starts_at:string;venue_name:string;remaining:number}[];recent_bookings:{booking_reference:string;purchaser_name:string;status:string;total_amount:number;currency:string;created_at:string}[]}|null>(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState('');
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState('We are making improvements to our website. We will be back soon. Thank you for your patience!');
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
+  const [maintenanceBusy, setMaintenanceBusy] = useState(false);
 
   const loadOverview = useCallback(async () => {
     setOverviewLoading(true); setOverviewError('');
@@ -80,6 +84,35 @@ export default function AdminDashboardPage() {
     } finally { setOperationsLoading(false); }
   }, []);
 
+  const loadMaintenance = useCallback(async () => {
+    setMaintenanceLoading(true);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('maintenance-control', { body: { action: 'status' } });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to load maintenance status.');
+      setMaintenanceEnabled(data.enabled === true);
+      if (typeof data.message === 'string' && data.message) setMaintenanceMessage(data.message);
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Unable to load maintenance status.', 'error');
+    } finally { setMaintenanceLoading(false); }
+  }, []);
+
+  async function updateMaintenance(enabled: boolean) {
+    setMaintenanceBusy(true);
+    setNotice('');
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase.functions.invoke('maintenance-control', {
+        body: { action: 'update', enabled, message: maintenanceMessage },
+      });
+      if (error || !data?.ok) throw new Error(data?.error || error?.message || 'Unable to update maintenance mode.');
+      setMaintenanceEnabled(data.enabled === true);
+      notify(enabled ? 'Maintenance mode is now enabled. Public visitors will see the maintenance page.' : 'Maintenance mode is disabled. The public website is available again.');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Unable to update maintenance mode.', 'error');
+    } finally { setMaintenanceBusy(false); }
+  }
+
   const notify = (message: string, type: 'success' | 'error' = 'success') => {
     setNotice(message); setNoticeType(type);
   };
@@ -107,7 +140,7 @@ export default function AdminDashboardPage() {
         }
         if (active) {
           setStaffName(profile.display_name || user.email || 'System Admin');
-          await Promise.all([loadStaff(), loadOverview(), loadOperations()]);
+          await Promise.all([loadStaff(), loadOverview(), loadOperations(), loadMaintenance()]);
         }
       } catch (error) {
         if (active) notify(error instanceof Error ? error.message : 'Unable to load the staff workspace.', 'error');
@@ -115,7 +148,7 @@ export default function AdminDashboardPage() {
     }
     void initialize();
     return () => { active = false; };
-  }, [loadStaff, loadOverview, loadOperations]);
+  }, [loadStaff, loadOverview, loadOperations, loadMaintenance]);
 
   async function inviteStaff(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setInviteBusy(true); setNotice('');
@@ -169,6 +202,7 @@ export default function AdminDashboardPage() {
         <button type="button" className={`sidebar-link ${activeSection === 'monitoring' ? 'active' : ''}`} onClick={() => setActiveSection('monitoring')}><span>⌁</span> System monitoring</button>
         <button type="button" className={`sidebar-link ${activeSection === 'security' ? 'active' : ''}`} onClick={() => { setActiveSection('security'); void Promise.all([loadStaff(), loadOperations()]); }}><span>♧</span> Security & access</button>
         <button type="button" className={`sidebar-link ${activeSection === 'staff' ? 'active' : ''}`} onClick={() => setActiveSection('staff')}><span>♙</span> Staff management</button>
+        <button type="button" className={`sidebar-link ${activeSection === 'maintenance' ? 'active' : ''}`} onClick={() => { setActiveSection('maintenance'); void loadMaintenance(); }}><span>☼</span> Maintenance mode</button>
         <div className="sidebar-bottom">
           <div className="signed-user"><span className="user-avatar">SA</span><span>{staffName || 'System Admin'}<small>System Admin</small></span></div>
           <button type="button" className="signout" onClick={signOut}>Sign out</button>
@@ -176,7 +210,7 @@ export default function AdminDashboardPage() {
       </aside>
 
       <main className="admin-main" id="staff">
-        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'productions' ? 'Production management' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : activeSection === 'security' ? 'Security & access' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'productions' ? 'Review productions, scheduled performances and ticket inventory.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : activeSection === 'security' ? 'Review account access, administrator assignments and recorded access changes.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
+        <header className="page-top"><div><p className="eyebrow">SYSTEM ADMINISTRATION</p><h1>{activeSection === 'overview' ? 'Overview' : activeSection === 'productions' ? 'Production management' : activeSection === 'payments' ? 'Payment monitoring' : activeSection === 'email' ? 'Email delivery' : activeSection === 'monitoring' ? 'System monitoring' : activeSection === 'security' ? 'Security & access' : activeSection === 'maintenance' ? 'Maintenance mode' : 'Staff management'}</h1><p className="muted">{activeSection === 'overview' ? 'Monitor ticketing operations across Artist Playground.' : activeSection === 'productions' ? 'Review productions, scheduled performances and ticket inventory.' : activeSection === 'payments' ? 'Review PayMongo and cash payment records and webhook activity.' : activeSection === 'email' ? 'Monitor ticket email delivery attempts and failures.' : activeSection === 'monitoring' ? 'Review operational signals, ticket scans and recent administrative activity.' : activeSection === 'security' ? 'Review account access, administrator assignments and recorded access changes.' : activeSection === 'maintenance' ? 'Temporarily take the public website and ticket booking offline while keeping staff access available.' : 'Manage staff access and invitations for Artist Playground.'}</p></div><span className="admin-chip">SYSTEM ADMIN</span></header>
 
         {notice && <div className={noticeType === 'success' ? 'notice success' : 'notice error'} role="status">{notice}</div>}
 
@@ -278,6 +312,23 @@ export default function AdminDashboardPage() {
           </section>
           <section className="panel overview-panel"><div className="panel-heading"><div><h2>Recent access-related audit events</h2><p className="muted">Audit records from the last 30 days. Only events actually written to the audit log appear here.</p></div></div>
             {operationsLoading && !operations ? <div className="empty-state">Loading audit events…</div> : operationsError ? <div className="notice error" role="alert">{operationsError}</div> : operations && operations.audit_logs.filter(row => /staff|role|access|admin|invitation|account/i.test(row.action + ' ' + row.entity_type)).length ? operations.audit_logs.filter(row => /staff|role|access|admin|invitation|account/i.test(row.action + ' ' + row.entity_type)).map(row => <div className="overview-row" key={row.id}><div><strong>{row.action} · {row.entity_type}</strong><small>{row.entity_id || 'No entity reference'} · {JSON.stringify(row.details || {})}</small></div><span>{new Date(row.created_at).toLocaleString()}</span></div>) : <div className="empty-state">No access-related audit events found in the available 30-day audit window.</div>}
+          </section>
+        </section>}
+
+        {activeSection === 'maintenance' && <section className="admin-overview">
+          <div className="overview-heading"><div><h2>Public website availability</h2><p className="muted">Show the cinematic Artist Playground maintenance page to public visitors.</p></div><button type="button" className="outline-button" disabled={maintenanceLoading} onClick={() => void loadMaintenance()}>{maintenanceLoading ? 'Checking…' : 'Refresh status'}</button></div>
+          <section className="panel overview-panel">
+            <div className="panel-heading"><div><h2>Maintenance mode</h2><p className="muted">Staff and System Admin workspaces remain accessible when maintenance is enabled.</p></div><span className={'status ' + (maintenanceEnabled ? 'pending' : 'active')}>{maintenanceEnabled ? 'Maintenance enabled' : 'Website online'}</span></div>
+            <div className="overview-row"><div><strong>Public website</strong><small>{maintenanceEnabled ? 'Visitors see the maintenance page instead of public pages.' : 'Visitors can browse the public website normally.'}</small></div><span>{maintenanceEnabled ? 'Temporarily unavailable' : 'Available'}</span></div>
+            <div className="overview-row"><div><strong>Ticket booking and checkout</strong><small>Checkout is also blocked securely on the server while maintenance is enabled.</small></div><span>{maintenanceEnabled ? 'Blocked' : 'Available'}</span></div>
+            <div className="overview-row"><div><strong>Staff and System Admin</strong><small>Existing staff operations and administrator access are not disabled.</small></div><span>Always accessible</span></div>
+            <label htmlFor="maintenance-message" style={{display:'block',marginTop:'1.2rem',fontSize:'.75rem',color:'#cbd1d9'}}>Visitor message</label>
+            <textarea id="maintenance-message" value={maintenanceMessage} maxLength={300} onChange={event => setMaintenanceMessage(event.target.value)} rows={3} style={{boxSizing:'border-box',width:'100%',marginTop:'.5rem',padding:'.8rem',resize:'vertical',background:'#0b0e12',border:'1px solid #343b45',borderRadius:7,color:'#f4f6f8',font:'inherit',fontSize:'.8rem'}} />
+            <div style={{display:'flex',gap:'.7rem',flexWrap:'wrap',marginTop:'1rem'}}>
+              <button type="button" className="primary-button" disabled={maintenanceBusy || maintenanceLoading || maintenanceEnabled} onClick={() => void updateMaintenance(true)}>{maintenanceBusy ? 'Saving…' : 'Enable maintenance mode'}</button>
+              <button type="button" className="outline-button" disabled={maintenanceBusy || maintenanceLoading || !maintenanceEnabled} onClick={() => void updateMaintenance(false)}>{maintenanceBusy ? 'Saving…' : 'Disable maintenance mode'}</button>
+            </div>
+            <p className="table-note">Enabling maintenance affects public website visitors and blocks new ticket checkout attempts. It does not cancel existing bookings or payments already in progress.</p>
           </section>
         </section>}
 
