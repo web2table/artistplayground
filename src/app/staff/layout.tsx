@@ -9,6 +9,7 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
   const pathname = usePathname();
   const [displayName, setDisplayName] = useState('Staff member');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeHash, setActiveHash] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -32,6 +33,13 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
+  useEffect(() => {
+    const syncHash = () => setActiveHash(window.location.hash || '');
+    syncHash();
+    window.addEventListener('hashchange', syncHash);
+    return () => window.removeEventListener('hashchange', syncHash);
+  }, []);
+
   async function signOut() {
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
@@ -40,13 +48,13 @@ export default function StaffLayout({ children }: Readonly<{ children: React.Rea
 
   const isOverview = pathname.endsWith('/staff') || pathname.endsWith('/staff/');
   const links = [
-    { label: 'Overview', href: appPath('/staff/#overview'), icon: '⌂', active: isOverview },
+    { label: 'Overview', href: appPath('/staff/#overview'), icon: '⌂', active: isOverview && (!activeHash || activeHash === '#overview') },
     { label: 'Productions', href: appPath('/staff/productions/'), icon: '▣', active: pathname.includes('/staff/productions') },
     { label: 'Events', href: appPath('/staff/events/'), icon: '▤', active: pathname.includes('/staff/events') },
-    { label: 'Refunds', href: appPath('/staff/#refunds'), icon: '↺', active: isOverview && typeof window !== 'undefined' && window.location.hash === '#refunds' },
-    { label: 'Ticket scanner', href: appPath('/staff/#scanner'), icon: '▦', active: isOverview && typeof window !== 'undefined' && window.location.hash === '#scanner' },
-    { label: 'Box office', href: appPath('/staff/#box-office'), icon: '＋', active: isOverview && typeof window !== 'undefined' && window.location.hash === '#box-office' },
-    { label: 'Reports', href: appPath('/staff/#reports'), icon: '▥', active: isOverview && typeof window !== 'undefined' && window.location.hash === '#reports' },
+    { label: 'Refunds', href: appPath('/staff/#refunds'), icon: '↺', active: isOverview && activeHash === '#refunds' },
+    { label: 'Ticket scanner', href: appPath('/staff/#scanner'), icon: '▦', active: isOverview && activeHash === '#scanner' },
+    { label: 'Box office', href: appPath('/staff/#box-office'), icon: '＋', active: isOverview && activeHash === '#box-office' },
+    { label: 'Reports', href: appPath('/staff/#reports'), icon: '▥', active: isOverview && activeHash === '#reports' },
   ];
 
   return (
